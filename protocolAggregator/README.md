@@ -1,29 +1,18 @@
-# README #
+## Conclave Sample
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This is a simple app using the Conclave API. It is licensed under the Apache 2 license, and therefore you may 
+copy/paste it to act as the basis of your own commercial or open source apps.
 
-### What is this repository for? ###
+# How to run
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+Start the host on a Linux system, which will build the enclave and host:
 
-### How do I get set up? ###
+```
+./gradlew host:run
+```
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+It should print out some info about the started enclave. Then you can use the client to send it strings to reverse:
 
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+```
+./gradlew client:run --args="reverse me!"
+```
