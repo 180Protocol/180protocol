@@ -5,31 +5,46 @@ import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.mail.Curve25519PrivateKey;
 import com.r3.conclave.mail.EnclaveMail;
 import com.r3.conclave.mail.PostOffice;
+import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Client {
     public static void main(String[] args) throws Exception {
-        // This is the client that will upload secrets to the enclave for processing.
-        //
-        // In this simple hello world app, we just connect to a TCP socket, take the EnclaveInstanceInfo we're sent
-        // and transmit an encrypted string. The enclave will reverse it and send it back. You can use this sample
-        // as a basis for your own apps.
 
         if (args.length == 0) {
             System.err.println("Please pass the string to reverse on the command line using --args=\"String to Reverse\"");
             return;
         }
-        String toReverse = String.join(" ", args[0]);
-        Integer clientPort = Integer.parseInt(args[1]);
+
+        File aggregateFile = new File("../../../schema/aggregate.avsc");
+        Schema aggregateSchema = new Schema.Parser().parse(aggregateFile);
+
+        File provenanceFile = new File("../../../schema/provenance.avsc");
+
+        //create generic records using avro schema for aggregation and append to file
+        ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregateSchema);
+        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregateSchema, records);
 
         // Connect to the host, it will send us a remote attestation (EnclaveInstanceInfo).
+        Integer clientPort = Integer.parseInt(args[1]);
         DataInputStream fromHost;
         DataOutputStream toHost;
         while (true) {
@@ -76,24 +91,72 @@ public class Client {
         //
         // In this example it doesn't matter as we only send one mail with a random key, but in general it is very
         // important to use the same post office instance when encrypting mail with the same topic and private key.
-        PostOffice postOffice = attestation.createPostOffice(myKey, "reverse");
-
-        byte[] encryptedMail = postOffice.encryptMail(toReverse.getBytes(StandardCharsets.UTF_8));
+        PostOffice postOffice = attestation.createPostOffice(myKey, "aggregate");
+        byte[] encryptedMail;
+        if(args[0].equals("sendAggregateFile")){
+            encryptedMail = postOffice.encryptMail(Files.readAllBytes(aggregateFile.toPath()));
+        }
+        else if(args[0].equals("sendProvenanceFile")){
+            encryptedMail = postOffice.encryptMail(Files.readAllBytes(provenanceFile.toPath()));
+        }
+        else{
+            encryptedMail = postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath()));
+        }
 
         System.out.println("Sending the encrypted mail to the host.");
 
         toHost.writeInt(encryptedMail.length);
         toHost.write(encryptedMail);
 
-        // Enclave will mail us back.
-        byte[] encryptedReply = new byte[fromHost.readInt()];
-        System.out.println("Reading reply mail of length " + encryptedReply.length + " bytes.");
-        fromHost.readFully(encryptedReply);
-        // The same post office will decrypt the response.
-        EnclaveMail reply = postOffice.decryptMail(encryptedReply);
-        System.out.println("Enclave reversed '" + toReverse + "' and gave us the answer '" + new String(reply.getBodyAsBytes()) + "'");
-
+        // Enclave will mail us back except in the case of sending the aggregate schema file.
+        if(!args[0].equals("sendAggregateFile")){
+            byte[] encryptedReply = new byte[fromHost.readInt()];
+            System.out.println("Reading reply mail of length " + encryptedReply.length + " bytes.");
+            fromHost.readFully(encryptedReply);
+            // The same post office will decrypt the response.
+            EnclaveMail reply = postOffice.decryptMail(encryptedReply);
+            System.out.println("Enclave reply: '" + new String(reply.getBodyAsBytes()) + "'");
+        }
         toHost.close();
         fromHost.close();
+    }
+
+    private static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){
+        ArrayList<GenericRecord> genericRecords = new ArrayList<>();
+        for(int i=0;i<2;i++){
+            genericRecords.add(generateRandomDemandRecord(schema));
+        }
+        return genericRecords;
+    }
+
+    private static GenericRecord generateRandomDemandRecord(Schema schema){
+        String[] creditRatings = {"A", "AA", "AAA", "B", "C"};
+        String[] sectors = {"FINANCIALS", "INDUSTRIALS", "IT", "INFRASTRUCTURE", "ENERGY"};
+        String[] assetTypes = {"B", "PP", "L"};
+        String[] duration = {"1", "2", "3", "4", "5"};
+        GenericRecord demandRecord = new GenericData.Record(schema);
+        Random randomizer = new Random();
+        demandRecord.put("creditRating", creditRatings[randomizer.nextInt(creditRatings.length)]);
+        demandRecord.put("sector", sectors[randomizer.nextInt(sectors.length)]);
+        demandRecord.put("assetType", assetTypes[randomizer.nextInt(assetTypes.length)]);
+        demandRecord.put("duration", duration[randomizer.nextInt(duration.length)]);
+        demandRecord.put("amount", ThreadLocalRandom.current().nextInt(1000000, 1000000000 + 1));
+        return demandRecord;
+    }
+
+    private static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords) throws IOException {
+        File file = new File("../../../schema/aggregate.avro");
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
+        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
+        dataFileWriter.create(schema, file);
+        genericRecords.forEach(genericRecord -> {
+            try {
+                dataFileWriter.append(genericRecord);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        dataFileWriter.close();
+        return file;
     }
 }

@@ -2,13 +2,27 @@ package com.r3.conclave.sample.enclave;
 
 import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
+import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DatumWriter;
 import org.apache.commons.lang3.SerializationUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.security.PublicKey;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Simply reverses the bytes that are passed in.
@@ -34,69 +48,174 @@ public class AggregationEnclave extends Enclave {
         return builder.toString();
     }
 
-    protected String aggregate() {
-        StringBuilder aggregatedString = new StringBuilder();
-        System.out.println("Mails to Process" + mailsToProcess.toString());
-        mailsToProcess.values().forEach( s -> aggregatedString.append(s).append(" "));
-        mailsToProcess.forEach((publicKey, s) -> provenanceResult.put(publicKey, (double) (s.length()/aggregatedString.length())));
-        return aggregatedString.toString();
+    private void convertEncryptedClientDataToRawData(){
+        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateSchema);
+        clientToEncryptedDataMap.entrySet().forEach(entry ->
+            {
+                try {
+                    File dataFile = new File("dataFile");
+                    Files.write(dataFile.toPath(), entry.getValue());
+                    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
+                    ArrayList<GenericRecord> recordsForClient = new ArrayList<>();
+                    GenericRecord dataRecord = null;
+                    while (dataFileReader.hasNext()) {
+                        dataRecord = dataFileReader.next(dataRecord);
+                        System.out.println(dataRecord);
+                        recordsForClient.add(dataRecord);
+                    }
+                    clientToRawDataMap.put(entry.getKey(), recordsForClient);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        );
+    }
+
+    private int calculateProvenanceAllocation(ArrayList<GenericRecord> records){
+        ArrayList<Integer> allocationScores = new ArrayList<>();
+        Map<String, Integer> creditRatings = Stream.of(
+                new AbstractMap.SimpleEntry<>("A", 1),
+                new AbstractMap.SimpleEntry<>("AA", 2),
+                new AbstractMap.SimpleEntry<>("AAA", 3),
+                new AbstractMap.SimpleEntry<>("B", 1),
+                new AbstractMap.SimpleEntry<>("C", 0)
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Integer> sectors = Stream.of(
+                new AbstractMap.SimpleEntry<>("FINANCIALS", 1),
+                new AbstractMap.SimpleEntry<>("INDUSTRIALS", 2),
+                new AbstractMap.SimpleEntry<>("IT", 3),
+                new AbstractMap.SimpleEntry<>("INFRASTRUCTURE", 1),
+                new AbstractMap.SimpleEntry<>("ENERGY", 5)
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Integer> assetTypes = Stream.of(
+                new AbstractMap.SimpleEntry<>("B", 3),
+                new AbstractMap.SimpleEntry<>("PP", 2),
+                new AbstractMap.SimpleEntry<>("L", 1)
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Integer> durations = Stream.of(
+                new AbstractMap.SimpleEntry<>("1", 1),
+                new AbstractMap.SimpleEntry<>("2", 2),
+                new AbstractMap.SimpleEntry<>("3", 3),
+                new AbstractMap.SimpleEntry<>("4", 4),
+                new AbstractMap.SimpleEntry<>("5", 5)
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        records.forEach(record -> {
+            allocationScores.add( (creditRatings.get(record.get("creditRating")) + sectors.get(record.get("sector")) +
+                    assetTypes.get(record.get("assetType")) + durations.get(record.get("duration"))) );
+        });
+        return allocationScores.stream().mapToInt(a -> a).sum();
+    }
+
+    protected File createProvenanceDataOutput() throws IOException{
+        //populate provenance output file here based on raw client data
+
+        File file = new File("provenanceOutput.avro");
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceSchema);
+        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
+        dataFileWriter.create(provenanceSchema, file);
+
+        clientToRawDataMap.entrySet().forEach(entry -> {
+            GenericRecord provenanceRecord = new GenericData.Record(provenanceSchema);
+            provenanceRecord.put("client", entry.getKey().toString());
+            provenanceRecord.put("allocation", calculateProvenanceAllocation(entry.getValue()));
+            try {
+                dataFileWriter.append(provenanceRecord);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        dataFileWriter.close();
+        return file;
+    }
+
+    protected File createAggregateDataOutput() throws IOException{
+        //populate aggregate logic here based on raw client data and return output file
+        System.out.println("Client Data to Process" + clientToEncryptedDataMap.toString());
+        convertEncryptedClientDataToRawData();
+
+        ArrayList<GenericRecord> allRecords = new ArrayList<>();
+        clientToRawDataMap.values().forEach(genericRecords -> allRecords.addAll(genericRecords));
+
+        File file = new File("aggregateOutput.avro");
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(aggregateSchema);
+        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
+        dataFileWriter.create(aggregateSchema, file);
+
+
+        //simple aggregation of records into one file
+        //other possibilities include creating a output with a specified schema
+        allRecords.forEach(genericRecord -> {
+            try {
+                dataFileWriter.append(genericRecord);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        dataFileWriter.close();
+        return file;
     }
 
     protected void initializeLocalStore(){
-        mailsToProcess = new HashMap();
-        provenanceResult = new HashMap();
+        clientToEncryptedDataMap = new HashMap();
+        clientToRawDataMap = new HashMap();
     }
 
     protected void clearLocalStore(){
-        mailsToProcess = null;
-        provenanceResult = null;
+        clientToEncryptedDataMap = null;
+        clientToRawDataMap = null;
     }
 
-    protected void putMailInMailToProcess(PublicKey sender, String stringToMap){
-        mailsToProcess.put(sender, stringToMap);
+    protected void putUnencryptedMailToClient(PublicKey sender, byte[] mailBytes){
+        clientToEncryptedDataMap.put(sender, mailBytes);
     }
 
     @Override
     protected void receiveMail(long id, EnclaveMail mail, String routingHint) {
-        // This is used when the host delivers a message from the client.
-        // First, decode mail body as a String.
-        final String stringToReverse = new String(mail.getBodyAsBytes());
+        final byte[] unencryptedMail = mail.getBodyAsBytes();
         final PublicKey sender = mail.getAuthenticatedSender();
         if (sender == null)
             throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
-        //enclave acknowledges mail or routes to host based on routingHint from host
         try {
-            if (routingHint.equals("self")) {
+
+            if(routingHint.equals("schema")){
+                // read and store input schema
+                File aggregateSchemaFile = new File("aggregateSchemaFile");
+                Files.write(aggregateSchemaFile.toPath(), unencryptedMail);
+                aggregateSchema = new Schema.Parser().parse(aggregateSchemaFile);
+                acknowledgeMail(id);
+            }
+            else if (routingHint.equals("self")) {
                 //store mail contents for aggregation
                 System.out.println("Ack Mail");
-                if(mailsToProcess == null && provenanceResult == null){
+                if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
                     initializeLocalStore();
                 }
-                putMailInMailToProcess(sender, stringToReverse);
+                putUnencryptedMailToClient(sender, unencryptedMail);
                 acknowledgeMail(id);
             } else if (routingHint.equals("consumer")) {
                 //send aggregation output to consumer
                 System.out.println("Aggregate Mail");
-                //retrieve all processedMails in this chain and aggregate
-                putMailInMailToProcess(sender, stringToReverse);
-                String aggregateOutput = aggregate();
-                // Reverse it and re-encode to UTF-8 to send back.
-                final byte[] reversedEncodedString = reverse(aggregateOutput).getBytes();
-                // Check the client that sent the mail set things up so we can reply.
-                // Get the post office object for responding back to this mail and use it to encrypt our response.
-                final byte[] responseBytes = postOffice(mail).encryptMail(reversedEncodedString);
+                putUnencryptedMailToClient(sender, unencryptedMail);
+
+                //create aggregate output
+                File aggregateOutput = createAggregateDataOutput();
+                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
                 postMail(responseBytes, routingHint);
             } else if (routingHint.equals("provenance")) {
                 //send provenance result to required party
-                // Convert Map to byte array
                 System.out.println("Provenance Mail");
-                /*ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-                ObjectOutputStream out = new ObjectOutputStream(byteOut);
-                out.writeObject(provenanceResult);
-                byte[] byteOut = provenanceResult.toString().getBytes();
-                */
-                byte[] byteOut = SerializationUtils.serialize(provenanceResult);
-                postMail(byteOut, routingHint);
+
+                // Read and store provenance schema
+                File provenanceSchemaFile = new File("provenanceSchemaFile");
+                Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
+                provenanceSchema = new Schema.Parser().parse(provenanceSchemaFile);
+
+                //create provenance output
+                File provenanceOutput = createProvenanceDataOutput();
+                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
+                postMail(responseBytes, routingHint);
                 clearLocalStore();
             }
         }
@@ -105,6 +224,8 @@ public class AggregationEnclave extends Enclave {
         }
     }
 
-    HashMap<PublicKey, Double> provenanceResult;
-    HashMap<PublicKey, String> mailsToProcess;
+    HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
+    HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
+    Schema aggregateSchema;
+    Schema provenanceSchema;
 }

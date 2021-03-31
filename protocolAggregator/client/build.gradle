@@ -9,4 +9,5 @@ application {
 
 dependencies {
     implementation "com.r3.conclave:conclave-client:$conclaveVersion"
+    compile 'org.apache.avro:avro:1.10.2'
 }
