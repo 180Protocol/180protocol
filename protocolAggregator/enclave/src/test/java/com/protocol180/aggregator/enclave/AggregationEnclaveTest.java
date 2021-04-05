@@ -1,4 +1,4 @@
-package com.r3.conclave.sample.enclave;
+package com.protocol180.aggregator.enclave;
 
 import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.host.EnclaveLoadException;
@@ -8,7 +8,10 @@ import com.r3.conclave.mail.PostOffice;
 import com.r3.conclave.testing.MockHost;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests the enclave fully in-memory in a mock environment.
  */
 public class AggregationEnclaveTest {
+
+    MockClientUtil mockClientUtil = new MockClientUtil();
+
     @Test
     void reverseNumber() throws EnclaveLoadException {
         MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
@@ -34,6 +40,31 @@ public class AggregationEnclaveTest {
     }
 
     @Test
+    void testSchemaMail() throws EnclaveLoadException, IOException {
+        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
+        mockHost.start(null, (commands) -> {
+            for (MailCommand command : commands) {
+                if (command instanceof MailCommand.AcknowledgeMail) {
+                    System.out.println("Ack Mail Command");
+                    //acknowledge mail and store locally? wait for all clients to process and aggregate
+                }
+            }
+        });
+
+        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+
+        byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo());
+        System.out.println("Encrypted client mail with schema: " + aggregationSchema);
+        mockHost.deliverMail(0, aggregationSchema, "schema");
+
+        System.out.println("Aggregate Schema in Enclave: " + aggregationEnclave.aggregateSchema);
+
+        assertNotNull(aggregationEnclave.aggregateSchema);
+        assertEquals(5, aggregationEnclave.aggregateSchema.getFields().size());
+    }
+
+
+    /*@Test
     void testSelfMail() throws EnclaveLoadException {
         MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
         mockHost.start(null, (commands) -> {
@@ -51,10 +82,10 @@ public class AggregationEnclaveTest {
         System.out.println("Encrypted client mail: " + mailBytes1);
         mockHost.deliverMail(1, mailBytes1, "self");
 
-        System.out.println("Mails to Process: " + aggregationEnclave.mailsToProcess);
+        System.out.println("Mails to Process: " + aggregationEnclave.clientToEncryptedDataMap);
 
-        assertNotNull(aggregationEnclave.mailsToProcess);
-        assertEquals(1, aggregationEnclave.mailsToProcess.size());
+        assertNotNull(aggregationEnclave.clientToEncryptedDataMap);
+        assertEquals(1, aggregationEnclave.clientToEncryptedDataMap.size());
     }
 
     @Test
@@ -93,13 +124,11 @@ public class AggregationEnclaveTest {
         System.out.println("Encrypted client mail 2: " + mailBytes2);
         mockHost.deliverMail(2, mailBytes2, "consumer");
 
-        System.out.println("Mails to Process: " + aggregationEnclave.mailsToProcess);
-        System.out.println("Provenance Result: " + aggregationEnclave.mailsToProcess);
+        System.out.println("Mails to Process: " + aggregationEnclave.clientToEncryptedDataMap);
+        System.out.println("Provenance Result: " + aggregationEnclave.clientToEncryptedDataMap);
 
-        assertNotNull(aggregationEnclave.mailsToProcess);
-        assertEquals(2, aggregationEnclave.mailsToProcess.size());
-        assertNotNull(aggregationEnclave.provenanceResult);
-        assertEquals(2, aggregationEnclave.provenanceResult.size());
+        assertNotNull(aggregationEnclave.clientToEncryptedDataMap);
+        assertEquals(2, aggregationEnclave.clientToEncryptedDataMap.size());
         assertEquals(routingHintReply.toString(), "consumer");
     }
 
@@ -146,24 +175,24 @@ public class AggregationEnclaveTest {
         mockHost.deliverMail(2, mailBytes2, "consumer");
         assertEquals(routingHintReply.toString(), "consumer");
 
-        assertNotNull(aggregationEnclave.mailsToProcess);
-        assertEquals(2, aggregationEnclave.mailsToProcess.size());
-        assertNotNull(aggregationEnclave.provenanceResult);
-        assertEquals(2, aggregationEnclave.provenanceResult.size());
+        assertNotNull(aggregationEnclave.clientToEncryptedDataMap);
+        assertEquals(2, aggregationEnclave.clientToEncryptedDataMap.size());
 
         byte[] mailBytes3 = createEncryptedClientMail(mockHost.getEnclaveInstanceInfo());
         System.out.println("Encrypted client mail 3: " + mailBytes3);
         mockHost.deliverMail(3, mailBytes3, "provenance");
         assertEquals(routingHintReply.toString(), "provenance");
 
-        assertNull(aggregationEnclave.mailsToProcess);
-        assertNull(aggregationEnclave.provenanceResult);
+        assertNull(aggregationEnclave.clientToEncryptedDataMap);
     }
+
+
+     */
 
     byte[] createEncryptedClientMail(EnclaveInstanceInfo attestation){
         String toReverse = "Complicated String";
         PrivateKey myKey = Curve25519PrivateKey.random();
-        PostOffice postOffice = attestation.createPostOffice(myKey, "reverse");
+        PostOffice postOffice = attestation.createPostOffice(myKey, "aggregate");
         return postOffice.encryptMail(toReverse.getBytes(StandardCharsets.UTF_8));
     }
 }

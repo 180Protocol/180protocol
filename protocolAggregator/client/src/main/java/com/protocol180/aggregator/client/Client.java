@@ -1,4 +1,4 @@
-package com.r3.conclave.sample.client;
+package com.protocol180.aggregator.client;
 
 import com.r3.conclave.client.EnclaveConstraint;
 import com.r3.conclave.common.EnclaveInstanceInfo;
@@ -34,10 +34,10 @@ public class Client {
             return;
         }
 
-        File aggregateFile = new File("../../../schema/aggregate.avsc");
+        File aggregateFile = new File("src/main/resources/aggregate.avsc");
         Schema aggregateSchema = new Schema.Parser().parse(aggregateFile);
 
-        File provenanceFile = new File("../../../schema/provenance.avsc");
+        File provenanceFile = new File("src/main/resources/provenance.avsc");
 
         //create generic records using avro schema for aggregation and append to file
         ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregateSchema);

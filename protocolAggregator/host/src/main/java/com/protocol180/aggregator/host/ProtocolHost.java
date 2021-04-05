@@ -1,4 +1,4 @@
-package com.r3.conclave.sample.host;
+package com.protocol180.aggregator.host;
 
 import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.host.*;
@@ -134,17 +134,17 @@ public class ProtocolHost {
 
         //host is responsible for managing the state of the aggregation by delivering mail with the right contents and routing hint
         System.out.println("Sending Mail 1 to Enclave");
-        enclave.deliverMail(1, mailBytes1, "schema");
+        enclave.deliverMail(0, mailBytes1, "schema");
         System.out.println("Sending Mail 2 to Enclave");
-        enclave.deliverMail(2, mailBytes2, "self");
+        enclave.deliverMail(1, mailBytes2, "self");
         System.out.println("Sending Mail 3 to Enclave");
-        enclave.deliverMail(3, mailBytes3, "consumer");
+        enclave.deliverMail(2, mailBytes3, "consumer");
 
         //once all clients are acknowledged ask enclave for provenance mail
         System.out.println("Acknowledged mails: " + acknowledgedMailIds.toString());
         if(acknowledgedMailIds.size()  == totalAggregationClients){
             System.out.println("Sending Provenance Mail to Enclave");
-            enclave.deliverMail(4, mailBytes4, "provenance");
+            enclave.deliverMail(3, mailBytes4, "provenance");
         }
         // Closing the output stream closes the connection. Different clients will block each other but this
         // is just a hello world sample.

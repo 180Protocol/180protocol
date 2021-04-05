@@ -1,4 +1,4 @@
-package com.r3.conclave.sample.host;
+package com.protocol180.aggregator.host;
 
 import com.r3.conclave.host.AttestationParameters;
 import com.r3.conclave.host.EnclaveHost;

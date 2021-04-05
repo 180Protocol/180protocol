@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClassName = "com.r3.conclave.sample.client.Client"
+    mainClassName = "protocol180.aggregator.client.Client"
 }
 
 dependencies {

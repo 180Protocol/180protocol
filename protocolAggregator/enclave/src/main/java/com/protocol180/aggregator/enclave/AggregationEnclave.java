@@ -1,4 +1,4 @@
-package com.r3.conclave.sample.enclave;
+package com.protocol180.aggregator.enclave;
 
 import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
@@ -72,6 +72,7 @@ public class AggregationEnclave extends Enclave {
     }
 
     private int calculateProvenanceAllocation(ArrayList<GenericRecord> records){
+        //calculations for provenance allocation on fixed income demand data
         ArrayList<Integer> allocationScores = new ArrayList<>();
         Map<String, Integer> creditRatings = Stream.of(
                 new AbstractMap.SimpleEntry<>("A", 1),
@@ -101,19 +102,19 @@ public class AggregationEnclave extends Enclave {
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         records.forEach(record -> {
-            allocationScores.add( (creditRatings.get(record.get("creditRating")) + sectors.get(record.get("sector")) +
-                    assetTypes.get(record.get("assetType")) + durations.get(record.get("duration"))) );
+            Integer amount = (Integer) record.get("amount");
+            allocationScores.add((creditRatings.get(record.get("creditRating")) + sectors.get(record.get("sector")) +
+                    assetTypes.get(record.get("assetType")) + durations.get(record.get("duration"))) + amount/1000000);
         });
         return allocationScores.stream().mapToInt(a -> a).sum();
     }
 
     protected File createProvenanceDataOutput() throws IOException{
         //populate provenance output file here based on raw client data
-
-        File file = new File("provenanceOutput.avro");
+        File outputFile = new File("provenanceOutput.avro");
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceSchema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(provenanceSchema, file);
+        dataFileWriter.create(provenanceSchema, outputFile);
 
         clientToRawDataMap.entrySet().forEach(entry -> {
             GenericRecord provenanceRecord = new GenericData.Record(provenanceSchema);
@@ -127,7 +128,7 @@ public class AggregationEnclave extends Enclave {
         });
 
         dataFileWriter.close();
-        return file;
+        return outputFile;
     }
 
     protected File createAggregateDataOutput() throws IOException{
@@ -138,10 +139,10 @@ public class AggregationEnclave extends Enclave {
         ArrayList<GenericRecord> allRecords = new ArrayList<>();
         clientToRawDataMap.values().forEach(genericRecords -> allRecords.addAll(genericRecords));
 
-        File file = new File("aggregateOutput.avro");
+        File outputFile = new File("aggregateOutput.avro");
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(aggregateSchema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(aggregateSchema, file);
+        dataFileWriter.create(aggregateSchema, outputFile);
 
 
         //simple aggregation of records into one file
@@ -154,7 +155,7 @@ public class AggregationEnclave extends Enclave {
             }
         });
         dataFileWriter.close();
-        return file;
+        return outputFile;
     }
 
     protected void initializeLocalStore(){
@@ -180,7 +181,7 @@ public class AggregationEnclave extends Enclave {
         try {
 
             if(routingHint.equals("schema")){
-                // read and store input schema
+                //Read and store data input schema
                 File aggregateSchemaFile = new File("aggregateSchemaFile");
                 Files.write(aggregateSchemaFile.toPath(), unencryptedMail);
                 aggregateSchema = new Schema.Parser().parse(aggregateSchemaFile);
@@ -224,6 +225,7 @@ public class AggregationEnclave extends Enclave {
         }
     }
 
+    //Local store
     HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
     HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
     Schema aggregateSchema;
