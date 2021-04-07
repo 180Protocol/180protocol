@@ -12,39 +12,45 @@ import org.apache.avro.io.DatumWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MockClientUtil {
 
+    MockClientUtil(){
+        postOfficeMap = new HashMap<>();
+    }
+
+    static HashMap<PostOfficeMapKey, PostOffice> postOfficeMap;
+    static String topic = "aggregate";
+
     byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         File aggregateFile = new File("src/test/resources/aggregate.avsc");
-        PostOffice postOffice = attestation.createPostOffice(myKey, "aggregate");
+        PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         return postOffice.encryptMail(Files.readAllBytes(aggregateFile.toPath()));
     }
 
-    byte[] createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
+    PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         File aggregateFile = new File("src/test/resources/aggregate.avsc");
         Schema aggregateSchema = new Schema.Parser().parse(aggregateFile);
         //create generic records using avro schema for aggregation and append to file
         ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregateSchema);
         File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregateSchema, records);
-        PostOffice postOffice = attestation.createPostOffice(myKey, "aggregate");
-        return postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath()));
+        PostOffice postOffice = attestation.createPostOffice(myKey, topic);
+        postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getDataSigningKey(), topic), postOffice);
+        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath())));
     }
 
     byte[] createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         File provenanceFile = new File("src/test/resources/provenance.avsc");
-        PostOffice postOffice = attestation.createPostOffice(myKey, "aggregate");
+        PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         return postOffice.encryptMail(Files.readAllBytes(provenanceFile.toPath()));
     }
 
