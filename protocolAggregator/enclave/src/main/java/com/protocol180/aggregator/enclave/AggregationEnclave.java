@@ -57,18 +57,19 @@ public class AggregationEnclave extends Enclave {
                     Files.write(dataFile.toPath(), entry.getValue());
                     DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
                     ArrayList<GenericRecord> recordsForClient = new ArrayList<>();
-                    GenericRecord dataRecord = null;
                     while (dataFileReader.hasNext()) {
+                        GenericRecord dataRecord = null;
                         dataRecord = dataFileReader.next(dataRecord);
-                        System.out.println(dataRecord);
                         recordsForClient.add(dataRecord);
                     }
+                    System.out.println("Raw Records for client: " + recordsForClient);
                     clientToRawDataMap.put(entry.getKey(), recordsForClient);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         );
+        System.out.println("Raw Client Data to Process: " + clientToRawDataMap.toString());
     }
 
     private int calculateProvenanceAllocation(ArrayList<GenericRecord> records){
@@ -103,8 +104,8 @@ public class AggregationEnclave extends Enclave {
 
         records.forEach(record -> {
             Integer amount = (Integer) record.get("amount");
-            allocationScores.add((creditRatings.get(record.get("creditRating")) + sectors.get(record.get("sector")) +
-                    assetTypes.get(record.get("assetType")) + durations.get(record.get("duration"))) + amount/1000000);
+            allocationScores.add((creditRatings.get(record.get("creditRating").toString()) + sectors.get(record.get("sector").toString()) +
+                    assetTypes.get(record.get("assetType").toString()) + durations.get(record.get("duration").toString())) + amount/1000000);
         });
         return allocationScores.stream().mapToInt(a -> a).sum();
     }
@@ -133,7 +134,7 @@ public class AggregationEnclave extends Enclave {
 
     protected File createAggregateDataOutput() throws IOException{
         //populate aggregate logic here based on raw client data and return output file
-        System.out.println("Client Data to Process" + clientToEncryptedDataMap.toString());
+        System.out.println("Encrypted Client Data to Process: " + clientToEncryptedDataMap.toString());
         convertEncryptedClientDataToRawData();
 
         ArrayList<GenericRecord> allRecords = new ArrayList<>();
