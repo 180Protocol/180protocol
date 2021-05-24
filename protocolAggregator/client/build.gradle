@@ -1,28 +1,14 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.0-M2'
 }
 
 application {
-    mainClassName = "protocol180.aggregator.client.Client"
+    mainClassName = "com.protocol180.aggregator.client.Client"
 }
 
 dependencies {
+    api project(":aggregator-commons")
     implementation "com.r3.conclave:conclave-client:$conclaveVersion"
     compile 'org.apache.avro:avro:1.10.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
-repositories {
-    mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }

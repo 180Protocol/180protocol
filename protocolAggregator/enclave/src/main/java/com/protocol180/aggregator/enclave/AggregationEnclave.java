@@ -11,16 +11,17 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
-import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.PublicKey;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -182,10 +183,15 @@ public class AggregationEnclave extends Enclave {
         try {
 
             if(routingHint.equals("schema")){
-                //Read and store data input schema
-                File aggregateSchemaFile = new File("aggregateSchemaFile");
-                Files.write(aggregateSchemaFile.toPath(), unencryptedMail);
-                aggregateSchema = new Schema.Parser().parse(aggregateSchemaFile);
+                //Read and store data input schema file
+                //File aggregateSchemaFile = new File("aggregateSchemaFile");
+                Path aggregateSchemaFilePath = Paths.get("aggregateSchemaFile");
+                //Path aggregateSchemaFile = Files.createFile(aggregateSchemaFilePath);
+                SeekableByteChannel sbc = Files.newByteChannel(aggregateSchemaFilePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.READ, StandardOpenOption.WRITE);
+                sbc.write(ByteBuffer.wrap(unencryptedMail));
+                sbc.close();
+                //Files.write(aggregateSchemaFile, unencryptedMail);
+                aggregateSchema = new Schema.Parser().parse(aggregateSchemaFilePath.toFile());
                 acknowledgeMail(id);
             }
             else if (routingHint.equals("self")) {
@@ -200,7 +206,6 @@ public class AggregationEnclave extends Enclave {
                 //send aggregation output to consumer
                 System.out.println("Aggregate Mail");
                 putUnencryptedMailToClient(sender, unencryptedMail);
-
                 //create aggregate output
                 File aggregateOutput = createAggregateDataOutput();
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
@@ -208,12 +213,10 @@ public class AggregationEnclave extends Enclave {
             } else if (routingHint.equals("provenance")) {
                 //send provenance result to required party
                 System.out.println("Provenance Mail");
-
                 // Read and store provenance schema
                 File provenanceSchemaFile = new File("provenanceSchemaFile");
                 Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
                 provenanceSchema = new Schema.Parser().parse(provenanceSchemaFile);
-
                 //create provenance output
                 File provenanceOutput = createProvenanceDataOutput();
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));

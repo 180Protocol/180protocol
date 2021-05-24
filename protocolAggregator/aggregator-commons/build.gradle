@@ -1,0 +1,11 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation "com.r3.conclave:conclave-client:$conclaveVersion"
+    implementation 'org.jetbrains:annotations:19.0.0'
+    testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
+    compile 'org.apache.commons:commons-lang3:3.5'
+    compile 'org.apache.avro:avro:1.10.2'
+}

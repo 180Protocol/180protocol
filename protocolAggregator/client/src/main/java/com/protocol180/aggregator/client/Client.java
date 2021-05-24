@@ -1,5 +1,6 @@
 package com.protocol180.aggregator.client;
 
+import com.protocol180.aggregator.commons.MockClientUtil;
 import com.r3.conclave.client.EnclaveConstraint;
 import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.mail.Curve25519PrivateKey;
@@ -28,20 +29,20 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Client {
     public static void main(String[] args) throws Exception {
-
         if (args.length == 0) {
             System.err.println("Please pass the string to reverse on the command line using --args=\"String to Reverse\"");
             return;
         }
 
+        MockClientUtil mockClientUtil = new MockClientUtil();
         File aggregateFile = new File("src/main/resources/aggregate.avsc");
         Schema aggregateSchema = new Schema.Parser().parse(aggregateFile);
 
         File provenanceFile = new File("src/main/resources/provenance.avsc");
 
         //create generic records using avro schema for aggregation and append to file
-        ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregateSchema);
-        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregateSchema, records);
+        ArrayList<GenericRecord> records = mockClientUtil.createGenericSchemaRecords(aggregateSchema);
+        File dataFileForAggregation = mockClientUtil.createAvroDataFileFromGenericRecords(aggregateSchema, records);
 
         // Connect to the host, it will send us a remote attestation (EnclaveInstanceInfo).
         Integer clientPort = Integer.parseInt(args[1]);
@@ -121,42 +122,4 @@ public class Client {
         fromHost.close();
     }
 
-    private static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){
-        ArrayList<GenericRecord> genericRecords = new ArrayList<>();
-        for(int i=0;i<2;i++){
-            genericRecords.add(generateRandomDemandRecord(schema));
-        }
-        return genericRecords;
-    }
-
-    private static GenericRecord generateRandomDemandRecord(Schema schema){
-        String[] creditRatings = {"A", "AA", "AAA", "B", "C"};
-        String[] sectors = {"FINANCIALS", "INDUSTRIALS", "IT", "INFRASTRUCTURE", "ENERGY"};
-        String[] assetTypes = {"B", "PP", "L"};
-        String[] duration = {"1", "2", "3", "4", "5"};
-        GenericRecord demandRecord = new GenericData.Record(schema);
-        Random randomizer = new Random();
-        demandRecord.put("creditRating", creditRatings[randomizer.nextInt(creditRatings.length)]);
-        demandRecord.put("sector", sectors[randomizer.nextInt(sectors.length)]);
-        demandRecord.put("assetType", assetTypes[randomizer.nextInt(assetTypes.length)]);
-        demandRecord.put("duration", duration[randomizer.nextInt(duration.length)]);
-        demandRecord.put("amount", ThreadLocalRandom.current().nextInt(1000000, 1000000000 + 1));
-        return demandRecord;
-    }
-
-    private static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords) throws IOException {
-        File file = new File("../../../schema/aggregate.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
-        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(schema, file);
-        genericRecords.forEach(genericRecord -> {
-            try {
-                dataFileWriter.append(genericRecord);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        dataFileWriter.close();
-        return file;
-    }
 }

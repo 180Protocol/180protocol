@@ -1,23 +1,21 @@
 plugins {
     id 'com.r3.conclave.enclave'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
 }
 
 dependencies {
+    api project(":aggregator-commons")
     implementation "com.r3.conclave:conclave-enclave"
     implementation 'org.jetbrains:annotations:19.0.0'
     testImplementation "com.r3.conclave:conclave-testing"
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
     compile 'org.apache.commons:commons-lang3:3.5'
     compile 'org.apache.avro:avro:1.10.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation "org.jetbrains.kotlin:kotlin-reflect"
 }
 
 conclave {
+    runtime=graalvm_native_image
     productID = 1
     revocationLevel = 0
-
     simulation {
         signingType = privateKey
         signingKey = file("../signing/sample_private_key.pem")
@@ -43,18 +41,5 @@ conclave {
         signatureDate = new Date(1970, 0, 1)
         mrsignerSignature = file("../signing/signature.bin")
         mrsignerPublicKey = file("../signing/external_signing_public.pem")
-    }
-}
-repositories {
-    mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 }

@@ -1,5 +1,7 @@
 package com.protocol180.aggregator.enclave;
 
+import com.protocol180.aggregator.commons.PostOfficeMapKey;
+import com.protocol180.aggregator.commons.PrivateKeyAndEncryptedBytes;
 import com.r3.conclave.host.EnclaveLoadException;
 import com.r3.conclave.host.MailCommand;
 import com.r3.conclave.mail.EnclaveMail;
@@ -10,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import com.protocol180.aggregator.commons.MockClientUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -65,7 +65,7 @@ public class ProtocolHost {
         DataOutputStream output4 = new DataOutputStream(connection4.getOutputStream());
 
 
-        String className = "com.r3.conclave.sample.enclave.AggregationEnclave";
+        String className = "com.protocol180.aggregator.enclave.AggregationEnclave";
         EnclaveHost enclave = EnclaveHost.load(className);
 
         ArrayList<Long> acknowledgedMailIds = new ArrayList<>();

@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.enclave;
+package com.protocol180.aggregator.commons;
 
 import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.mail.Curve25519PrivateKey;
@@ -24,14 +24,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MockClientUtil {
 
-    MockClientUtil(){
+    public MockClientUtil(){
         postOfficeMap = new HashMap<>();
         aggregationSchema = initializeSchema("aggregate");
         provenanceSchema = initializeSchema("provenance");
     }
 
-    static HashMap<PostOfficeMapKey, PostOffice> postOfficeMap;
-    static String topic = "aggregate";
+    public static HashMap<PostOfficeMapKey, PostOffice> postOfficeMap;
+    public static String topic = "aggregate";
     static Schema aggregationSchema;
     static Schema provenanceSchema;
 
@@ -47,14 +47,14 @@ public class MockClientUtil {
         return  schema;
     }
 
-    byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
+    public byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         File aggregateFile = new File("src/test/resources/aggregate.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         return postOffice.encryptMail(Files.readAllBytes(aggregateFile.toPath()));
     }
 
-    PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
+    public PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         //create generic records using avro schema for aggregation and append to file
         ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregationSchema);
@@ -64,7 +64,7 @@ public class MockClientUtil {
         return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath())));
     }
 
-    ArrayList<GenericRecord> readGenericRecordsFromOutputBytesAndSchema(byte[] outputBytes, String schema) throws IOException {
+    public ArrayList<GenericRecord> readGenericRecordsFromOutputBytesAndSchema(byte[] outputBytes, String schema) throws IOException {
         DatumReader<GenericRecord> datumReader = (schema.equals("aggregate")) ? new GenericDatumReader<>(aggregationSchema) :
                 new GenericDatumReader<>(provenanceSchema);
         File dataFile = new File("dataFile");
@@ -80,7 +80,7 @@ public class MockClientUtil {
         return genericRecords;
     }
 
-    PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
+    public PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         File provenanceFile = new File("src/test/resources/provenance.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
@@ -88,7 +88,7 @@ public class MockClientUtil {
         return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(provenanceFile.toPath())));
     }
 
-    private static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){
+    public static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){
         ArrayList<GenericRecord> genericRecords = new ArrayList<>();
         for(int i=0;i<2;i++){
             genericRecords.add(generateRandomDemandRecord(schema));
@@ -96,7 +96,7 @@ public class MockClientUtil {
         return genericRecords;
     }
 
-    private static GenericRecord generateRandomDemandRecord(Schema schema){
+    public static GenericRecord generateRandomDemandRecord(Schema schema){
         String[] creditRatings = {"A", "AA", "AAA", "B", "C"};
         String[] sectors = {"FINANCIALS", "INDUSTRIALS", "IT", "INFRASTRUCTURE", "ENERGY"};
         String[] assetTypes = {"B", "PP", "L"};
@@ -111,7 +111,7 @@ public class MockClientUtil {
         return demandRecord;
     }
 
-    private static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords) throws IOException {
+    public static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords) throws IOException {
         File file = new File("src/test/resources/aggregate.avro");
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);

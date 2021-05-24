@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.enclave
+package com.protocol180.aggregator.commons
 
 import java.security.PrivateKey
 import java.security.PublicKey
