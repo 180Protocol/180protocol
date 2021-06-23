@@ -36,10 +36,10 @@ public class MockClientUtil {
     static Schema provenanceSchema;
 
     public Schema initializeSchema(String schemaType){
-        File schemaFile = (schemaType.equals("aggregate"))? new File("src/test/resources/aggregate.avsc"):new File("src/test/resources/provenance.avsc");
+        File schemaFile = new File("src/test/resources/envelope.avsc");
         Schema schema;
         try{
-            schema = new Schema.Parser().parse(schemaFile);
+            schema = new Schema.Parser().parse(schemaFile).getField(schemaType).schema();
         }
         catch (Exception e){
             schema = null;
@@ -49,9 +49,9 @@ public class MockClientUtil {
 
     public byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
-        File aggregateFile = new File("src/test/resources/aggregate.avsc");
+//        File aggregateFile = new File("src/test/resources/aggregate.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
-        return postOffice.encryptMail(Files.readAllBytes(aggregateFile.toPath()));
+        return postOffice.encryptMail(aggregationSchema.toString().getBytes());
     }
 
     public PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
@@ -82,10 +82,10 @@ public class MockClientUtil {
 
     public PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
-        File provenanceFile = new File("src/test/resources/provenance.avsc");
+//        File provenanceFile = new File("src/test/resources/provenance.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
-        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(provenanceFile.toPath())));
+        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(provenanceSchema.toString().getBytes()));
     }
 
     public static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){

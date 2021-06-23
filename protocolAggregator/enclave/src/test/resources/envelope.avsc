@@ -1,0 +1,32 @@
+{
+  "namespace": "com.180protocol",
+  "type": "record",
+  "name": "Envelope",
+  "fields": [
+    {
+        "name": "aggregate",
+        "type": {
+                    "type" : "record",
+                    "name" : "Aggregate",
+                    "fields": [
+                        {"name": "creditRating", "type": "string"},
+                        {"name": "sector", "type": "string"},
+                        {"name": "assetType", "type": "string"},
+                        {"name": "duration", "type": "string"},
+                        {"name": "amount",  "type": ["null", "int"]}
+                      ]
+                }
+    },
+    {
+            "name": "provenance",
+            "type": {
+                        "type" : "record",
+                        "name" : "Provenance",
+                        "fields": [
+                            {"name": "client", "type": "string"},
+                            {"name": "allocation", "type": "int"}
+                        ]
+                    }
+        }
+  ]
+}
