@@ -26,20 +26,24 @@ public class MockClientUtil {
 
     public MockClientUtil(){
         postOfficeMap = new HashMap<>();
-        aggregationSchema = initializeSchema("aggregate");
-        provenanceSchema = initializeSchema("provenance");
+        envelopeSchema= initializeSchema();
+        aggregationInputSchema = envelopeSchema.getField("aggregateInput").schema();
+        aggregationOutputSchema =envelopeSchema.getField("aggregateOutput").schema();
+        provenanceOutputSchema = envelopeSchema.getField("provenanceOutput").schema();
     }
 
     public static HashMap<PostOfficeMapKey, PostOffice> postOfficeMap;
     public static String topic = "aggregate";
-    static Schema aggregationSchema;
-    static Schema provenanceSchema;
+    static Schema envelopeSchema;
+    static Schema aggregationInputSchema;
+    static Schema aggregationOutputSchema;
+    static Schema provenanceOutputSchema;
 
-    public Schema initializeSchema(String schemaType){
+    public Schema initializeSchema(){
         File schemaFile = new File("src/test/resources/envelope.avsc");
         Schema schema;
         try{
-            schema = new Schema.Parser().parse(schemaFile).getField(schemaType).schema();
+            schema = new Schema.Parser().parse(schemaFile);
         }
         catch (Exception e){
             schema = null;
@@ -49,24 +53,23 @@ public class MockClientUtil {
 
     public byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
-//        File aggregateFile = new File("src/test/resources/aggregate.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
-        return postOffice.encryptMail(aggregationSchema.toString().getBytes());
+        return postOffice.encryptMail(envelopeSchema.toString().getBytes());
     }
 
     public PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
         //create generic records using avro schema for aggregation and append to file
-        ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregationSchema);
-        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregationSchema, records);
+        ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregationInputSchema);
+        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregationInputSchema, records);
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
         return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath())));
     }
 
     public ArrayList<GenericRecord> readGenericRecordsFromOutputBytesAndSchema(byte[] outputBytes, String schema) throws IOException {
-        DatumReader<GenericRecord> datumReader = (schema.equals("aggregate")) ? new GenericDatumReader<>(aggregationSchema) :
-                new GenericDatumReader<>(provenanceSchema);
+        DatumReader<GenericRecord> datumReader = (schema.equals("aggregate")) ? new GenericDatumReader<>(aggregationInputSchema) :
+                new GenericDatumReader<>(provenanceOutputSchema);
         File dataFile = new File("dataFile");
         Files.write(dataFile.toPath(), outputBytes);
         DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
@@ -82,10 +85,9 @@ public class MockClientUtil {
 
     public PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
         PrivateKey myKey = Curve25519PrivateKey.random();
-//        File provenanceFile = new File("src/test/resources/provenance.avsc");
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
         postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
-        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(provenanceSchema.toString().getBytes()));
+        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(provenanceOutputSchema.toString().getBytes()));
     }
 
     public static ArrayList<GenericRecord> createGenericSchemaRecords(Schema schema){

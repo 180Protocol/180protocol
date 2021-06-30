@@ -4,10 +4,10 @@
   "name": "Envelope",
   "fields": [
     {
-        "name": "aggregate",
+        "name": "aggregateInput",
         "type": {
                     "type" : "record",
-                    "name" : "Aggregate",
+                    "name" : "AggregateInput",
                     "fields": [
                         {"name": "creditRating", "type": "string"},
                         {"name": "sector", "type": "string"},
@@ -18,7 +18,21 @@
                 }
     },
     {
-            "name": "provenance",
+            "name": "aggregateOutput",
+            "type": {
+                        "type" : "record",
+                        "name" : "AggregateOutput",
+                        "fields": [
+                            {"name": "creditRating", "type": "string"},
+                            {"name": "sector", "type": "string"},
+                            {"name": "assetType", "type": "string"},
+                            {"name": "duration", "type": "string"},
+                            {"name": "amount",  "type": ["null", "int"]}
+                          ]
+                    }
+        },
+    {
+            "name": "provenanceOutput",
             "type": {
                         "type" : "record",
                         "name" : "Provenance",

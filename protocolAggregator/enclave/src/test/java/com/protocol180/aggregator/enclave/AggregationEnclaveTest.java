@@ -62,10 +62,14 @@ public class AggregationEnclaveTest {
         System.out.println("Encrypted client mail with schema: " + aggregationSchema);
         mockHost.deliverMail(0, aggregationSchema, "schema");
 
-        System.out.println("Aggregate Schema in Enclave: " + aggregationEnclave.aggregateSchema);
-
-        assertNotNull(aggregationEnclave.aggregateSchema);
-        assertEquals(5, aggregationEnclave.aggregateSchema.getFields().size());
+        System.out.println("Aggregate Input Schema in Enclave: " + aggregationEnclave.aggregateInputSchema);
+        System.out.println("Aggregate output Schema in Enclave: " + aggregationEnclave.aggregateInputSchema);
+        assertNotNull(aggregationEnclave.aggregateInputSchema);
+        assertNotNull(aggregationEnclave.aggregateOutputSchema);
+        assertNotNull(aggregationEnclave.provenanceOutputSchema);
+        assertEquals(5, aggregationEnclave.aggregateInputSchema.getFields().size());
+        assertEquals(5, aggregationEnclave.aggregateOutputSchema.getFields().size());
+        assertEquals(2, aggregationEnclave.provenanceOutputSchema.getFields().size());
     }
 
     @Test

@@ -50,7 +50,7 @@ public class AggregationEnclave extends Enclave {
     }
 
     private void convertEncryptedClientDataToRawData(){
-        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateSchema);
+        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateInputSchema);
         clientToEncryptedDataMap.entrySet().forEach(entry ->
             {
                 try {
@@ -114,12 +114,12 @@ public class AggregationEnclave extends Enclave {
     protected File createProvenanceDataOutput() throws IOException{
         //populate provenance output file here based on raw client data
         File outputFile = new File("provenanceOutput.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceSchema);
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceOutputSchema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(provenanceSchema, outputFile);
+        dataFileWriter.create(provenanceOutputSchema, outputFile);
 
         clientToRawDataMap.entrySet().forEach(entry -> {
-            GenericRecord provenanceRecord = new GenericData.Record(provenanceSchema);
+            GenericRecord provenanceRecord = new GenericData.Record(provenanceOutputSchema);
             provenanceRecord.put("client", entry.getKey().toString());
             provenanceRecord.put("allocation", calculateProvenanceAllocation(entry.getValue()));
             try {
@@ -142,9 +142,9 @@ public class AggregationEnclave extends Enclave {
         clientToRawDataMap.values().forEach(genericRecords -> allRecords.addAll(genericRecords));
 
         File outputFile = new File("aggregateOutput.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(aggregateSchema);
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(aggregateOutputSchema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(aggregateSchema, outputFile);
+        dataFileWriter.create(aggregateOutputSchema, outputFile);
 
 
         //simple aggregation of records into one file
@@ -184,14 +184,16 @@ public class AggregationEnclave extends Enclave {
 
             if(routingHint.equals("schema")){
                 //Read and store data input schema file
-                //File aggregateSchemaFile = new File("aggregateSchemaFile");
-                Path aggregateSchemaFilePath = Paths.get("aggregateSchemaFile");
-                //Path aggregateSchemaFile = Files.createFile(aggregateSchemaFilePath);
+                Path aggregateSchemaFilePath = Paths.get("envelopeSchema");
                 SeekableByteChannel sbc = Files.newByteChannel(aggregateSchemaFilePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.READ, StandardOpenOption.WRITE);
                 sbc.write(ByteBuffer.wrap(unencryptedMail));
                 sbc.close();
-                //Files.write(aggregateSchemaFile, unencryptedMail);
-                aggregateSchema = new Schema.Parser().parse(aggregateSchemaFilePath.toFile());
+
+                Schema envelopSchema= new Schema.Parser().parse(new String(unencryptedMail));
+                aggregateInputSchema = envelopSchema.getField("aggregateInput").schema();
+                aggregateOutputSchema= envelopSchema.getField("aggregateOutput").schema();
+                provenanceOutputSchema= envelopSchema.getField("provenanceOutput").schema();
+
                 acknowledgeMail(id);
             }
             else if (routingHint.equals("self")) {
@@ -216,7 +218,7 @@ public class AggregationEnclave extends Enclave {
                 // Read and store provenance schema
                 File provenanceSchemaFile = new File("provenanceSchemaFile");
                 Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
-                provenanceSchema = new Schema.Parser().parse(provenanceSchemaFile);
+                provenanceOutputSchema = new Schema.Parser().parse(provenanceSchemaFile);
                 //create provenance output
                 File provenanceOutput = createProvenanceDataOutput();
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
@@ -232,6 +234,7 @@ public class AggregationEnclave extends Enclave {
     //Local store
     HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
     HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
-    Schema aggregateSchema;
-    Schema provenanceSchema;
+    Schema aggregateInputSchema;
+    Schema aggregateOutputSchema;
+    Schema provenanceOutputSchema;
 }
