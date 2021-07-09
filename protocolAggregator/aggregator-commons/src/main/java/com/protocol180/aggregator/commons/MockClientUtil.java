@@ -17,9 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MockClientUtil {
@@ -30,6 +28,7 @@ public class MockClientUtil {
         aggregationInputSchema = envelopeSchema.getField("aggregateInput").schema();
         aggregationOutputSchema =envelopeSchema.getField("aggregateOutput").schema();
         provenanceOutputSchema = envelopeSchema.getField("provenanceOutput").schema();
+        identitySchema = envelopeSchema.getField("identity").schema();
     }
 
     public static HashMap<PostOfficeMapKey, PostOffice> postOfficeMap;
@@ -38,6 +37,7 @@ public class MockClientUtil {
     static Schema aggregationInputSchema;
     static Schema aggregationOutputSchema;
     static Schema provenanceOutputSchema;
+    static Schema identitySchema;
 
     public Schema initializeSchema(){
         File schemaFile = new File("src/test/resources/envelope.avsc");
@@ -51,20 +51,54 @@ public class MockClientUtil {
         return  schema;
     }
 
-    public byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation) throws IOException {
-        PrivateKey myKey = Curve25519PrivateKey.random();
+    public byte[] createEncryptedClientMailForAggregationSchema(EnclaveInstanceInfo attestation, Curve25519PrivateKey clientKey) throws IOException {
+        PrivateKey myKey= clientKey;
         PostOffice postOffice = attestation.createPostOffice(myKey, topic);
+        postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
         return postOffice.encryptMail(envelopeSchema.toString().getBytes());
     }
 
-    public PrivateKeyAndEncryptedBytes createEncryptedClientMailForAggregationData(EnclaveInstanceInfo attestation) throws IOException {
-        PrivateKey myKey = Curve25519PrivateKey.random();
+    public byte[] createEncryptedClientMailForIdentities(EnclaveInstanceInfo attestation, Curve25519PrivateKey client, Map<Curve25519PrivateKey, String> clients) throws IOException {
+        PrivateKey myKey=client;
+        ArrayList<GenericRecord> genericRecords = new ArrayList<>();
+        for (Map.Entry<Curve25519PrivateKey,String> clientEntry : clients.entrySet()){
+            GenericRecord demandRecord = new GenericData.Record(identitySchema);
+            demandRecord.put("publicKey", Base64.getEncoder().encodeToString(clientEntry.getKey().getPublicKey().getEncoded()));
+            demandRecord.put("clientType",clientEntry.getValue());
+            genericRecords.add(demandRecord);
+        }
+
+        File clientIdentitiesFile = createAvroDataFileFromGenericRecords(identitySchema, genericRecords, "identities.avro");
+        PostOffice postOffice = postOfficeMap.get(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic));
+        if(postOffice==null){
+            postOffice=attestation.createPostOffice(myKey, topic);
+            postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+        }
+        return postOffice.encryptMail(Files.readAllBytes(clientIdentitiesFile.toPath()));
+    }
+
+
+    public PrivateKeyAndEncryptedBytes createEncryptedProviderMailForAggregationData(EnclaveInstanceInfo attestation, Curve25519PrivateKey providerKey) throws IOException {
+        PrivateKey myKey= providerKey;
         //create generic records using avro schema for aggregation and append to file
         ArrayList<GenericRecord> records = createGenericSchemaRecords(aggregationInputSchema);
-        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregationInputSchema, records);
-        PostOffice postOffice = attestation.createPostOffice(myKey, topic);
-        postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+        File dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregationInputSchema, records,"aggregate.avro");
+        PostOffice postOffice = postOfficeMap.get(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic));
+        if(postOffice==null){
+            postOffice=attestation.createPostOffice(myKey, topic);
+            postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+        }
         return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(Files.readAllBytes(dataFileForAggregation.toPath())));
+    }
+
+    public PrivateKeyAndEncryptedBytes createEncryptedConsumerMailForAggregationData(EnclaveInstanceInfo attestation, Curve25519PrivateKey consumerKey) throws IOException {
+        PrivateKey myKey= consumerKey;
+        PostOffice postOffice = postOfficeMap.get(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic));
+        if(postOffice==null){
+            postOffice=attestation.createPostOffice(myKey, topic);
+            postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+        }
+        return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail("Temporary String".getBytes()));
     }
 
     public ArrayList<GenericRecord> readGenericRecordsFromOutputBytesAndSchema(byte[] outputBytes, String schema) throws IOException {
@@ -83,10 +117,13 @@ public class MockClientUtil {
         return genericRecords;
     }
 
-    public PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceSchema(EnclaveInstanceInfo attestation) throws IOException {
-        PrivateKey myKey = Curve25519PrivateKey.random();
-        PostOffice postOffice = attestation.createPostOffice(myKey, topic);
-        postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+    public PrivateKeyAndEncryptedBytes createEncryptedClientMailForProvenanceData(EnclaveInstanceInfo attestation, Curve25519PrivateKey provenanceKey) throws IOException {
+        PrivateKey myKey= provenanceKey;
+        PostOffice postOffice = postOfficeMap.get(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic));
+        if(postOffice==null){
+            postOffice=attestation.createPostOffice(myKey, topic);
+            postOfficeMap.put(new PostOfficeMapKey(myKey, attestation.getEncryptionKey(), topic), postOffice);
+        }
         return new PrivateKeyAndEncryptedBytes(myKey, postOffice.encryptMail(provenanceOutputSchema.toString().getBytes()));
     }
 
@@ -113,8 +150,8 @@ public class MockClientUtil {
         return demandRecord;
     }
 
-    public static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords) throws IOException {
-        File file = new File("src/test/resources/aggregate.avro");
+    public static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords, String filename) throws IOException {
+        File file = new File("src/test/resources/"+filename);
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
         dataFileWriter.create(schema, file);

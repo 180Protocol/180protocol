@@ -1,5 +1,6 @@
 package com.protocol180.aggregator.enclave;
 
+import com.protocol180.aggregator.commons.Utility;
 import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
 import org.apache.avro.Schema;
@@ -31,6 +32,7 @@ import java.util.stream.Stream;
 public class AggregationEnclave extends Enclave {
     // We store the previous result to showcase that the enclave internals can be examined in a mock test.
     byte[] previousResult;
+    String clientTypeForCurrRequest=null;
 
     //not needed - used for demonstration of comms with host
     @Override
@@ -174,10 +176,22 @@ public class AggregationEnclave extends Enclave {
         clientToEncryptedDataMap.put(sender, mailBytes);
     }
 
+    private void initializeLocalClientIdentityStore(){
+        localClientStore= new HashMap<>();
+//        localClientStore.add(null);
+
+
+    }
+
     @Override
     protected void receiveMail(long id, EnclaveMail mail, String routingHint) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
         final PublicKey sender = mail.getAuthenticatedSender();
+        final String senderKey= Base64.getEncoder().encodeToString(sender.getEncoded());
+        System.out.println(Base64.getEncoder().encodeToString(sender.getEncoded()));
+//        if(localClientStore==null){
+//            createLocalClientIdentityStore();
+//        }
         if (sender == null)
             throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
         try {
@@ -193,48 +207,122 @@ public class AggregationEnclave extends Enclave {
                 aggregateInputSchema = envelopSchema.getField("aggregateInput").schema();
                 aggregateOutputSchema= envelopSchema.getField("aggregateOutput").schema();
                 provenanceOutputSchema= envelopSchema.getField("provenanceOutput").schema();
+                identitySchema= envelopSchema.getField("identity").schema();
 
                 acknowledgeMail(id);
             }
-            else if (routingHint.equals("self")) {
-                //store mail contents for aggregation
+            else if (routingHint.equals("identity")) {
+                //store provided identities into enclave
                 System.out.println("Ack Mail");
-                if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
-                    initializeLocalStore();
+                if(localClientStore == null){
+                    initializeLocalClientIdentityStore();
                 }
-                putUnencryptedMailToClient(sender, unencryptedMail);
+
+                convertIdentitiesToRawIdentities(unencryptedMail);
                 acknowledgeMail(id);
-            } else if (routingHint.equals("consumer")) {
-                //send aggregation output to consumer
-                System.out.println("Aggregate Mail");
-                putUnencryptedMailToClient(sender, unencryptedMail);
-                //create aggregate output
-                File aggregateOutput = createAggregateDataOutput();
-                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
-                postMail(responseBytes, routingHint);
-            } else if (routingHint.equals("provenance")) {
-                //send provenance result to required party
-                System.out.println("Provenance Mail");
-                // Read and store provenance schema
-                File provenanceSchemaFile = new File("provenanceSchemaFile");
-                Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
-                provenanceOutputSchema = new Schema.Parser().parse(provenanceSchemaFile);
-                //create provenance output
-                File provenanceOutput = createProvenanceDataOutput();
-                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
-                postMail(responseBytes, routingHint);
-                clearLocalStore();
             }
+            else if(routingHint.equals("client") && localClientStore.containsKey(senderKey)){
+                String clientType= localClientStore.get(senderKey);
+
+                if(clientType.equals(Utility.CLIENT_PROVIDER)){
+                    clientTypeForCurrRequest=Utility.CLIENT_PROVIDER;
+                    //store mail contents for aggregation
+                    System.out.println("Ack Mail for provider");
+                    if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
+                        initializeLocalStore();
+                    }
+                    putUnencryptedMailToClient(sender, unencryptedMail);
+                    System.out.println(clientToEncryptedDataMap.size());
+
+                    acknowledgeMail(id);
+                }
+                else if(clientType.equals(Utility.CLIENT_CONSUMER)){
+                    clientTypeForCurrRequest=Utility.CLIENT_CONSUMER;
+                    //send aggregation output to consumer
+                    System.out.println("Aggregate Data request Mail from consumer");
+//                    putUnencryptedMailToClient(sender, unencryptedMail);
+                    //create aggregate output
+                    File aggregateOutput = createAggregateDataOutput();
+                    final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
+                    postMail(responseBytes, routingHint);
+
+                }
+                else if(clientType.equals(Utility.CLIENT_PROVENANCE)){
+                    clientTypeForCurrRequest=Utility.CLIENT_PROVENANCE;
+                    //send provenance result to required party
+                    System.out.println("Provenance Mail");
+                    //create provenance output
+                    File provenanceOutput = createProvenanceDataOutput();
+                    final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
+                    postMail(responseBytes, routingHint);
+                    clearLocalStore();
+
+                }
+                else {
+                    clientTypeForCurrRequest=null;
+                    System.out.println("Unauthenticated client request");
+                }
+
+            }
+//            else if (routingHint.equals("provider")) {
+//                //store mail contents for aggregation
+//                System.out.println("Ack Mail");
+//                if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
+//                    initializeLocalStore();
+//                }
+//                putUnencryptedMailToClient(sender, unencryptedMail);
+//                acknowledgeMail(id);
+//            } else if (routingHint.equals("consumer")) {
+//                //send aggregation output to consumer
+//                System.out.println("Aggregate Mail");
+////                putUnencryptedMailToClient(sender, unencryptedMail);
+//                //create aggregate output
+//                File aggregateOutput = createAggregateDataOutput();
+//                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
+//                postMail(responseBytes, routingHint);
+//            } else if (routingHint.equals("provenance")) {
+//                //send provenance result to required party
+//                System.out.println("Provenance Mail");
+//                // Read and store provenance schema
+//                File provenanceSchemaFile = new File("provenanceSchemaFile");
+//                Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
+//                provenanceOutputSchema = new Schema.Parser().parse(provenanceSchemaFile);
+//                //create provenance output
+//                File provenanceOutput = createProvenanceDataOutput();
+//                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
+//                postMail(responseBytes, routingHint);
+//                clearLocalStore();
+//            }
         }
         catch (Exception e){
             e.printStackTrace();
         }
     }
 
+    private void convertIdentitiesToRawIdentities(byte[] unencryptedMail) {
+        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(identitySchema);
+        try {
+            File dataFile = new File("identityFile");
+            Files.write(dataFile.toPath(), unencryptedMail);
+            DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
+            while (dataFileReader.hasNext()) {
+                GenericRecord dataRecord = null;
+                dataRecord = dataFileReader.next(dataRecord);
+                localClientStore.put(dataRecord.get("publicKey").toString(),dataRecord.get("clientType").toString());
+            }
+            System.out.println("Local Client Store: " + localClientStore);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     //Local store
     HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
     HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
+    HashMap<String, String> localClientStore;
     Schema aggregateInputSchema;
     Schema aggregateOutputSchema;
     Schema provenanceOutputSchema;
+    Schema identitySchema;
 }

@@ -42,7 +42,7 @@ public class Client {
 
         //create generic records using avro schema for aggregation and append to file
         ArrayList<GenericRecord> records = mockClientUtil.createGenericSchemaRecords(aggregateSchema);
-        File dataFileForAggregation = mockClientUtil.createAvroDataFileFromGenericRecords(aggregateSchema, records);
+        File dataFileForAggregation = mockClientUtil.createAvroDataFileFromGenericRecords(aggregateSchema, records,"aggregate.avro");
 
         // Connect to the host, it will send us a remote attestation (EnclaveInstanceInfo).
         Integer clientPort = Integer.parseInt(args[1]);
