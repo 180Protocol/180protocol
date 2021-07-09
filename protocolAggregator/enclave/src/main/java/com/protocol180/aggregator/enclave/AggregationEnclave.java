@@ -178,9 +178,6 @@ public class AggregationEnclave extends Enclave {
 
     private void initializeLocalClientIdentityStore(){
         localClientStore= new HashMap<>();
-//        localClientStore.add(null);
-
-
     }
 
     @Override
@@ -189,9 +186,7 @@ public class AggregationEnclave extends Enclave {
         final PublicKey sender = mail.getAuthenticatedSender();
         final String senderKey= Base64.getEncoder().encodeToString(sender.getEncoded());
         System.out.println(Base64.getEncoder().encodeToString(sender.getEncoded()));
-//        if(localClientStore==null){
-//            createLocalClientIdentityStore();
-//        }
+
         if (sender == null)
             throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
         try {
@@ -264,35 +259,6 @@ public class AggregationEnclave extends Enclave {
                 }
 
             }
-//            else if (routingHint.equals("provider")) {
-//                //store mail contents for aggregation
-//                System.out.println("Ack Mail");
-//                if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
-//                    initializeLocalStore();
-//                }
-//                putUnencryptedMailToClient(sender, unencryptedMail);
-//                acknowledgeMail(id);
-//            } else if (routingHint.equals("consumer")) {
-//                //send aggregation output to consumer
-//                System.out.println("Aggregate Mail");
-////                putUnencryptedMailToClient(sender, unencryptedMail);
-//                //create aggregate output
-//                File aggregateOutput = createAggregateDataOutput();
-//                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
-//                postMail(responseBytes, routingHint);
-//            } else if (routingHint.equals("provenance")) {
-//                //send provenance result to required party
-//                System.out.println("Provenance Mail");
-//                // Read and store provenance schema
-//                File provenanceSchemaFile = new File("provenanceSchemaFile");
-//                Files.write(provenanceSchemaFile.toPath(), unencryptedMail);
-//                provenanceOutputSchema = new Schema.Parser().parse(provenanceSchemaFile);
-//                //create provenance output
-//                File provenanceOutput = createProvenanceDataOutput();
-//                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
-//                postMail(responseBytes, routingHint);
-//                clearLocalStore();
-//            }
         }
         catch (Exception e){
             e.printStackTrace();
