@@ -5,18 +5,17 @@ plugins {
 dependencies {
     api project(":aggregator-commons")
     implementation "com.r3.conclave:conclave-enclave"
-    implementation 'org.jetbrains:annotations:19.0.0'
-    testImplementation "com.r3.conclave:conclave-testing"
+//    implementation 'org.jetbrains:annotations:19.0.0'
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
-    compile 'org.apache.commons:commons-lang3:3.5'
+    testImplementation "com.r3.conclave:conclave-host"
+//    compile 'org.apache.commons:commons-lang3:3.5'
     compile 'org.apache.avro:avro:1.10.2'
-    implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.4.9-5'
-    implementation group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.8.2'
-    implementation group: 'org.tukaani', name: 'xz', version: '1.9'
+//    implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.4.9-5'
+//    implementation group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.8.2'
+//    implementation group: 'org.tukaani', name: 'xz', version: '1.9'
 }
 
 conclave {
-    runtime=graalvm_native_image
     productID = 1
     revocationLevel = 0
     simulation {

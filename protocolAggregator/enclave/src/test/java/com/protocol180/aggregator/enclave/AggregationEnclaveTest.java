@@ -2,12 +2,12 @@ package com.protocol180.aggregator.enclave;
 
 import com.protocol180.aggregator.commons.PostOfficeMapKey;
 import com.protocol180.aggregator.commons.PrivateKeyAndEncryptedBytes;
+import com.r3.conclave.host.EnclaveHost;
 import com.r3.conclave.host.EnclaveLoadException;
 import com.r3.conclave.host.MailCommand;
 import com.r3.conclave.mail.Curve25519PrivateKey;
 import com.r3.conclave.mail.EnclaveMail;
 import com.r3.conclave.mail.PostOffice;
-import com.r3.conclave.testing.MockHost;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,14 +29,14 @@ public class AggregationEnclaveTest {
     MockClientUtil mockClientUtil = new MockClientUtil();
 
     //Generating random clients for test
-    Map<Curve25519PrivateKey, String> randomClients=new HashMap<>();
+    Map<Curve25519PrivateKey, String> randomClients = new HashMap<>();
     Curve25519PrivateKey provider1 = Curve25519PrivateKey.random();
     Curve25519PrivateKey provider2 = Curve25519PrivateKey.random();
     Curve25519PrivateKey consumer = Curve25519PrivateKey.random();
     Curve25519PrivateKey provenance = Curve25519PrivateKey.random();
 
     @BeforeEach
-    public void initializeMockClient(){
+    public void initializeMockClient() {
         mockClientUtil = new MockClientUtil();
         randomClients.put(provider1, Utility.CLIENT_PROVIDER);
         randomClients.put(provider2, Utility.CLIENT_PROVIDER);
@@ -46,9 +46,9 @@ public class AggregationEnclaveTest {
 
     @Test
     void reverseNumber() throws EnclaveLoadException {
-        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
         mockHost.start(null, null);
-        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
 
         assertNull(aggregationEnclave.previousResult);
 
@@ -61,7 +61,7 @@ public class AggregationEnclaveTest {
 
     @Test
     void testSchemaMail() throws EnclaveLoadException, IOException {
-        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
         mockHost.start(null, (commands) -> {
             for (MailCommand command : commands) {
                 if (command instanceof MailCommand.AcknowledgeMail) {
@@ -71,9 +71,9 @@ public class AggregationEnclaveTest {
             }
         });
 
-        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
 
-        byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(),provider1);
+        byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(), provider1);
         System.out.println("Encrypted client mail with schema: " + aggregationSchema);
         mockHost.deliverMail(0, aggregationSchema, "schema");
 
@@ -89,7 +89,7 @@ public class AggregationEnclaveTest {
 
     @Test
     void testProviderMail() throws EnclaveLoadException, IOException {
-        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
         mockHost.start(null, (commands) -> {
             for (MailCommand command : commands) {
                 if (command instanceof MailCommand.AcknowledgeMail) {
@@ -99,17 +99,17 @@ public class AggregationEnclaveTest {
             }
         });
 
-        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
 
         byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(), provider1);
         System.out.println("Encrypted client mail with schema: " + aggregationSchema);
         mockHost.deliverMail(0, aggregationSchema, "schema");
 
-        byte[] identitiesData = mockClientUtil.createEncryptedClientMailForIdentities(mockHost.getEnclaveInstanceInfo(),provider1,randomClients);
+        byte[] identitiesData = mockClientUtil.createEncryptedClientMailForIdentities(mockHost.getEnclaveInstanceInfo(), provider1, randomClients);
         System.out.println("Encrypted client mail with identities data: " + identitiesData);
         mockHost.deliverMail(1, identitiesData, "identity");
 
-        PrivateKeyAndEncryptedBytes privateKeyAndEncryptedBytes = mockClientUtil.createEncryptedProviderMailForAggregationData(mockHost.getEnclaveInstanceInfo(),provider1);
+        PrivateKeyAndEncryptedBytes privateKeyAndEncryptedBytes = mockClientUtil.createEncryptedProviderMailForAggregationData(mockHost.getEnclaveInstanceInfo(), provider1);
         System.out.println("Encrypted client mail with aggregation data for provider: " + privateKeyAndEncryptedBytes.getEncryptedBytes());
         mockHost.deliverMail(2, privateKeyAndEncryptedBytes.getEncryptedBytes(), "client");
 
@@ -123,8 +123,8 @@ public class AggregationEnclaveTest {
 
     @Test
     void testConsumerMail() throws EnclaveLoadException, IOException {
-        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
-        AtomicReference<byte []> postReply = new AtomicReference<>();
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
+        AtomicReference<byte[]> postReply = new AtomicReference<>();
         mockHost.start(null, (commands) -> {
             for (MailCommand command : commands) {
                 if (command instanceof MailCommand.PostMail) {
@@ -135,15 +135,14 @@ public class AggregationEnclaveTest {
                         System.err.println("Failed to send reply ");
                         e.printStackTrace();
                     }
-                }
-                else if(command instanceof MailCommand.AcknowledgeMail){
+                } else if (command instanceof MailCommand.AcknowledgeMail) {
                     System.out.println("Ack Mail Command");
                     //acknowledge mail and store locally? wait for all clients to process and aggregate
                 }
             }
         });
 
-        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
 
         byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(), provider1);
         System.out.println("Encrypted client mail with schema: " + aggregationSchema);
@@ -185,8 +184,8 @@ public class AggregationEnclaveTest {
     @Test
     void testProvenanceMail() throws EnclaveLoadException, IOException {
 
-        MockHost<AggregationEnclave> mockHost = MockHost.loadMock(AggregationEnclave.class);
-        AtomicReference<byte []> postReply = new AtomicReference<>();
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
+        AtomicReference<byte[]> postReply = new AtomicReference<>();
         mockHost.start(null, (commands) -> {
             for (MailCommand command : commands) {
                 if (command instanceof MailCommand.PostMail) {
@@ -197,15 +196,14 @@ public class AggregationEnclaveTest {
                         System.err.println("Failed to send reply ");
                         e.printStackTrace();
                     }
-                }
-                else if(command instanceof MailCommand.AcknowledgeMail){
+                } else if (command instanceof MailCommand.AcknowledgeMail) {
                     System.out.println("Ack Mail Command");
                     //acknowledge mail and store locally? wait for all clients to process and aggregate
                 }
             }
         });
 
-        AggregationEnclave aggregationEnclave = mockHost.getEnclave();
+        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
 
         byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(), provider1);
         System.out.println("Encrypted client mail with schema: " + aggregationSchema);
@@ -241,7 +239,7 @@ public class AggregationEnclaveTest {
         mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(reply.getBodyAsBytes(), "aggregate");
 
         //provenance
-        PrivateKeyAndEncryptedBytes privateKeyAndEncryptedBytes4 = mockClientUtil.createEncryptedClientMailForProvenanceData(mockHost.getEnclaveInstanceInfo(),provenance);
+        PrivateKeyAndEncryptedBytes privateKeyAndEncryptedBytes4 = mockClientUtil.createEncryptedClientMailForProvenanceData(mockHost.getEnclaveInstanceInfo(), provenance);
         System.out.println("Encrypted client mail for provenance data: " + privateKeyAndEncryptedBytes4.getEncryptedBytes());
         mockHost.deliverMail(5, privateKeyAndEncryptedBytes4.getEncryptedBytes(), "client");
 
