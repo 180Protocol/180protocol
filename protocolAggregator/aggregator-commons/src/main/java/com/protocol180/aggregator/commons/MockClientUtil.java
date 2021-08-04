@@ -151,7 +151,7 @@ public class MockClientUtil {
     }
 
     public static File createAvroDataFileFromGenericRecords(Schema schema, ArrayList<GenericRecord> genericRecords, String filename) throws IOException {
-        File file = new File("src/test/resources/"+filename);
+        File file = new File(filename);
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
         dataFileWriter.create(schema, file);
