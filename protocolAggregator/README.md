@@ -23,7 +23,7 @@ gradlew.bat host:installDist
 2. Run below, noting the port bindings for the four clients 
 
 ```
-docker run -it --rm -p 9999:9999 -p 9998:9998 -p 9997:9997 -p 9996:9996 -v ${PWD}:/project -w /project conclave-build /bin/bash
+docker run -it --rm -p 9999:9999 -v ${PWD}:/project -w /project conclave-build /bin/bash
 ```
 
 3. Run the enclave app from within the container 
@@ -35,13 +35,10 @@ cd host/build/install
 
 ## Run client code
 
-1. For each client type, there are different invocations based on client role
+1. Single invokation of client will launch different client role in sequance.
 
 ```
-.\gradlew client:run --args="sendAggregateFile 9999"
-.\gradlew client:run --args="data 9998"
-.\gradlew client:run --args="data 9997"
-.\gradlew client:run --args="sendProvenanceFile 9996"
+.\gradlew client:run 
 ```
 
 # How to run
@@ -52,8 +49,8 @@ Start the host on a Linux system, which will build the enclave and host:
 ./gradlew host:run
 ```
 
-It should print out some info about the started enclave. Then you can use the client to send it strings to reverse:
+It should print out some info about the started enclave. Then you can use the client to send mails in sequance:
 
 ```
-./gradlew client:run --args="reverse me!"
+./gradlew client:run 
 ```
