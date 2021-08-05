@@ -8,8 +8,11 @@ import com.r3.conclave.mail.Curve25519PrivateKey;
 import com.r3.conclave.mail.EnclaveMail;
 import com.r3.conclave.mail.PostOffice;
 import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileReader;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumReader;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -31,6 +34,8 @@ public class Client {
     File envelopeFile;
     File identitiesFile;
     PostOffice postOffice;
+    Schema aggregationOutputSchema;
+    Schema provenanceOutputSchema;
 
 
     public Client() throws IOException {
@@ -44,8 +49,8 @@ public class Client {
         envelopeFile = new File(ClassLoader.getSystemClassLoader().getResource("envelope.avsc").getPath());
         Schema envelopeSchema = new Schema.Parser().parse(envelopeFile);
         Schema aggregationInputSchema = envelopeSchema.getField("aggregateInput").schema();
-        Schema aggregationOutputSchema = envelopeSchema.getField("aggregateOutput").schema();
-        Schema provenanceOutputSchema = envelopeSchema.getField("provenanceOutput").schema();
+        aggregationOutputSchema = envelopeSchema.getField("aggregateOutput").schema();
+        provenanceOutputSchema = envelopeSchema.getField("provenanceOutput").schema();
         Schema identitySchema = envelopeSchema.getField("identity").schema();
 
         //create generic records using avro schema for aggregation input to the enclave and append to file
@@ -102,14 +107,20 @@ public class Client {
                 toHost.writeInt(encryptedMail.length);
                 toHost.write(encryptedMail);
                 toHost.flush();
-                Thread.sleep(3000);
+
                 if (messageCounter == 3 || messageCounter == 4) {
+                    Thread.sleep(3000);
                     byte[] encryptedReply = new byte[fromHost.readInt()];
                     fromHost.readFully(encryptedReply);
                     System.out.println("Reading reply mail of length " + encryptedReply.length + " bytes.");
                     // The same post office will decrypt the response.
                     EnclaveMail reply = client.postOffice.decryptMail(encryptedReply);
-                    System.out.println("Enclave reply: '" + new String(reply.getBodyAsBytes()) + "'");
+                    ArrayList<GenericRecord> outputRecords = null;
+                    if (messageCounter == 3)
+                        outputRecords = readGenericRecordsFromOutputBytesAndSchema(reply.getBodyAsBytes(), client.aggregationOutputSchema);
+                    else if (messageCounter == 4)
+                        outputRecords = readGenericRecordsFromOutputBytesAndSchema(reply.getBodyAsBytes(), client.provenanceOutputSchema);
+                    System.out.println("Enclave reply: '" + outputRecords + "'");
                 }
                 toHost.close();
                 fromHost.close();
@@ -120,6 +131,20 @@ public class Client {
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    public static ArrayList<GenericRecord> readGenericRecordsFromOutputBytesAndSchema(byte[] outputBytes, Schema schema) throws IOException {
+        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(schema);
+        File dataFile = new File("outputDataFile");
+        Files.write(dataFile.toPath(), outputBytes);
+        DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
+        ArrayList<GenericRecord> genericRecords = new ArrayList<>();
+        GenericRecord dataRecord = null;
+        while (dataFileReader.hasNext()) {
+            dataRecord = dataFileReader.next(dataRecord);
+            genericRecords.add(dataRecord);
+        }
+        return genericRecords;
     }
 
     private byte[] getEncryptedMail(int messageCounter, EnclaveInstanceInfo attestation) throws IOException {
