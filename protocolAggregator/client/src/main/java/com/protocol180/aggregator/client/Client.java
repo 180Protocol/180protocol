@@ -2,6 +2,7 @@ package com.protocol180.aggregator.client;
 
 import com.protocol180.aggregator.commons.MockClientUtil;
 import com.protocol180.aggregator.commons.Utility;
+import com.r3.conclave.client.EnclaveConstraint;
 import com.r3.conclave.common.EnclaveInstanceInfo;
 import com.r3.conclave.mail.Curve25519PrivateKey;
 import com.r3.conclave.mail.EnclaveMail;
@@ -29,10 +30,10 @@ public class Client {
     File dataInputFileForAggregation;
     File envelopeFile;
     File identitiesFile;
+    PostOffice postOffice;
 
 
     public Client() throws IOException {
-        initClient();
         randomClients.put(provider1, Utility.CLIENT_PROVIDER);
         randomClients.put(provider2, Utility.CLIENT_PROVIDER);
         randomClients.put(consumer, Utility.CLIENT_CONSUMER);
@@ -72,65 +73,67 @@ public class Client {
         // Connect to the host, it will send us a remote attestation (EnclaveInstanceInfo).
         try {
             Client client = new Client();
+            client.initClient();
             int clientPort = 9999;
-            Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), clientPort), 5000);
-            DataInputStream fromHost = new DataInputStream(socket.getInputStream());
-            DataOutputStream toHost = new DataOutputStream(socket.getOutputStream());
+
+            int messageCounter = 0;
+            while (messageCounter < 5) {
+                System.out.println("Sending Mail: " + messageCounter + " to Host.");
+                Thread.sleep(20000);
+
+                Socket socket = new Socket();
+                socket.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), clientPort), 5000);
+
+                DataInputStream fromHost = new DataInputStream(socket.getInputStream());
+                DataOutputStream toHost = new DataOutputStream(socket.getOutputStream());
 
 
-            //Reading enclave attestation from host and validating it.
-            byte[] attestationBytes = new byte[fromHost.readInt()];
-            fromHost.readFully(attestationBytes);
-            EnclaveInstanceInfo attestation = EnclaveInstanceInfo.deserialize(attestationBytes);
-            // Check it's the enclave we expect. This will throw InvalidEnclaveException if not valid.
-            System.out.println("Connected to " + attestation);
-//        EnclaveConstraint.parse("S:360585776942A4E8A6BD70743E7C114A81F9E901BF90371D27D55A241C738AD9 "
-//                + "S:4924CA3A9C8241A3C0AA1A24A407AA86401D2B79FA9FF84932DA798A942166D4 PROD:1 SEC:INSECURE").check(attestation);
+                //Reading enclave attestation from host and validating it.
+                byte[] attestationBytes = new byte[fromHost.readInt()];
+                fromHost.readFully(attestationBytes);
+                EnclaveInstanceInfo attestation = EnclaveInstanceInfo.deserialize(attestationBytes);
+                // Check it's the enclave we expect. This will throw InvalidEnclaveException if not valid.
+                System.out.println("Connected to " + attestation);
+                EnclaveConstraint.parse("S:360585776942A4E8A6BD70743E7C114A81F9E901BF90371D27D55A241C738AD9 "
+                        + "S:4924CA3A9C8241A3C0AA1A24A407AA86401D2B79FA9FF84932DA798A942166D4 PROD:1 SEC:INSECURE").check(attestation);
 
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            String clientMessage = "", serverMessage = "";
-            int messageCounter = 1;
-//            String typeOfMessage[]=[];
-            while (messageCounter < 6) {
-                System.out.println("Press Enter to send mail " + messageCounter + " to Host.");
-                clientMessage = br.readLine();
-                PostOffice postOffice = null;
-                byte[] encryptedMail = client.getEncryptedMail(messageCounter, attestation, postOffice);
+                byte[] encryptedMail = client.getEncryptedMail(messageCounter, attestation);
                 toHost.writeInt(encryptedMail.length);
                 toHost.write(encryptedMail);
                 toHost.flush();
-                if (messageCounter == 4 || messageCounter == 5) {
+                Thread.sleep(3000);
+                if (messageCounter == 3 || messageCounter == 4) {
                     byte[] encryptedReply = new byte[fromHost.readInt()];
                     fromHost.readFully(encryptedReply);
                     System.out.println("Reading reply mail of length " + encryptedReply.length + " bytes.");
                     // The same post office will decrypt the response.
-                    EnclaveMail reply = postOffice.decryptMail(encryptedReply);
+                    EnclaveMail reply = client.postOffice.decryptMail(encryptedReply);
                     System.out.println("Enclave reply: '" + new String(reply.getBodyAsBytes()) + "'");
                 }
+                toHost.close();
+                fromHost.close();
+                socket.close();
                 messageCounter++;
             }
-            toHost.close();
-            fromHost.close();
-            socket.close();
+
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    private byte[] getEncryptedMail(int messageCounter, EnclaveInstanceInfo attestation, PostOffice postOffice) throws IOException {
+    private byte[] getEncryptedMail(int messageCounter, EnclaveInstanceInfo attestation) throws IOException {
         byte[] encryptedMail;
-        if (messageCounter == 1) {
-            postOffice = attestation.createPostOffice(provider1, "aggregate");
+        if (messageCounter == 0) {
+            postOffice = attestation.createPostOffice(Curve25519PrivateKey.random(), "aggregate");
             encryptedMail = postOffice.encryptMail(Files.readAllBytes(envelopeFile.toPath()));
+        } else if (messageCounter == 1) {
+            postOffice = attestation.createPostOffice(Curve25519PrivateKey.random(), "aggregate");
+            encryptedMail = postOffice.encryptMail(Files.readAllBytes(identitiesFile.toPath()));
         } else if (messageCounter == 2) {
             postOffice = attestation.createPostOffice(provider1, "aggregate");
-            encryptedMail = postOffice.encryptMail(Files.readAllBytes(identitiesFile.toPath()));
-        } else if (messageCounter == 3) {
-            postOffice = attestation.createPostOffice(provider1, "aggregate");
             encryptedMail = postOffice.encryptMail(Files.readAllBytes(dataInputFileForAggregation.toPath()));
-        } else if (messageCounter == 4) {
+        } else if (messageCounter == 3) {
             postOffice = attestation.createPostOffice(consumer, "aggregate");
             encryptedMail = postOffice.encryptMail("test consumer".getBytes());
         } else {
@@ -140,9 +143,6 @@ public class Client {
         }
 
         return encryptedMail;
-
-
-//        Thread.sleep(3000);
     }
 
 }
