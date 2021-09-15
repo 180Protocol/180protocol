@@ -46,6 +46,10 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
                         MailCommand.PostMail post = (MailCommand.PostMail) command;
                         enclaveToFlow(post.getEncryptedBytes(), post.getRoutingHint());
                     }
+                    else if (command instanceof MailCommand.AcknowledgeMail) {
+                        System.out.println("Ack Mail Command inside enclave response");
+                        MailCommand.AcknowledgeMail acknowledge= (MailCommand.AcknowledgeMail) command;
+                    }
                 }
             });
 
@@ -64,7 +68,9 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         // TODO: To support enclaves sending messages when no flow is waiting, extend routingHint to contain both
         //       UUIDs and also party names.
         try {
-            UUID flowId = UUID.fromString(routingHint);   // NPE here means enclave didn't provide a hint.
+            UUID flowId = UUID.fromString(routingHint.substring(routingHint.indexOf(":")+1));   // NPE here means enclave didn't provide a hint.
+
+            System.out.println("flowId inside the EnclaveHostService is"+flowId);
             mailFutures.get(flowId).complete(encryptedBytes);  // NPE here means flow is gone.
         } catch (NullPointerException | IllegalArgumentException e) {
             System.err.println(mailFutures.keySet());
@@ -81,13 +87,14 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
      * @param encryptedMail The bytes of an encrypted message as created via {@link com.r3.conclave.mail.PostOffice}.
      */
     public void deliverMail(byte[] encryptedMail) {
+        System.out.println("inside deliverMail of Enclave host services");
         enclave.deliverMail(counter.incrementAndGet(), encryptedMail, null);
     }
 
     /**
      * Delivers a mail to the enclave and returns an operation that can be used to suspend a flow until the enclave
      * chooses to send a reply. This may not happen immediately. This is equivalent to calling
-     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link #deliverMail(byte[])}, then returning the result of
+     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link # deliverMail(byte[])}, then returning the result of
      * the receiveMail call.
      *
      * @param flow The flow from which the mail is being received.
@@ -100,7 +107,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         // before we enter the enclave, as the enclave may immediately call back to request we deliver a response
         // and that will happen on the same call stack.
         FlowExternalOperation<byte[]> operation = pickUpMail(flow);
-        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, flow.getRunId().getUuid().toString());
+        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, "schema"+":"+flow.getRunId().getUuid().toString());
         // The operation might be completed already, but if not, the flow can sleep until the enclave decides to
         // reply (e.g. due to some other mail from some other flow) by calling await on this operation.
         return operation;

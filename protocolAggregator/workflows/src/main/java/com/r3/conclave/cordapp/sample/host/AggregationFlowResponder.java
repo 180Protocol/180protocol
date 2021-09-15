@@ -12,6 +12,7 @@ import net.corda.core.flows.InitiatedBy;
 public class AggregationFlowResponder extends FlowLogic<Void> {
     private final FlowSession counterpartySession;
 
+
     public AggregationFlowResponder(FlowSession counterpartySession) {
         this.counterpartySession = counterpartySession;
     }
@@ -19,6 +20,7 @@ public class AggregationFlowResponder extends FlowLogic<Void> {
     @Suspendable
     @Override
     public Void call() throws FlowException {
+        System.out.println("Starting Aggregation responder flow");
         EnclaveFlowResponder session =
                 EnclaveClientHelper.initiateResponderFlow(this, counterpartySession, AggregationEnclaveService.class);
 

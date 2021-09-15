@@ -41,7 +41,7 @@ class EnclaveFlowResponder(
     @Throws(FlowException::class)
     fun relayMessageToEnclave() {
         val encryptedMail = session.receive(ByteArray::class.java).unwrap { it }
-        host.deliverMail(encryptedMail)
+        host.deliverMail(encryptedMail);
     }
 
     /**

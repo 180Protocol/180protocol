@@ -7,10 +7,12 @@ import net.corda.testing.node.MockNetwork;
 import net.corda.testing.node.MockNetworkParameters;
 import net.corda.testing.node.StartedMockNode;
 import net.corda.testing.node.TestCordapp;
+import org.apache.avro.Schema;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
@@ -69,11 +71,24 @@ class AggregatorEnclaveTest {
 //    }
 
     @Test
-    public void passBytesAsAnonymous() throws ExecutionException, InterruptedException {
-        CordaFuture<String> flow = client.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), "hello".getBytes(),
-                getConstraint(), true));
+    public void passEnvelopeSchemaToEnclave() throws ExecutionException, InterruptedException {
+        byte[] envelopeSchema=initializeSchema().toString().getBytes();
+        CordaFuture<String> flow = client.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(),true));
         network.runNetwork();
-        assertEquals("Reversed string: olleh; Sender name: <Anonymous>", flow.get());
+        assertEquals(new String(envelopeSchema), flow.get());
+    }
+
+    public Schema initializeSchema(){
+        File schemaFile = new File(ClassLoader.getSystemClassLoader().getResource("envelope.avsc").getPath());
+        Schema schema;
+        try{
+            schema = new Schema.Parser().parse(schemaFile);
+        }
+        catch (Exception e){
+            schema = null;
+        }
+        return  schema;
     }
 
 //    @Test

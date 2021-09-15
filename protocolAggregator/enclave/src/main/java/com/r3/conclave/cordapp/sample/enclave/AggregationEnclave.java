@@ -204,15 +204,18 @@ public class AggregationEnclave extends CordaEnclave {
     @Override
     protected void receiveMail(long id, EnclaveMail mail, String routingHint, SenderIdentity identity) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
-        String reversedString = reverse(new String(mail.getBodyAsBytes()));
 
         System.out.println(new String(unencryptedMail));
+        String filteredRoutingHint= routingHint.substring(0,routingHint.indexOf(":"));
+
+//        acknowledgeMail(id);
 //        if (identity == null)
 //            throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
         try {
 
-            if(routingHint.equals("schema")){
+            if(filteredRoutingHint.equals("schema")){
                 //Read and store data input schema file
+                System.out.println("Inside condition where routing hint is schema");
                 Path aggregateSchemaFilePath = Paths.get("envelopeSchema");
                 SeekableByteChannel sbc = Files.newByteChannel(aggregateSchemaFilePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.READ, StandardOpenOption.WRITE);
                 sbc.write(ByteBuffer.wrap(unencryptedMail));
@@ -224,9 +227,11 @@ public class AggregationEnclave extends CordaEnclave {
                 provenanceOutputSchema= envelopSchema.getField("provenanceOutput").schema();
                 identitySchema= envelopSchema.getField("identity").schema();
 
-                acknowledgeMail(id);
+                final byte[] testResponseBytes = postOffice(mail).encryptMail(unencryptedMail);
+                postMail(testResponseBytes, routingHint);
+//                acknowledgeMail(id);
             }
-            else if (routingHint.equals("identity")) {
+            else if (filteredRoutingHint.equals("identity")) {
                 //store provided identities into enclave
                 System.out.println("Ack Mail");
                 if(localClientStore == null){
@@ -236,7 +241,7 @@ public class AggregationEnclave extends CordaEnclave {
                 convertIdentitiesToRawIdentities(unencryptedMail);
                 acknowledgeMail(id);
             }
-            else if(routingHint.equals("client") && localClientStore.containsKey(identity.getPublicKey())){
+            else if(filteredRoutingHint.equals("client") && localClientStore.containsKey(identity.getPublicKey())){
                 String clientType= localClientStore.get(identity.getPublicKey());
 
                 if(clientType.equals(ClientTypes.CLIENT_PROVIDER)){

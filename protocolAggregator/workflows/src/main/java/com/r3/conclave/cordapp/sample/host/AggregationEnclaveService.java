@@ -12,5 +12,6 @@ import org.jetbrains.annotations.NotNull;
 public class AggregationEnclaveService extends EnclaveHostService {
     public AggregationEnclaveService(@NotNull AppServiceHub serviceHub) {
         super("com.r3.conclave.cordapp.sample.enclave.AggregationEnclave");
+        System.out.println("inside Aggregation Enclave service");
     }
 }

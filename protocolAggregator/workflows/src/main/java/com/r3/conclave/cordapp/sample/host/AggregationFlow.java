@@ -22,6 +22,7 @@ public class AggregationFlow extends FlowLogic<String> {
     private final String constraint;
     private final Boolean anonymous;
 
+
     public AggregationFlow(Party receiver, byte[] message, String constraint) {
         this(receiver, message, constraint, false);
     }
@@ -36,6 +37,7 @@ public class AggregationFlow extends FlowLogic<String> {
     @Override
     @Suspendable
     public String call() throws FlowException {
+        System.out.println("starting aggregation intiator flow ");
         EnclaveFlowInitiator session = EnclaveClientHelper.initiateFlow(this, receiver, constraint, anonymous);
 
         byte[] response = session.sendAndReceive(message);
