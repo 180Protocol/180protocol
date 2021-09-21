@@ -53,22 +53,6 @@ class AggregatorEnclaveTest {
         host = null;
     }
 
-    @Test
-    public void reverseStringAsNonAnonymous() throws ExecutionException, InterruptedException {
-        CordaFuture<String> flow = client.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), "zipzop".getBytes(),
-                getConstraint()));
-        network.runNetwork();
-        assertEquals("Reversed string: pozpiz; Sender name: O=Mock Company 1,L=London,C=GB",
-                flow.get());
-    }
-
-//    @Test
-//    public void reverseStringAsAnonymous() throws ExecutionException, InterruptedException {
-//        CordaFuture<String> flow = client.startFlow(new ReverseFlow(host.getInfo().getLegalIdentities().get(0), "hello",
-//                getConstraint(), true));
-//        network.runNetwork();
-//        assertEquals("Reversed string: olleh; Sender name: <Anonymous>", flow.get());
-//    }
 
     @Test
     public void passEnvelopeSchemaToEnclave() throws ExecutionException, InterruptedException {
@@ -90,34 +74,6 @@ class AggregatorEnclaveTest {
         }
         return  schema;
     }
-
-//    @Test
-//    void testSchemaMail() throws EnclaveLoadException, IOException {
-//        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.enclave.AggregationEnclave");
-//        mockHost.start(null, (commands) -> {
-//            for (MailCommand command : commands) {
-//                if (command instanceof MailCommand.AcknowledgeMail) {
-//                    System.out.println("Ack Mail Command");
-//                    //acknowledge mail and store locally? wait for all clients to process and aggregate
-//                }
-//            }
-//        });
-//
-//        AggregationEnclave aggregationEnclave = (AggregationEnclave) mockHost.getMockEnclave();
-//
-//        byte[] aggregationSchema = mockClientUtil.createEncryptedClientMailForAggregationSchema(mockHost.getEnclaveInstanceInfo(), provider1);
-//        System.out.println("Encrypted client mail with schema: " + aggregationSchema);
-//        mockHost.deliverMail(0, aggregationSchema, "schema");
-//
-//        System.out.println("Aggregate Input Schema in Enclave: " + aggregationEnclave.aggregateInputSchema);
-//        System.out.println("Aggregate output Schema in Enclave: " + aggregationEnclave.aggregateInputSchema);
-//        assertNotNull(aggregationEnclave.aggregateInputSchema);
-//        assertNotNull(aggregationEnclave.aggregateOutputSchema);
-//        assertNotNull(aggregationEnclave.provenanceOutputSchema);
-//        assertEquals(5, aggregationEnclave.aggregateInputSchema.getFields().size());
-//        assertEquals(5, aggregationEnclave.aggregateOutputSchema.getFields().size());
-//        assertEquals(2, aggregationEnclave.provenanceOutputSchema.getFields().size());
-//    }
 
 
     private String getConstraint() {

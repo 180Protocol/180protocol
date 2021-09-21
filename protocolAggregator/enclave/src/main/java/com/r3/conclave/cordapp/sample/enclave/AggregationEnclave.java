@@ -33,15 +33,8 @@ import java.util.stream.Stream;
  */
 public class AggregationEnclave extends CordaEnclave {
 
-    byte[] previousResult;
     String clientTypeForCurrRequest=null;
 
-    private static String reverse(String input) {
-        StringBuilder builder = new StringBuilder(input.length());
-        for (int i = input.length() - 1; i >= 0; i--)
-            builder.append(input.charAt(i));
-        return builder.toString();
-    }
 
     private void convertEncryptedClientDataToRawData(){
         DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateInputSchema);
