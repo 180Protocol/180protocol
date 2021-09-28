@@ -26,7 +26,7 @@ tasks.register("prepareForSigning") {
 }
 
 dependencies {
-    compile project(":common")
+    compile project(":aggregator-commons")
     compile project(path: ":enclave", configuration: mode)
 
     compile "com.r3.conclave:conclave-host:$conclaveVersion"

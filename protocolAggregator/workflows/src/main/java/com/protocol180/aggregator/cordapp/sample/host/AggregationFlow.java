@@ -1,15 +1,13 @@
-package com.r3.conclave.cordapp.sample.host;
+package com.protocol180.aggregator.cordapp.sample.host;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.r3.conclave.cordapp.sample.client.EnclaveClientHelper;
-import com.r3.conclave.cordapp.sample.client.EnclaveFlowInitiator;
+import com.protocol180.aggregator.cordapp.sample.client.EnclaveClientHelper;
+import com.protocol180.aggregator.cordapp.sample.client.EnclaveFlowInitiator;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.InitiatingFlow;
 import net.corda.core.flows.StartableByRPC;
 import net.corda.core.identity.Party;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Request a peer to reverse a string for us inside an enclave.

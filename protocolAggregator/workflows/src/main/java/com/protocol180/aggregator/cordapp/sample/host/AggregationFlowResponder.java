@@ -1,8 +1,8 @@
-package com.r3.conclave.cordapp.sample.host;
+package com.protocol180.aggregator.cordapp.sample.host;
 
 import co.paralleluniverse.fibers.Suspendable;
-import com.r3.conclave.cordapp.sample.client.EnclaveClientHelper;
-import com.r3.conclave.cordapp.sample.client.EnclaveFlowResponder;
+import com.protocol180.aggregator.cordapp.sample.client.EnclaveClientHelper;
+import com.protocol180.aggregator.cordapp.sample.client.EnclaveFlowResponder;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.FlowSession;

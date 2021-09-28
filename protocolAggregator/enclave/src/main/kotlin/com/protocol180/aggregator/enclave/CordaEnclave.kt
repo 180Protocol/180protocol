@@ -1,4 +1,4 @@
-package com.r3.conclave.cordapp.sample.enclave
+package com.protocol180.aggregator.enclave
 
 import com.r3.conclave.cordapp.common.SenderIdentity
 import com.r3.conclave.cordapp.common.internal.SenderIdentityImpl

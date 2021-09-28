@@ -1,4 +1,4 @@
-package com.r3.conclave.cordapp.sample.client
+package com.protocol180.aggregator.cordapp.sample.client
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.conclave.common.EnclaveInstanceInfo

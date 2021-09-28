@@ -1,4 +1,4 @@
-package com.r3.conclave.cordapp.host;
+package com.protocol180.aggregator.cordapp.host;
 
 import com.r3.conclave.host.AttestationParameters;
 import com.r3.conclave.host.EnclaveHost;
@@ -107,7 +107,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         // before we enter the enclave, as the enclave may immediately call back to request we deliver a response
         // and that will happen on the same call stack.
         FlowExternalOperation<byte[]> operation = pickUpMail(flow);
-        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, "schema"+":"+flow.getRunId().getUuid().toString());
+        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, flow.getRunId().getUuid().toString());
         // The operation might be completed already, but if not, the flow can sleep until the enclave decides to
         // reply (e.g. due to some other mail from some other flow) by calling await on this operation.
         return operation;
