@@ -1,6 +1,6 @@
-package com.r3.conclave.cordapp.sample.host;
+package com.protocol180.aggregator.cordapp.sample.host;
 
-import com.r3.conclave.cordapp.host.EnclaveHostService;
+import com.protocol180.aggregator.cordapp.host.EnclaveHostService;
 import net.corda.core.node.AppServiceHub;
 import net.corda.core.node.services.CordaService;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 @CordaService
 public class AggregationEnclaveService extends EnclaveHostService {
     public AggregationEnclaveService(@NotNull AppServiceHub serviceHub) {
-        super("com.r3.conclave.cordapp.sample.enclave.AggregationEnclave");
+        super("com.protocol180.aggregator.enclave.AggregationEnclave");
         System.out.println("inside Aggregation Enclave service");
     }
 }
