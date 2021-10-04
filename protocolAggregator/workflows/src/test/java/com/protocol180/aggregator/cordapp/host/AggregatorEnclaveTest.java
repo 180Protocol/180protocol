@@ -1,39 +1,41 @@
 package com.protocol180.aggregator.cordapp.host;
 
 import com.google.common.collect.ImmutableList;
-import com.protocol180.commons.MailType;
+import com.protocol180.aggregator.cordapp.sample.host.AggregationFlow;
+import com.protocol180.aggregator.cordapp.sample.host.AggregationFlowResponder;
 import com.protocol180.commons.ClientType;
-import com.r3.conclave.mail.Curve25519PrivateKey;
 import net.corda.core.concurrent.CordaFuture;
 import net.corda.testing.node.MockNetwork;
 import net.corda.testing.node.MockNetworkParameters;
 import net.corda.testing.node.StartedMockNode;
 import net.corda.testing.node.TestCordapp;
+import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.protocol180.aggregator.cordapp.sample.host.AggregationFlowResponder;
-import com.protocol180.aggregator.cordapp.sample.host.AggregationFlow;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AggregatorEnclaveTest {
     private static MockNetwork network;
-    private static StartedMockNode client;
-    private static StartedMockNode client2;
+    private static StartedMockNode provider1;
+    private static StartedMockNode provider2;
+    private static StartedMockNode consumer;
+    private static StartedMockNode provenance;
     private static StartedMockNode host;
 
-    static Map<Curve25519PrivateKey, String> randomClients = new HashMap<>();
-    static Curve25519PrivateKey provider1 = Curve25519PrivateKey.random();
-    static Curve25519PrivateKey provider2 = Curve25519PrivateKey.random();
-    static Curve25519PrivateKey consumer = Curve25519PrivateKey.random();
-    static Curve25519PrivateKey provenance = Curve25519PrivateKey.random();
+    private static MockClientUtil mockClientUtil;
+
+    static Map<PublicKey, String> randomClients;
 
     // DO NOT BLINDLY COPY PASTE THIS. The SEC:INSECURE part does what it sounds like: turns off security for convenience
     // when unit testing and developing.
@@ -48,16 +50,23 @@ class AggregatorEnclaveTest {
         network = new MockNetwork(new MockNetworkParameters().withCordappsForAllNodes(
                 ImmutableList.of(TestCordapp.findCordapp("com.protocol180.aggregator.cordapp.sample.host"))
         ));
-        client = network.createPartyNode(null);
-        client2 = network.createPartyNode(null);
+        provider1 = network.createPartyNode(null);
+        provider2 = network.createPartyNode(null);
+        consumer = network.createPartyNode(null);
+        provenance = network.createPartyNode(null);
         host = network.createPartyNode(null);
         host.registerInitiatedFlow(AggregationFlowResponder.class);
 //        network.runNetwork();
-        System.out.println("public key of client is: "+client.getInfo().getLegalIdentities().get(0).getOwningKey().getEncoded());
-        randomClients.put(provider1, ClientType.TYPE_PROVIDER);
-        randomClients.put(provider2, ClientType.TYPE_PROVIDER);
-        randomClients.put(consumer, ClientType.TYPE_CONSUMER);
-        randomClients.put(provenance, ClientType.TYPE_PROVENANCE);
+        System.out.println("public key of client1 is: " + Base64.getEncoder().encodeToString(provider2.getInfo().getLegalIdentities().get(0).getOwningKey().getEncoded()));
+        System.out.println("public key of client2 is: " + Base64.getEncoder().encodeToString(provider2.getInfo().getLegalIdentities().get(0).getOwningKey().getEncoded()));
+
+        randomClients = new HashMap<>();
+        randomClients.put(getPublicKey(provider1), ClientType.TYPE_PROVIDER);
+        randomClients.put(getPublicKey(provider2), ClientType.TYPE_PROVIDER);
+        randomClients.put(getPublicKey(consumer), ClientType.TYPE_CONSUMER);
+        randomClients.put(getPublicKey(provenance), ClientType.TYPE_PROVENANCE);
+
+        mockClientUtil = new MockClientUtil();
     }
 
     @AfterAll
@@ -66,43 +75,166 @@ class AggregatorEnclaveTest {
             network.stopNodes();
             network = null;
         }
-        client = null;
-        client2=null;
+        provider1 = null;
+        provider2 = null;
+        consumer = null;
+        provenance = null;
         host = null;
     }
 
 
     @Test
     public void testSchemaMail() throws ExecutionException, InterruptedException, IOException {
-        byte[] envelopeSchema=MockClientUtil.initializeSchema().toString().getBytes();
-//        System.out.println("envelope schema with type is:"+new String(envelopeSchemaWithType));
-        CordaFuture<String> flow = client.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
-                getConstraint(),true));
+        byte[] envelopeSchema = MockClientUtil.envelopeSchema.toString().getBytes();
+        CordaFuture<byte[]> flow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(), false));
 
         network.runNetwork();
-        assertEquals(new String(envelopeSchema), flow.get());
+        assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(flow.get()));
     }
 
     @Test
     public void testIdentitiesMail() throws ExecutionException, InterruptedException, IOException {
-        byte[] envelopeSchema=MockClientUtil.initializeSchema().toString().getBytes();
+        byte[] envelopeSchema = MockClientUtil.envelopeSchema.toString().getBytes();
 
-        CordaFuture<String> schemaFlow = client.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
-                getConstraint(),true));
+        CordaFuture<byte[]> schemaFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(), false));
         network.runNetwork();
 
 
-        byte[] identitiesList= MockClientUtil.createMailForIdentities(randomClients);
+        byte[] identitiesList = mockClientUtil.createMailForIdentities(randomClients);
 
-        CordaFuture<String> identitiesFlow= client2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), identitiesList, getConstraint(),true));
+        CordaFuture<byte[]> identitiesFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), identitiesList, getConstraint(), false));
         network.runNetwork();
 
-        assertEquals(new String(envelopeSchema), schemaFlow.get());
-        assertEquals(new String(identitiesList), identitiesFlow.get());
+        assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(schemaFlow.get()));
+        assertEquals("4", new String(identitiesFlow.get()));
+
+    }
+
+    @Test
+    public void testProviderMail() throws ExecutionException, InterruptedException, IOException {
+        byte[] envelopeSchema = MockClientUtil.envelopeSchema.toString().getBytes();
+
+        CordaFuture<byte[]> schemaFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(), false));
+        network.runNetwork();
+
+
+        byte[] identitiesList = mockClientUtil.createMailForIdentities(randomClients);
+
+        CordaFuture<byte[]> identitiesFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), identitiesList, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider1Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider1Flow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider1Data, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider2Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider2Flow = provider2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider2Data, getConstraint(), false));
+        network.runNetwork();
+
+        assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(schemaFlow.get()));
+        assertEquals("4", new String(identitiesFlow.get()));
+        assertEquals("2", new String(provider2Flow.get()));
+
     }
 
 
+    @Test
+    public void testConsumerMail() throws ExecutionException, InterruptedException, IOException {
+        byte[] envelopeSchema = MockClientUtil.envelopeSchema.toString().getBytes();
 
+        CordaFuture<byte[]> schemaFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(), false));
+        network.runNetwork();
+
+
+        byte[] identitiesList = mockClientUtil.createMailForIdentities(randomClients);
+
+        CordaFuture<byte[]> identitiesFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), identitiesList, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider1Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider1flow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider1Data, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider2Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider2flow = provider2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider2Data, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] consumerSchema = MockClientUtil.aggregationOutputSchema.toString().getBytes();
+
+        CordaFuture<byte[]> consumerflow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
+        network.runNetwork();
+
+        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerflow.get(), "aggregate");
+
+
+        assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(schemaFlow.get()));
+        assertEquals("4", new String(identitiesFlow.get()));
+        assertEquals("2", new String(provider2flow.get()));
+        assertTrue(aggregationOutputDataRecords.size() > 0);
+    }
+
+    @Test
+    public void testProvenanceMail() throws ExecutionException, InterruptedException, IOException {
+        byte[] envelopeSchema = MockClientUtil.envelopeSchema.toString().getBytes();
+
+        CordaFuture<byte[]> schemaFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), envelopeSchema,
+                getConstraint(), false));
+        network.runNetwork();
+
+
+        byte[] identitiesList = mockClientUtil.createMailForIdentities(randomClients);
+
+        CordaFuture<byte[]> identitiesFlow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), identitiesList, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider1Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider1flow = provider1.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider1Data, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] provider2Data = mockClientUtil.createProviderMailForAggregationData();
+
+        CordaFuture<byte[]> provider2flow = provider2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider2Data, getConstraint(), false));
+        network.runNetwork();
+
+        byte[] consumerSchema = MockClientUtil.aggregationOutputSchema.toString().getBytes();
+
+        CordaFuture<byte[]> consumerflow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
+        network.runNetwork();
+
+        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerflow.get(), "aggregate");
+
+        byte[] provenanceSchema = MockClientUtil.provenanceOutputSchema.toString().getBytes();
+
+        CordaFuture<byte[]> provenanceflow = provenance.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provenanceSchema, getConstraint(), false));
+        network.runNetwork();
+
+        ArrayList<GenericRecord> provenanceOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(provenanceflow.get(), "provenance");
+
+
+        //testing aggregation schema has been delivered to enclave
+        assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(schemaFlow.get()));
+        //testing number of identities provided to enclave for client validation
+        assertEquals("4", new String(identitiesFlow.get()));
+        // testing number of Data provider inside enclave
+        assertEquals("2", new String(provider2flow.get()));
+        //testing aggregation output records provided from client
+        assertTrue(aggregationOutputDataRecords.size() > 0);
+        //testing provenance output records provided from client
+        assertTrue(provenanceOutputDataRecords.size() > 0);
+    }
+
+    private static PublicKey getPublicKey(StartedMockNode node) {
+        return node.getInfo().getLegalIdentities().get(0).getOwningKey();
+    }
 
     private String getConstraint() {
         String mode = System.getProperty("enclaveMode");

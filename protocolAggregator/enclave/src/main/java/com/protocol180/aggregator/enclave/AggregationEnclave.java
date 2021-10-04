@@ -1,12 +1,12 @@
-package com.protocol180.aggregator.enclave;;
+package com.protocol180.aggregator.enclave;
 
+import com.protocol180.commons.ClientType;
 import com.protocol180.commons.MailType;
 import com.r3.conclave.cordapp.common.SenderIdentity;
 import com.r3.conclave.mail.EnclaveMail;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.file.SeekableByteArrayInput;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -15,32 +15,33 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 
 import java.io.File;
-import java.nio.file.StandardOpenOption;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.PublicKey;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.protocol180.commons.ClientType;
+;
 
 /**
  * Simply reverses the bytes that are passed in.
  */
 public class AggregationEnclave extends CordaEnclave {
 
-    String clientTypeForCurrRequest=null;
+    //Local store
+    HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
+    HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
+    HashMap<String, String> clientIdentityStore;
+    Schema aggregateInputSchema;
+    Schema aggregateOutputSchema;
+    Schema provenanceOutputSchema;
+    Schema identitySchema;
+
+    String clientTypeForCurrRequest = null;
 
 
-    private void convertEncryptedClientDataToRawData(){
+    private void convertEncryptedClientDataToRawData() {
         DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateInputSchema);
         clientToEncryptedDataMap.entrySet().forEach(entry ->
                 {
@@ -64,7 +65,7 @@ public class AggregationEnclave extends CordaEnclave {
         System.out.println("Raw Client Data to Process: " + clientToRawDataMap.toString());
     }
 
-    private int calculateProvenanceAllocation(ArrayList<GenericRecord> records){
+    private int calculateProvenanceAllocation(ArrayList<GenericRecord> records) {
         //calculations for provenance allocation on fixed income demand data
         ArrayList<Integer> allocationScores = new ArrayList<>();
         Map<String, Integer> creditRatings = Stream.of(
@@ -97,12 +98,12 @@ public class AggregationEnclave extends CordaEnclave {
         records.forEach(record -> {
             Integer amount = (Integer) record.get("amount");
             allocationScores.add((creditRatings.get(record.get("creditRating").toString()) + sectors.get(record.get("sector").toString()) +
-                    assetTypes.get(record.get("assetType").toString()) + durations.get(record.get("duration").toString())) + amount/1000000);
+                    assetTypes.get(record.get("assetType").toString()) + durations.get(record.get("duration").toString())) + amount / 1000000);
         });
         return allocationScores.stream().mapToInt(a -> a).sum();
     }
 
-    protected File createProvenanceDataOutput() throws IOException{
+    protected File createProvenanceDataOutput() throws IOException {
         //populate provenance output file here based on raw client data
         File outputFile = new File("provenanceOutput.avro");
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceOutputSchema);
@@ -124,7 +125,7 @@ public class AggregationEnclave extends CordaEnclave {
         return outputFile;
     }
 
-    protected File createAggregateDataOutput() throws IOException{
+    protected File createAggregateDataOutput() throws IOException {
         //populate aggregate logic here based on raw client data and return output file
         System.out.println("Encrypted Client Data to Process: " + clientToEncryptedDataMap.toString());
         convertEncryptedClientDataToRawData();
@@ -151,24 +152,23 @@ public class AggregationEnclave extends CordaEnclave {
         return outputFile;
     }
 
-    protected void initializeLocalStore(){
+    protected void initializeLocalStore() {
         clientToEncryptedDataMap = new HashMap();
         clientToRawDataMap = new HashMap();
     }
 
-    protected void clearLocalStore(){
+    protected void clearLocalStore() {
         clientToEncryptedDataMap = null;
         clientToRawDataMap = null;
     }
 
-    protected void putUnencryptedMailToClient(PublicKey sender, byte[] mailBytes){
+    protected void putUnencryptedMailToClient(PublicKey sender, byte[] mailBytes) {
         clientToEncryptedDataMap.put(sender, mailBytes);
     }
 
-    private void initializeLocalClientIdentityStore(){
-        localClientStore= new HashMap<>();
+    private void initializeLocalClientIdentityStore() {
+        clientIdentityStore = new HashMap<>();
     }
-
 
 
     private void convertIdentitiesToRawIdentities(byte[] unencryptedMail) {
@@ -176,110 +176,85 @@ public class AggregationEnclave extends CordaEnclave {
         try {
             File dataFile = new File("identityFile");
             Files.write(dataFile.toPath(), unencryptedMail);
-//            SeekableByteArrayInput seekableInputData= new SeekableByteArrayInput(unencryptedMail);
-            System.out.println("identity schema inside enclave is: "+identitySchema);
+            System.out.println("identity schema inside enclave is: " + identitySchema);
             DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
             while (dataFileReader.hasNext()) {
                 GenericRecord dataRecord = null;
                 dataRecord = dataFileReader.next(dataRecord);
-                localClientStore.put(dataRecord.get("publicKey").toString(),dataRecord.get("clientType").toString());
+                clientIdentityStore.put(dataRecord.get("publicKey").toString(), dataRecord.get("clientType").toString());
             }
-            System.out.println("Local Client Store: " + localClientStore);
+            System.out.println("Local Client Store: " + clientIdentityStore);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
 
-    //Local store
-    HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
-    HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
-    HashMap<String, String> localClientStore;
-    Schema aggregateInputSchema;
-    Schema aggregateOutputSchema;
-    Schema provenanceOutputSchema;
-    Schema identitySchema;
 
     @Override
     protected void receiveMail(long id, EnclaveMail mail, String routingHint, SenderIdentity identity) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
 
-//        Schema schema= new Schema.Parser().parse(new String(unencryptedMail));
-//        System.out.println("inside receivemail: "+new String(unencryptedMail));
-//
-//        final byte[] responseBytes = postOffice(mail).encryptMail(unencryptedMail);
-//        postMail(responseBytes, routingHint);
 
-        String mailType= getMailType(new String(unencryptedMail));
-        System.out.println("Type of mail for current request is:"+mailType);
+        String mailType = getMailType(new String(unencryptedMail));
+        System.out.println("Type of mail for current request is:" + mailType);
 
-        System.out.println("Original mail content inside receivemail: "+ new String(unencryptedMail));
+        if (identity == null)
+            throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
 
+        String senderEncodedPublicKey = Base64.getEncoder().encodeToString(identity.getPublicKey().getEncoded());
 
-//        System.out.println("Identity of the client is:"+identity.getPublicKey());
-//        if (identity == null)
-//            throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
         try {
 
-            if(mailType.equals(MailType.TYPE_SCHEMA)){
+            if (mailType.equals(MailType.TYPE_SCHEMA)) {
                 //Read and store data input schema file
 
-//                Path aggregateSchemaFilePath = Paths.get("envelopeSchema");
-//                SeekableByteChannel sbc = Files.newByteChannel(aggregateSchemaFilePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.READ, StandardOpenOption.WRITE);
-//                sbc.write(ByteBuffer.wrap(unencryptedMail));
-//                sbc.close();
-
-                Schema envelopSchema= new Schema.Parser().parse(new String(unencryptedMail));
+                Schema envelopSchema = new Schema.Parser().parse(new String(unencryptedMail));
                 aggregateInputSchema = envelopSchema.getField("aggregateInput").schema();
-                aggregateOutputSchema= envelopSchema.getField("aggregateOutput").schema();
-                provenanceOutputSchema= envelopSchema.getField("provenanceOutput").schema();
-                identitySchema= envelopSchema.getField("identity").schema();
+                aggregateOutputSchema = envelopSchema.getField("aggregateOutput").schema();
+                provenanceOutputSchema = envelopSchema.getField("provenanceOutput").schema();
+                identitySchema = envelopSchema.getField("identity").schema();
 
-                final byte[] responseBytes = postOffice(mail).encryptMail(unencryptedMail);
+                final byte[] responseBytes = postOffice(mail).encryptMail(aggregateInputSchema.toString().getBytes());
                 postMail(responseBytes, routingHint);
-//                acknowledgeMail(id);
-            }
-            else if (mailType.equals(MailType.TYPE_IDENTITIES)) {
+            } else if (mailType.equals(MailType.TYPE_IDENTITIES)) {
                 //store provided identities into enclave
-                if(localClientStore == null){
+                if (clientIdentityStore == null) {
                     initializeLocalClientIdentityStore();
                 }
-                System.out.println("Identity schema for identities request: "+identitySchema);
+                System.out.println("Identity schema for identities request: " + identitySchema);
                 convertIdentitiesToRawIdentities(unencryptedMail);
-                final byte[] responseBytes = postOffice(mail).encryptMail(unencryptedMail);
+                final byte[] responseBytes = postOffice(mail).encryptMail(String.valueOf(clientIdentityStore.size()).getBytes());
                 postMail(responseBytes, routingHint);
 
-            }
-            else if(mailType.equals(MailType.TYPE_CLIENT) && localClientStore.containsKey(identity.getPublicKey())){
-                String clientType= localClientStore.get(identity.getPublicKey());
+            } else if (mailType.equals(MailType.TYPE_CLIENT) && clientIdentityStore.containsKey(senderEncodedPublicKey)) {
+                String clientType = clientIdentityStore.get(senderEncodedPublicKey);
 
-                if(clientType.equals(ClientType.TYPE_PROVIDER)){
-                    clientTypeForCurrRequest=ClientType.TYPE_PROVIDER;
+                if (clientType.equals(ClientType.TYPE_PROVIDER)) {
+                    clientTypeForCurrRequest = ClientType.TYPE_PROVIDER;
                     //store mail contents for aggregation
                     System.out.println("Ack Mail for provider");
-                    if(clientToEncryptedDataMap == null && clientToRawDataMap == null){
+                    if (clientToEncryptedDataMap == null && clientToRawDataMap == null) {
                         initializeLocalStore();
                     }
                     putUnencryptedMailToClient(identity.getPublicKey(), unencryptedMail);
                     System.out.println(clientToEncryptedDataMap.size());
 
-                    final byte[] responseBytes = postOffice(mail).encryptMail(unencryptedMail);
+                    final byte[] responseBytes = postOffice(mail).encryptMail(String.valueOf(clientToEncryptedDataMap.size()).getBytes());
                     postMail(responseBytes, routingHint);
 
-                }
-                else if(clientType.equals(ClientType.TYPE_CONSUMER)){
-                    clientTypeForCurrRequest=ClientType.TYPE_CONSUMER;
+                } else if (clientType.equals(ClientType.TYPE_CONSUMER)) {
+                    clientTypeForCurrRequest = ClientType.TYPE_CONSUMER;
                     //send aggregation output to consumer
                     System.out.println("Aggregate Data request Mail from consumer");
-//                    putUnencryptedMailToClient(sender, unencryptedMail);
                     //create aggregate output
                     File aggregateOutput = createAggregateDataOutput();
+                    System.out.println(new String(Files.readAllBytes(aggregateOutput.toPath())));
                     final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
                     postMail(responseBytes, routingHint);
 
-                }
-                else if(clientType.equals(ClientType.TYPE_PROVENANCE)){
-                    clientTypeForCurrRequest=ClientType.TYPE_PROVENANCE;
+                } else if (clientType.equals(ClientType.TYPE_PROVENANCE)) {
+                    clientTypeForCurrRequest = ClientType.TYPE_PROVENANCE;
                     //send provenance result to required party
                     System.out.println("Provenance Mail");
                     //create provenance output
@@ -288,35 +263,27 @@ public class AggregationEnclave extends CordaEnclave {
                     postMail(responseBytes, routingHint);
                     clearLocalStore();
 
-                }
-                else {
-                    clientTypeForCurrRequest=null;
+                } else {
+                    clientTypeForCurrRequest = null;
                     System.out.println("Unauthenticated client request");
                 }
 
-            }
-            else {
+            } else {
                 final byte[] responseBytes = postOffice(mail).encryptMail("Invalid Request".getBytes());
                 postMail(responseBytes, routingHint);
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-//        // Get the PostOffice instance for responding back to this mail. Our response will use the same topic.
-//        final EnclavePostOffice postOffice = postOffice(mail);
-//        // Create the encrypted response and send it back to the sender.
-//        final byte[] reply = postOffice.encryptMail(responseString.getBytes(StandardCharsets.UTF_8));
-//        postMail(reply, routingHint);
     }
 
     private String getMailType(String unencryptedMail) {
-        if(unencryptedMail.contains("Envelope"))
+        if (unencryptedMail.contains("Envelope"))
             return MailType.TYPE_SCHEMA;
-        else if(unencryptedMail.contains("AggregateInput") || unencryptedMail.contains("AggregateOutput") || unencryptedMail.contains("Provenance"))
+        else if (unencryptedMail.contains("AggregateInput") || unencryptedMail.contains("AggregateOutput") || unencryptedMail.contains("Provenance"))
             return MailType.TYPE_CLIENT;
-        else if(unencryptedMail.contains("Identity"))
+        else if (unencryptedMail.contains("Identity"))
             return MailType.TYPE_IDENTITIES;
         return "";
     }
