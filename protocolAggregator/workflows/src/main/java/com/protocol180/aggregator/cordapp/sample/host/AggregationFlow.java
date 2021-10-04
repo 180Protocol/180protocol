@@ -14,7 +14,7 @@ import net.corda.core.identity.Party;
  */
 @InitiatingFlow
 @StartableByRPC
-public class AggregationFlow extends FlowLogic<String> {
+public class AggregationFlow extends FlowLogic<byte[]> {
     private final Party receiver;
     private final byte[] message;
     private final String constraint;
@@ -34,12 +34,12 @@ public class AggregationFlow extends FlowLogic<String> {
 
     @Override
     @Suspendable
-    public String call() throws FlowException {
+    public byte[] call() throws FlowException {
         System.out.println("starting aggregation intiator flow ");
         EnclaveFlowInitiator session = EnclaveClientHelper.initiateFlow(this, receiver, constraint, anonymous);
 
         byte[] response = session.sendAndReceive(message);
 
-        return new String(response);
+        return response;
     }
 }
