@@ -61,10 +61,10 @@ class AggregatorEnclaveTest {
         System.out.println("public key of client2 is: " + Base64.getEncoder().encodeToString(provider2.getInfo().getLegalIdentities().get(0).getOwningKey().getEncoded()));
 
         randomClients = new HashMap<>();
-        randomClients.put(getPublicKey(provider1), ClientType.TYPE_PROVIDER);
-        randomClients.put(getPublicKey(provider2), ClientType.TYPE_PROVIDER);
-        randomClients.put(getPublicKey(consumer), ClientType.TYPE_CONSUMER);
-        randomClients.put(getPublicKey(provenance), ClientType.TYPE_PROVENANCE);
+        randomClients.put(getPublicKey(provider1), ClientType.TYPE_PROVIDER.type);
+        randomClients.put(getPublicKey(provider2), ClientType.TYPE_PROVIDER.type);
+        randomClients.put(getPublicKey(consumer), ClientType.TYPE_CONSUMER.type);
+        randomClients.put(getPublicKey(provenance), ClientType.TYPE_PROVENANCE.type);
 
         mockClientUtil = new MockClientUtil();
     }
@@ -164,20 +164,20 @@ class AggregatorEnclaveTest {
 
         byte[] provider2Data = mockClientUtil.createProviderMailForAggregationData();
 
-        CordaFuture<byte[]> provider2flow = provider2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider2Data, getConstraint(), false));
+        CordaFuture<byte[]> provider2Flow = provider2.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provider2Data, getConstraint(), false));
         network.runNetwork();
 
         byte[] consumerSchema = MockClientUtil.aggregationOutputSchema.toString().getBytes();
 
-        CordaFuture<byte[]> consumerflow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
+        CordaFuture<byte[]> consumerFlow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
         network.runNetwork();
 
-        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerflow.get(), "aggregate");
+        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerFlow.get(), "aggregate");
 
 
         assertEquals(MockClientUtil.aggregationInputSchema.toString(), new String(schemaFlow.get()));
         assertEquals("4", new String(identitiesFlow.get()));
-        assertEquals("2", new String(provider2flow.get()));
+        assertEquals("2", new String(provider2Flow.get()));
         assertTrue(aggregationOutputDataRecords.size() > 0);
     }
 
@@ -207,17 +207,17 @@ class AggregatorEnclaveTest {
 
         byte[] consumerSchema = MockClientUtil.aggregationOutputSchema.toString().getBytes();
 
-        CordaFuture<byte[]> consumerflow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
+        CordaFuture<byte[]> consumerFlow = consumer.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), consumerSchema, getConstraint(), false));
         network.runNetwork();
 
-        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerflow.get(), "aggregate");
+        ArrayList<GenericRecord> aggregationOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(consumerFlow.get(), "aggregate");
 
         byte[] provenanceSchema = MockClientUtil.provenanceOutputSchema.toString().getBytes();
 
-        CordaFuture<byte[]> provenanceflow = provenance.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provenanceSchema, getConstraint(), false));
+        CordaFuture<byte[]> provenanceFlow = provenance.startFlow(new AggregationFlow(host.getInfo().getLegalIdentities().get(0), provenanceSchema, getConstraint(), false));
         network.runNetwork();
 
-        ArrayList<GenericRecord> provenanceOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(provenanceflow.get(), "provenance");
+        ArrayList<GenericRecord> provenanceOutputDataRecords = mockClientUtil.readGenericRecordsFromOutputBytesAndSchema(provenanceFlow.get(), "provenance");
 
 
         //testing aggregation schema has been delivered to enclave

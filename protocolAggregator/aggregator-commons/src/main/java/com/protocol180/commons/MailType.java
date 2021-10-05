@@ -1,9 +1,15 @@
 package com.protocol180.commons;
 
-public class MailType {
-    public static final String TYPE_SCHEMA="schema";
-    public static final String TYPE_IDENTITIES="identities";
-    public static final String TYPE_CLIENT="client";
+public enum MailType {
 
-    public static final String[] CLIENT_TYPES={TYPE_SCHEMA, TYPE_IDENTITIES, TYPE_CLIENT};
+    TYPE_SCHEMA("schema"),
+    TYPE_IDENTITIES("identities"),
+    TYPE_CLIENT("client");
+
+    public final String type;
+
+    private MailType(String type) {
+        this.type = type;
+    }
+
 }
