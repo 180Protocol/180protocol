@@ -117,7 +117,7 @@ public class MockClientUtil {
         ArrayList<GenericRecord> genericRecords = new ArrayList<>();
         GenericRecord dataRecord = null;
         while (dataFileReader.hasNext()) {
-            dataRecord = dataFileReader.next(dataRecord);
+            dataRecord = dataFileReader.next();
             System.out.println("Record: " + dataRecord);
             genericRecords.add(dataRecord);
         }
