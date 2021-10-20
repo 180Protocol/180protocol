@@ -1,18 +1,9 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# Ignore Gradle project-specific cache directory
+**/.gradle
 
-# Other files and folders
-.settings/
+# Ignore Gradle build output directory
+**/build
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
-
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+.idea
+**/logs
+180Dashboard/node_modules/**
