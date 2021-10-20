@@ -26,7 +26,8 @@ to be shared, transformed and rewarded for in a secure way.
 
 The 180ProtocolPoc is representative usage of the 180Protocol framework.
 
-###How to run the 180Protocol POC
+###How to run the 180Protocol POC### 
+
 The protocol poc comprises the 180Dashboard and pocCordApp modules. The 180 Dashboard is the React based front end and the
 pocCordApp is the sample backend.
 
