@@ -7,3 +7,4 @@
 .idea
 **/logs
 180Dashboard/node_modules/**
+*.iml
