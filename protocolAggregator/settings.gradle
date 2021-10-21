@@ -1,12 +1,19 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 pluginManagement {
     repositories {
         maven {
-            def repoPath = file(rootDir.relativePath(file(conclaveRepo)))
-            if (repoPath == null)
-                throw new Exception("Make sure the 'conclaveRepo' setting exists in gradle.properties, or your \$HOME/gradle.properties file. See the Conclave tutorial on https://docs.conclave.net")
-            else if (!new File(repoPath, "com").isDirectory())
-                throw new Exception("The $repoPath directory doesn't seem to exist or isn't a Maven repository; it should be the SDK 'repo' subdirectory. See the Conclave tutorial on https://docs.conclave.net")
-            url = repoPath
+            def path = Paths.get(rootDir.absolutePath).resolve(conclaveRepo).toAbsolutePath().normalize()
+            if (!Files.isDirectory(path.resolve("com"))) {
+                if (Files.isDirectory(Paths.get("/repo/com"))) {
+                    path = Paths.get("/repo")
+                } else {
+                    throw new Exception("Neither $path nor /repo seem to exist, or they aren't Maven repositories; it should be the SDK 'repo' subdirectory. " +
+                            "If on macOS, try using the container-gradle script to execute run the tests. See the Conclave CorDapp tutorial on https://docs.conclave.net/writing-cordapps.html")
+                }
+            }
+            url = path.toFile()
         }
         // Add standard repositories back.
         gradlePluginPortal()
@@ -19,8 +26,6 @@ pluginManagement {
     }
 }
 
-include 'enclave'
-include 'host'
-include 'client'
 include 'aggregator-commons'
-
+include 'enclave'
+include 'workflows'

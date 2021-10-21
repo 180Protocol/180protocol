@@ -1,0 +1,57 @@
+{
+  "namespace": "com.180protocol",
+  "type": "record",
+  "name": "Envelope",
+  "fields": [
+    {
+        "name": "aggregateInput",
+        "type": {
+                    "type" : "record",
+                    "name" : "AggregateInput",
+                    "fields": [
+                        {"name": "creditRating", "type": "string"},
+                        {"name": "sector", "type": "string"},
+                        {"name": "assetType", "type": "string"},
+                        {"name": "duration", "type": "string"},
+                        {"name": "amount",  "type": ["null", "int"]}
+                      ]
+                }
+    },
+    {
+        "name": "aggregateOutput",
+        "type": {
+                    "type" : "record",
+                    "name" : "AggregateOutput",
+                    "fields": [
+                        {"name": "creditRating", "type": "string"},
+                        {"name": "sector", "type": "string"},
+                        {"name": "assetType", "type": "string"},
+                        {"name": "duration", "type": "string"},
+                        {"name": "amount",  "type": ["null", "int"]}
+                      ]
+                }
+    },
+    {
+        "name": "provenanceOutput",
+        "type": {
+                    "type" : "record",
+                    "name" : "Provenance",
+                    "fields": [
+                        {"name": "client", "type": "string"},
+                        {"name": "allocation", "type": "int"}
+                    ]
+                }
+    },
+    {
+        "name": "identity",
+        "type": {
+                    "type" : "record",
+                    "name" : "Identity",
+                    "fields": [
+                        {"name": "publicKey", "type": "string"},
+                        {"name": "clientType", "type": "string"}
+                    ]
+                }
+    }
+  ]
+}

@@ -1,9 +1,11 @@
-plugins {
-    id 'java'
-}
+apply plugin: 'kotlin'
 
 dependencies {
-    implementation "com.r3.conclave:conclave-client:$conclaveVersion"
+    implementation "com.r3.conclave:conclave-common:$conclaveVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "net.i2p.crypto:eddsa:0.3.0"
+
+//    implementation "com.r3.conclave:conclave-client:$conclaveVersion"
     implementation 'org.jetbrains:annotations:19.0.0'
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
     compile 'org.apache.commons:commons-lang3:3.5'
