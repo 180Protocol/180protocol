@@ -1,9 +1,0 @@
-{
-  "namespace": "com.180protocol",
-  "type": "record",
-  "name": "Provenance",
-  "fields": [
-    {"name": "client", "type": "string"},
-    {"name": "allocation", "type": "int"}
-  ]
-}
