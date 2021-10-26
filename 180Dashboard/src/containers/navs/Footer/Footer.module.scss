@@ -1,0 +1,27 @@
+@import '../../../App.css';
+
+footer {
+  background-color: #607185;
+  padding: 10px 15px;
+
+  .footerText {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    p {
+      color: #ffffff !important;
+      margin-bottom: 0px;
+
+      a {
+        color: inherit !important;
+        text-decoration: none;
+
+        &:hover {
+          color: #cdfdff !important;
+        }
+      }
+    }
+  }
+
+}

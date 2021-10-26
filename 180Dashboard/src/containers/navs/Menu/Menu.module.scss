@@ -1,0 +1,33 @@
+@import '../../../App.css';
+
+.headerContainer {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: center;
+
+  .headerLinksUl {
+    display: inline-flex;
+    text-align: center;
+    list-style: none !important;
+    padding-left: 0;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    li {
+      display: inline-block;
+      list-style: none !important;
+      margin: 0 15px;
+
+      a.menuLink {
+        text-decoration: none;
+        display: block;
+        font-family: 'Muli SemiBold';
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+}

@@ -1,0 +1,42 @@
+@font-face {
+  font-family: 'Muli';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli Regular'), url('./Muli-Regular.woff') format('woff');
+  }
+  
+
+  @font-face {
+  font-family: 'Muli Light';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli Light'), url('./Muli-Light.woff') format('woff');
+  }  
+
+  @font-face {
+  font-family: 'Muli SemiBold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli SemiBold'), url('./Muli-SemiBold.woff') format('woff');
+  }
+  
+ @font-face {
+  font-family: 'Muli Bold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli Bold'), url('./Muli-Bold.woff') format('woff');
+  }
+
+  @font-face {
+  font-family: 'Muli ExtraBold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli ExtraBold'), url('./Muli-ExtraBold.woff') format('woff');
+  }
+  
+  @font-face {
+  font-family: 'Muli Black';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Muli Black'), url('./Muli-Black.woff') format('woff');
+  }
