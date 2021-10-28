@@ -196,6 +196,35 @@ body {
     border-right: none !important;
 }
 
+.dx-g-bs4-paging-panel {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dx-g-bs4-paging-panel::after {
+    display: none;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item a {
+    color: #56BBB7;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item.active a {
+    background-image: linear-gradient(#56BBB7, #7DE0DD );
+    margin-bottom: 15px !important;
+    color: #ffffff;
+    text-align: center;
+    border-color: #dee2e6;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item a:focus {
+    box-shadow: none !important;
+}
+
 /* Login */
 .auth-container {
     min-height: 100vh;

@@ -9,7 +9,7 @@ import Menu from "../../../containers/navs/Menu";
 const data = {
     amountProvided: [
         {
-            "id": "Amount",
+            "id": "",
             "value": 2.5,
             "color": "hsl(0, 100%, 100%)"
         },
@@ -21,7 +21,7 @@ const data = {
     ],
     provenanceQuality: [
         {
-            "id": "Quality",
+            "id": "",
             "value": 5.8,
             "color": "hsl(0, 100%, 100%)"
         },
@@ -33,7 +33,7 @@ const data = {
     ],
     dataScarcity: [
         {
-            "id": "Scarcity",
+            "id": "",
             "value": 4.9,
             "color": "hsl(0, 100%, 100%)"
         },
@@ -45,7 +45,7 @@ const data = {
     ],
     updateFrequency: [
         {
-            "id": "Frequency",
+            "id": "",
             "value": 1.8,
             "color": "hsl(0, 100%, 100%)"
         },

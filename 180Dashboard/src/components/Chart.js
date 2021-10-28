@@ -14,6 +14,12 @@ const MyResponsivePie = ({data}) => (
         enableArcLinkLabels={false}
         enableArcLabels={false}
         colors={{datum: 'data.color'}}
+        tooltip={({datum: {id, value, color}}) => (
+            id ?
+                <strong>
+                    {id}: {value}
+                </strong> : null
+        )}
     />
 )
 

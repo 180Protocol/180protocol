@@ -4,7 +4,7 @@ import {useAuthDispatch, useAuthState} from "../../../store/context";
 import {logout} from "../../../store/auth/actions";
 
 // Images
-import logo from "../../../assets/images/logo.svg";
+import logo from "../../../assets/images/logo.png";
 import notificationIcon from "../../../assets/images/notification.svg";
 import userIcon from "../../../assets/images/user.svg";
 import dashboardIcon from "../../../assets/images/dashboard.svg";
@@ -36,11 +36,6 @@ const Header = () => {
                                                 <img src={notificationIcon} width={25}/>
                                                 <span className={styles.notificationCount}>4</span>
                                             </div>
-                                        </a>
-                                    </li>
-                                    <li className="nav-item">
-                                        <a className="nav-link" href="#">
-                                            <img src={dashboardIcon} width={25}/>
                                         </a>
                                     </li>
                                     <li className="nav-item">
