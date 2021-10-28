@@ -1,0 +1,185 @@
+@import '../../../App.css';
+
+.Reward {
+  position: relative;
+
+  .bgGradient {
+    background-image: linear-gradient(#3376A5, #133054);
+
+    * {
+      color: #ffffff !important;
+    }
+
+    .headerContainer {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: center;
+
+      .headerLinksUl {
+        display: inline-flex;
+        text-align: center;
+        list-style: none !important;
+        padding-left: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        li {
+          display: inline-block;
+          list-style: none !important;
+          margin: 0 15px;
+
+          a.menuLink {
+            text-decoration: none;
+            display: block;
+            font-family: 'Muli SemiBold';
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+
+    }
+
+    .OverviewContainer {
+      padding: 3em 0;
+      text-align: center;
+
+      .innerCol p {
+        margin-bottom: 25px;
+      }
+
+    }
+  }
+
+  .aggregationCardBody {
+    color: #245781;
+
+    .chartBoxContain {
+      border: 1px solid #193E6420;
+      border-radius: 15px;
+      transform: scale(90%);
+
+      .reviewChartContainer {
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        border-bottom: 1px solid #193E6420;
+        padding: 7.5px 15px;
+
+        .chartContent {
+          width: 100px;
+          height: 100px;
+        }
+
+        .counterBox {
+          color: #245781;
+          text-align: center;
+          font-family: 'Muli Bold';
+
+          .counterNumber {
+            font-size: 26px;
+            margin-bottom: 0px;
+            font-family: 'Muli Bold';
+          }
+        }
+      }
+
+      .reviewTitleContainer {
+        position: relative;
+        width: 100%;
+        padding: 7.5px 15px;
+
+        .contentBox {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .counterTitle {
+            font-family: 'Muli ExtraBold';
+            color: #245781;
+            margin-bottom: 0;
+          }
+
+          .counterAmount {
+            font-family: 'Muli';
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+
+  }
+
+  .transactionCardBody {
+
+    .transactionCol {
+      display: inline-flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .boxInnerCol {
+      width: 100%;
+      max-width: 320px;
+      margin: 10px auto;
+      border: 1px solid #193E6420;
+      border-radius: 15px;
+      transform: scale(1.1);
+
+      &:first-child {
+        margin-bottom: 20px;;
+      }
+
+      .transTitle {
+        color: #245781;
+        font-family: 'Muli Bold';
+        padding: 7.5px 15px;
+        border-bottom: 1px solid #193E6420;
+      }
+
+      .transDetail {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .detailText {
+          color: #245781;
+          text-align: center;
+          padding: 7.5px 15px;
+
+          * {
+            margin: 12px 0 !important;
+          }
+
+          &:first-child {
+            border-right: 1px solid #193E6420;
+          }
+
+          p {
+            margin-bottom: 0px;
+          }
+
+          .counterNumber {
+            font-size: 20px;
+            font-family: 'Muli Bold';
+            line-height: 1;
+          }
+
+          .counterText {
+            font-weight: 500;
+            font-family: 'Muli SemiBold';
+          }
+        }
+
+      }
+
+    }
+
+  }
+
+}

@@ -1,0 +1,74 @@
+@import '../../../App.css';
+
+.header {
+  position: relative;
+
+  .bgGradient {
+    height: 300px;
+    background-image: linear-gradient(#3376A5, #133054);
+  }
+
+  .headerContainer {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .logo {
+    width: 200px;
+  }
+
+  .headerRightBar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    h3 {
+      margin-right: 10px;
+      font-family: 'Muli Bold';
+      font-style: normal;
+      font-weight: normal;
+      text-transform: uppercase;
+      font-size: 20px;
+      color: #2F314A;
+      margin-bottom: 0 !important;
+      letter-spacing: 0.5px;
+    }
+
+  }
+
+  .navbarNav {
+    flex-direction: row;
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      &:not(:first-child) {
+        margin-left: 20px;
+      }
+
+      &:last-child {
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .notificationIconClass {
+    position: relative;
+    font-family: 'Muli Bold' !important;
+
+    .notificationCount {
+      position: absolute;
+      background-color: #FAC17C;
+      width: 20px;
+      height: 20px;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      top: -10px;
+      right: -10px;
+    }
+  }
+}
