@@ -1,8 +1,6 @@
-plugins {
-    id 'java'
-    id 'net.corda.plugins.cordapp'
-    id 'net.corda.plugins.cordformation'
-}
+apply plugin: 'net.corda.plugins.cordapp'
+apply plugin: 'net.corda.plugins.cordformation'
+apply plugin: 'net.corda.plugins.quasar-utils'
 
 cordapp {
     targetPlatformVersion corda_platform_version

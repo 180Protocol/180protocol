@@ -1,5 +1,4 @@
 plugins {
-    id 'kotlin'
     id 'com.r3.conclave.enclave'
 }
 
