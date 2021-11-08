@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.protocol180.commons.SchemaType;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.LinearState;
+import net.corda.core.contracts.StaticPointer;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.AnonymousParty;
@@ -13,27 +14,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ConsumerAggregationState implements ContractState, LinearState {
+public class ConsumerAggregationState implements ContractState {
 
     public final AnonymousParty consumer;
     public final Party host;
     public final String failedReason;
-    public final List<ProviderAggregationState> providerAggregationStatesList;
-    public final DataOutputState dataOutputState;
+    private final StaticPointer<ProviderAggregationState> pointedToProviderAggregationState;
+    private final StaticPointer<DataOutputState> pointedToDataOutputState;
 //    public final SchemaType
     public final SchemaType dataType;
 
-    private final UniqueIdentifier linearId;
-
     @ConstructorForDeserialization
-    public ConsumerAggregationState(AnonymousParty consumer, Party host, String failedReason, List<ProviderAggregationState> providerAggregationStatesList, DataOutputState dataOutputState, SchemaType dataType, UniqueIdentifier linearId) {
+    public ConsumerAggregationState(AnonymousParty consumer, Party host, String failedReason, StaticPointer<ProviderAggregationState> pointedToProviderAggregationState, StaticPointer<DataOutputState> pointedToDataOutputState, SchemaType dataType) {
         this.consumer = consumer;
         this.host = host;
         this.failedReason = failedReason;
-        this.providerAggregationStatesList = providerAggregationStatesList;
-        this.dataOutputState = dataOutputState;
+        this.pointedToProviderAggregationState = pointedToProviderAggregationState;
+        this.pointedToDataOutputState = pointedToDataOutputState;
         this.dataType = dataType;
-        this.linearId = linearId;
     }
 
 
@@ -43,25 +41,19 @@ public class ConsumerAggregationState implements ContractState, LinearState {
         return ImmutableList.of(consumer, host);
     }
 
-    @NotNull
-    @Override
-    public UniqueIdentifier getLinearId() {
-        return linearId;
-    }
-
     public String getFailedReason() {
         return failedReason;
     }
 
-    public List<ProviderAggregationState> getProviderAggregationStatesList() {
-        return providerAggregationStatesList;
-    }
-
-    public DataOutputState getDataOutputState() {
-        return dataOutputState;
-    }
-
     public SchemaType getDataType() {
         return dataType;
+    }
+
+    public StaticPointer<ProviderAggregationState> getPointedToProviderAggregationState() {
+        return pointedToProviderAggregationState;
+    }
+
+    public StaticPointer<DataOutputState> getPointedToDataOutputState() {
+        return pointedToDataOutputState;
     }
 }

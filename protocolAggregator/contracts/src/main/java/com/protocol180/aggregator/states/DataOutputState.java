@@ -3,6 +3,7 @@ package com.protocol180.aggregator.states;
 import com.google.common.collect.ImmutableList;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.LinearState;
+import net.corda.core.contracts.StaticPointer;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.AnonymousParty;
@@ -12,12 +13,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Date;
 import java.util.List;
 
-public class DataOutputState implements ContractState, LinearState {
+public class DataOutputState implements ContractState {
 
     public final AnonymousParty consumer;
     public final Party host;
     public final byte[] dataOutput;
     public final Date dateCreate;
+
+    private final StaticPointer<ConsumerAggregationState> pointedToState;
 
     public byte[] getDataOutput() {
         return dataOutput;
@@ -27,21 +30,18 @@ public class DataOutputState implements ContractState, LinearState {
         return dateCreate;
     }
 
-    public ConsumerAggregationState getStateAndRef() {
-        return stateAndRef;
+    public StaticPointer<ConsumerAggregationState> getPointedToState() {
+        return pointedToState;
     }
 
-    public final ConsumerAggregationState stateAndRef;
 
-    public final UniqueIdentifier linearId;
 
-    public DataOutputState(AnonymousParty consumer, Party host, byte[] dataOutput, Date dateCreate, ConsumerAggregationState stateAndRef, UniqueIdentifier linearId) {
+    public DataOutputState(AnonymousParty consumer, Party host, byte[] dataOutput, Date dateCreate, StaticPointer<ConsumerAggregationState> pointedToState) {
         this.consumer = consumer;
         this.host = host;
         this.dataOutput = dataOutput;
         this.dateCreate = dateCreate;
-        this.stateAndRef = stateAndRef;
-        this.linearId = linearId;
+        this.pointedToState = pointedToState;
     }
 
     @NotNull
@@ -50,9 +50,5 @@ public class DataOutputState implements ContractState, LinearState {
         return ImmutableList.of(consumer, host);
     }
 
-    @NotNull
-    @Override
-    public UniqueIdentifier getLinearId() {
-        return linearId;
-    }
+
 }
