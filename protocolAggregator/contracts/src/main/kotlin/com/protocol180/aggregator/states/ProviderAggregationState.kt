@@ -10,19 +10,17 @@ import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 
 @BelongsToContract(AggregationContract::class)
-data class ProviderAggregationState(val consumer: AnonymousParty,
+data class ProviderAggregationState(val provider: AnonymousParty,
                                     val host: Party,
                                     val failedReason:String,
-                                    val pointedToProviderAggregationState: StaticPointer<ProviderAggregationState>,
-                                    val pointedToDataOutputState: StaticPointer<DataOutputState>,
-                                    val dataType: SchemaType) : ContractState {
+                                    val dataInput: ByteArray,
+                                    val pointedToConsumerAggregationState: StaticPointer<ConsumerAggregationState>,
+                                    val pointedToRewardsState: StaticPointer<RewardsState>) : ContractState {
 
     /**
      *  This property holds a list of the nodes which can "use" this state in a valid transaction. In this case, the
-     *  consumer or host.
+     *  provider or host.
      */
-    override val participants: List<AbstractParty> get() = listOf(consumer, host)
-
-
+    override val participants: List<AbstractParty> get() = listOf(provider, host)
 
 }
