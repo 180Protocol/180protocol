@@ -13,8 +13,8 @@ import net.corda.core.identity.Party
 data class ConsumerAggregationState(val consumer: AnonymousParty,
                                     val host: Party,
                                     val failedReason:String,
-                                    val pointedToProviderAggregationState: StaticPointer<ProviderAggregationState>,
-                                    val pointedToDataOutputState:StaticPointer<DataOutputState>,
+                                    val pointedToProviderAggregationState: List<StaticPointer<ProviderAggregationState>>,
+                                    val pointedToDataOutputState: StaticPointer<DataOutputState>,
                                     val dataType: SchemaType) : ContractState   {
 
     /**
