@@ -3,7 +3,7 @@ package com.protocol180.aggregator.contracts
 import net.corda.core.contracts.Contract
 import net.corda.core.transactions.LedgerTransaction
 
-class AggregationContract:Contract {
+class ProvenanceAggreagationContract: Contract {
     /**
      * Takes an object that represents a state transition, and ensures the inputs/outputs/commands make sense.
      * Must throw an exception if there's a problem that should prevent state transition. Takes a single object
