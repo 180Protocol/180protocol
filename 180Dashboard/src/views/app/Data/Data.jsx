@@ -13,9 +13,9 @@ import styles from './Data.module.scss';
 import uploadIcon from "../../../assets/images/upload.svg";
 
 const options = [
-    {value: 'chocolate', label: 'Chocolate'},
-    {value: 'strawberry', label: 'Strawberry'},
-    {value: 'vanilla', label: 'Vanilla'}
+    {value: 'Fixed Income Demand Data', label: 'Fixed Income Demand Data'},
+    {value: 'Risk Metrics Data', label: 'Risk Metrics Data'},
+    {value: 'ESG Data', label: 'ESG Data'}
 ]
 
 const Dashboard = () => {
