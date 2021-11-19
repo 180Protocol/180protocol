@@ -7,7 +7,7 @@ import net.corda.core.transactions.LedgerTransaction
 class ConsumerAggregationContract : Contract {
     companion object {
         @JvmStatic
-        val Aggregation_Propose_CONTRACT_ID = "com.protocol180.aggregator.contracts.AggregationContract"
+        val Aggregation_Propose_CONTRACT_ID = "com.protocol180.aggregator.contracts.ConsumerAggregationContract"
     }
 
     /**
@@ -27,8 +27,6 @@ class ConsumerAggregationContract : Contract {
                 "A newly issued Propose must have Consumer & Host Public key" using
                         (consumerAggregationState.consumer != null && consumerAggregationState.host != null)
                 "The Type of Data required from consumer should not be empty" using (consumerAggregationState.dataType != null)
-                "List of Pointers to provider aggregation states & Data Output state must not been initialized at this stage " using
-                        (consumerAggregationState.pointedToProviderAggregationState == null && consumerAggregationState.pointedToDataOutputState == null)
                 "Both consumer and host together only may sign ConsumerAggregation Propose Transaction." using
                         (command.signers.toSet() == consumerAggregationState.participants.map { it.owningKey }.toSet())
             }

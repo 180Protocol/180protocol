@@ -8,14 +8,17 @@ import net.corda.core.contracts.StaticPointer
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
+import net.corda.core.serialization.CordaSerializable
 
 @BelongsToContract(ConsumerAggregationContract::class)
-data class ConsumerAggregationState(val consumer: AnonymousParty,
-                                    val host: Party,
-                                    val failedReason:String,
-                                    val pointedToProviderAggregationState: List<StaticPointer<ProviderAggregationState>>,
-                                    val pointedToDataOutputState: StaticPointer<DataOutputState>,
-                                    val dataType: SchemaType) : ContractState   {
+data class ConsumerAggregationState(
+    val consumer: AnonymousParty,
+    val host: Party,
+    var failedReason: String?,
+    var pointedToProviderAggregationState: List<StaticPointer<ProviderAggregationState>>?,
+    var pointedToDataOutputState: StaticPointer<DataOutputState>?,
+    val dataType: SchemaType
+) : ContractState   {
 
     /**
      *  This property holds a list of the nodes which can "use" this state in a valid transaction. In this case, the

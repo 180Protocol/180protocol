@@ -3,9 +3,20 @@ package com.protocol180.cordapp.aggregation.flow
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.ConsumerAggregationContract
 import com.protocol180.aggregator.states.ConsumerAggregationState
+import com.protocol180.aggregator.states.ProviderAggregationState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.*
+import net.corda.core.flows.CollectSignaturesFlow
+import net.corda.core.flows.FinalityFlow
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.ReceiveFinalityFlow
+import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.flows.StartableByRPC
+import net.corda.core.identity.Party
+import net.corda.core.node.services.queryBy
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 
@@ -16,7 +27,7 @@ import net.corda.core.transactions.TransactionBuilder
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationProposeFlow(val state: ConsumerAggregationState): FlowLogic<SignedTransaction>() {
+class ConsumerAggregationProposeFlow(val state: ConsumerAggregationState) : FlowLogic<SignedTransaction>() {
     @Suspendable
     override fun call(): SignedTransaction {
 
@@ -57,21 +68,26 @@ class ConsumerAggregationProposeFlow(val state: ConsumerAggregationState): FlowL
 }
 
 /**
- * This is the flow which signs IOU issuances.
+ * This is the flow which signs Aggregation Propose Transaction.
  * The signing is handled by the [SignTransactionFlow].
  */
 @InitiatedBy(ConsumerAggregationProposeFlow::class)
-class AggregationProposeFlowResponder(val flowSession: FlowSession): FlowLogic<SignedTransaction>() {
+class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
         val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
             override fun checkTransaction(stx: SignedTransaction) = requireThat {
                 val output = stx.tx.outputs.single().data
-                "This must initiate Provider Aggregation Flow" using (output is ConsumerAggregationState)
+                val proposalToHost = serviceHub.vaultService.queryBy<ConsumerAggregationState>().states.single()
+                "This Output state must be injected into ProviderAggregationFlow " using (output is ConsumerAggregationState)
+                if (ourIdentity.anonymise() != proposalToHost.state.data.consumer) {
+                    throw IllegalArgumentException("Proposal for Aggregation must be initiated from Consumer.")
+                }
             }
         }
         val txWeJustSignedId = subFlow(signedTransactionFlow)
+//        subFlow(ProviderAggregationProposeFlow(ProviderAggregationState(output.)))
         return subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
     }
 }
