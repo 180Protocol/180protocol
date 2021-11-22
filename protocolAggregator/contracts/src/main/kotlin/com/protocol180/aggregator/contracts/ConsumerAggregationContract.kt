@@ -26,7 +26,7 @@ class ConsumerAggregationContract : Contract {
                 val consumerAggregationState = tx.outputsOfType<ConsumerAggregationState>().single()
                 "A newly issued Propose must have Consumer & Host Public key" using
                         (consumerAggregationState.consumer != null && consumerAggregationState.host != null)
-                "The Type of Data required from consumer should not be empty" using (consumerAggregationState.dataType != null)
+//                "The Type of Data required from consumer should not be empty" using (consumerAggregationState.dataType != null)
                 "Both consumer and host together only may sign ConsumerAggregation Propose Transaction." using
                         (command.signers.toSet() == consumerAggregationState.participants.map { it.owningKey }.toSet())
             }

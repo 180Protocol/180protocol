@@ -16,8 +16,7 @@ data class ConsumerAggregationState(
     val host: Party,
     var failedReason: String?,
     var pointedToProviderAggregationState: List<StaticPointer<ProviderAggregationState>>?,
-    var pointedToDataOutputState: StaticPointer<DataOutputState>?,
-    val dataType: SchemaType
+    var pointedToDataOutputState: StaticPointer<DataOutputState>?
 ) : ContractState   {
 
     /**
