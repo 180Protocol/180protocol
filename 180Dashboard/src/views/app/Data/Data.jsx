@@ -1,21 +1,27 @@
-import React, {useState} from "react";
+import React, {useState, useCallback} from "react";
 import Select from 'react-select';
 import Grid from "../../../components/Grid";
+import {useDropzone} from "react-dropzone";
+import Menu from "../../../containers/navs/Menu";
+import {useAuthDispatch, useAuthState} from "../../../store/context";
+import {upload} from "../../../store/data/actions";
 
 // Styles
 import styles from './Data.module.scss';
 
 // Images
 import uploadIcon from "../../../assets/images/upload.svg";
-import Menu from "../../../containers/navs/Menu";
 
 const options = [
-    {value: 'chocolate', label: 'Chocolate'},
-    {value: 'strawberry', label: 'Strawberry'},
-    {value: 'vanilla', label: 'Vanilla'}
+    {value: 'Fixed Income Demand Data', label: 'Fixed Income Demand Data'},
+    {value: 'Risk Metrics Data', label: 'Risk Metrics Data'},
+    {value: 'ESG Data', label: 'ESG Data'}
 ]
 
 const Dashboard = () => {
+    const dispatch = useAuthDispatch();
+    const userDetails = useAuthState();
+
     const [columns,] = useState([
         {name: 'coApp', title: 'CoApp'},
         {name: 'id', title: 'ID'},
@@ -92,6 +98,29 @@ const Dashboard = () => {
         },
     ]);
 
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [dataType, setDataType] = useState({});
+
+    const onDrop = useCallback((acceptedFiles) => {
+        setSelectedFiles(acceptedFiles);
+    }, []);
+
+    const {getRootProps, getInputProps} = useDropzone({onDrop})
+
+    const handleChange = (val) => {
+        setDataType(val);
+    }
+
+    const uploadData = async () => {
+        let formData = new FormData();
+        formData.append("data", selectedFiles[0]);
+        formData.append("dataType", dataType.value);
+        formData.append("uploader", userDetails.user.username);
+        formData.append("filename", selectedFiles[0].name);
+
+        await upload(dispatch, formData);
+    }
+
     return (
         <>
             <section className={`${styles.dashboard}`}>
@@ -128,18 +157,21 @@ const Dashboard = () => {
 
                                             <div className={styles.selectCateBox}>
                                                 <p>Data Category</p>
-                                                <Select options={options} className={styles.customSelect}/>
+                                                <Select defaultValue={dataType} options={options} onChange={handleChange} className={styles.customSelect}/>
                                             </div>
 
                                             <div className={styles.previewImgBox}>
                                                 <p>Preview</p>
                                                 <p className={styles.uploadedfileName}>
-                                                    file_xyz_6789.xlsx
+                                                    {selectedFiles && selectedFiles.length > 0 ?
+                                                        selectedFiles.map((file, key) => {
+                                                            return file.name
+                                                        }) : 'Please select file to preview'}
                                                 </p>
                                             </div>
 
                                             <div className={styles.submitBtnBox}>
-                                                <button name="Submit">Submit</button>
+                                                <button name="Submit" type="button" onClick={uploadData}>Submit</button>
                                             </div>
                                         </div>
 
@@ -148,7 +180,7 @@ const Dashboard = () => {
                                     <div className={`col-sm-12 col-md-6`}>
                                         <div className={styles.rightBoxInner}>
                                             <div className="ratio ratio-4x3">
-                                                <div className={styles.dragArea}>
+                                                <div className={styles.dragArea} {...getRootProps()}>
                                                     <div className={styles.dragAreaInner}>
                                                         <div className={styles.icon}>
                                                             <img src={uploadIcon} alt="upload file"/>
@@ -156,7 +188,7 @@ const Dashboard = () => {
                                                         <header>Drag & Drop to Upload File</header>
                                                         <span>OR</span>
                                                         <button>Browse File</button>
-                                                        <input type="file" hidden/>
+                                                        <input {...getInputProps()} />
                                                     </div>
                                                 </div>
                                             </div>

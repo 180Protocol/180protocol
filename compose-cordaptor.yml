@@ -50,6 +50,7 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - 3000:3000
+      - "3000:3000"
     volumes:
-      - ./180Dashboard:/app
+      - "./180Dashboard:/app"
+      - "/app/node_modules/"

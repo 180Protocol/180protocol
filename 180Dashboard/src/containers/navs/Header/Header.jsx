@@ -7,7 +7,6 @@ import {logout} from "../../../store/auth/actions";
 import logo from "../../../assets/images/logo.png";
 import notificationIcon from "../../../assets/images/notification.svg";
 import userIcon from "../../../assets/images/user.svg";
-import dashboardIcon from "../../../assets/images/dashboard.svg";
 import logoutIcon from "../../../assets/images/logout_active.svg";
 
 const Header = () => {
@@ -33,19 +32,19 @@ const Header = () => {
                                     <li className="nav-item active">
                                         <a className="nav-link" href="#">
                                             <div className={styles.notificationIconClass}>
-                                                <img src={notificationIcon} width={25}/>
+                                                <img alt="Notification Icon" src={notificationIcon} width={25}/>
                                                 <span className={styles.notificationCount}>4</span>
                                             </div>
                                         </a>
                                     </li>
                                     <li className="nav-item">
                                         <a className="nav-link" href="#">
-                                            <img src={userIcon} width={25}/>
+                                            <img alt="User Icon" src={userIcon} width={25}/>
                                         </a>
                                     </li>
                                     <li className="nav-item">
                                         <a href="# " className="nav-link" onClick={handleLogout}>
-                                            <img src={logoutIcon} width={25}/>
+                                            <img alt="Logout Icon" src={logoutIcon} width={25}/>
                                         </a>
                                     </li>
                                 </ul>
