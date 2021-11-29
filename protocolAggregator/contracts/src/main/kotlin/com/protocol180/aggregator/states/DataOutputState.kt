@@ -12,7 +12,7 @@ import java.util.*
 data class DataOutputState(val consumer: AnonymousParty,
                            val host: Party,
                            val dataOutput: ByteArray,
-                           val dateCreate: Date) : ContractState {
+                           val dateCreated: Date) : ContractState {
 
     /**
      *  This property holds a list of the nodes which can "use" this state in a valid transaction. In this case, the

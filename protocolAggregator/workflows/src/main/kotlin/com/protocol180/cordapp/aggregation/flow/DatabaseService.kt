@@ -19,7 +19,7 @@ class DatabaseService(val services: ServiceHub) : SingletonSerializeAsToken() {
      */
     fun addProviderInputWithStateRef(stateRef: String, providerInputMap: Map<String, ByteArray>) {
         val providerList: MutableList<ProviderInputSchemaV1.ProviderInput> = mutableListOf()
-        providerInputMap.forEach { (publicKey, value) -> providerList.add(ProviderInputSchemaV1.ProviderInput(0, publicKey, value)) }
+        providerInputMap.forEach { (publicKey, value) -> providerList.add(ProviderInputSchemaV1.ProviderInput(publicKey, value)) }
         val dataOutput = ProviderInputSchemaV1.DataOutput(stateRef, providerList)
         services.withEntityManager {
             persist(dataOutput)

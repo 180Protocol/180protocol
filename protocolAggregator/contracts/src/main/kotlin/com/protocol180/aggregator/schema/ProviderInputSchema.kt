@@ -20,6 +20,8 @@ object ProviderInputSchemaV1 : MappedSchema(schemaFamily = ProviderInputSchema.j
                         val input: ByteArray
     ) {
         constructor() : this(0, "", ByteArray(0))
+        constructor(publicKey: String, providerInput: ByteArray) : this(
+                0, publicKey, providerInput)
     }
 
     @Entity
