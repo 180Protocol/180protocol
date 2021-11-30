@@ -1,10 +1,12 @@
 import auth from "./auth/reducer";
-import data from "./data/reducer";
+import provider from "./provider/reducer";
+import consumer from "./consumer/reducer";
 import {combineReducers} from "./../utils/helpers"
 
 const reducers = combineReducers({
     auth,
-    data
+    provider,
+    consumer
 });
 
 export default reducers;

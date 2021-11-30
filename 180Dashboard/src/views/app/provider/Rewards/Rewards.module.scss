@@ -1,10 +1,10 @@
-@import '../../../App.css';
+@import '../../../../App.css';
 
 .Reward {
   position: relative;
 
   .bgGradient {
-    background-image: linear-gradient(#3376A5, #133054);
+    background-image: linear-gradient(#35607E, #1E303E);
 
     * {
       color: #ffffff !important;
@@ -48,24 +48,28 @@
 
       .innerCol p {
         margin-bottom: 25px;
+
+        &:first-child {
+          font-size: 18px !important;
+        }
       }
 
     }
   }
 
   .aggregationCardBody {
-    color: #245781;
+    color: #1E303E;
 
     .chartBoxContain {
-      border: 1px solid #193E6420;
+      border: 1px solid #DCE2E8;
       border-radius: 15px;
       transform: scale(90%);
 
-      .reviewChartContainer {
+      .reviewChartContainer{
         display: flex;
         align-items: center;
         justify-content: space-evenly;
-        border-bottom: 1px solid #193E6420;
+        border-bottom: 1px solid #DCE2E8;
         padding: 7.5px 15px;
 
         .chartContent {
@@ -74,12 +78,12 @@
         }
 
         .counterBox {
-          color: #245781;
+          color: #1E303E;
           text-align: center;
           font-family: 'Muli Bold';
 
           .counterNumber {
-            font-size: 26px;
+            font-size: 35px;
             margin-bottom: 0px;
             font-family: 'Muli Bold';
           }
@@ -97,14 +101,16 @@
           justify-content: space-between;
 
           .counterTitle {
-            font-family: 'Muli ExtraBold';
-            color: #245781;
+            font-family: 'Muli Bold';
+            color: #1E303E;
             margin-bottom: 0;
+            font-size: 16px;
           }
 
           .counterAmount {
             font-family: 'Muli';
             margin-bottom: 0;
+            font-size: 18px;
           }
         }
       }
@@ -127,7 +133,7 @@
       width: 100%;
       max-width: 320px;
       margin: 10px auto;
-      border: 1px solid #193E6420;
+      border: 1px solid #E5E9EE;
       border-radius: 15px;
       transform: scale(1.1);
 
@@ -136,10 +142,10 @@
       }
 
       .transTitle {
-        color: #245781;
+        color: #1E303E;
         font-family: 'Muli Bold';
         padding: 7.5px 15px;
-        border-bottom: 1px solid #193E6420;
+        border-bottom: 1px solid #E5E9EE;
       }
 
       .transDetail {
@@ -148,7 +154,7 @@
         justify-content: space-between;
 
         .detailText {
-          color: #245781;
+          color: #1E303E;
           text-align: center;
           padding: 7.5px 15px;
 
@@ -156,11 +162,11 @@
             margin: 12px 0 !important;
           }
 
-          &:first-child {
-            border-right: 1px solid #193E6420;
+          &:first-child{
+            border-right: 1px solid #E5E9EE;
           }
 
-          p {
+          p{
             margin-bottom: 0px;
           }
 

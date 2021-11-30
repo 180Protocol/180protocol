@@ -27,13 +27,12 @@ const Header = () => {
                         </a>
                         {
                             userDetails.user ? <div className={styles.headerRightBar}>
-                                <h3>Provider Coalition Manager</h3>
+                                <h3>{userDetails.user.role.toUpperCase()} Coalition Manager</h3>
                                 <ul className={`${styles.navbarNav} navbar-nav ml-auto`}>
                                     <li className="nav-item active">
                                         <a className="nav-link" href="#">
                                             <div className={styles.notificationIconClass}>
                                                 <img alt="Notification Icon" src={notificationIcon} width={25}/>
-                                                <span className={styles.notificationCount}>4</span>
                                             </div>
                                         </a>
                                     </li>

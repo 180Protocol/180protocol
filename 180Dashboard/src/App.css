@@ -41,8 +41,12 @@
     src: local('Muli Black'), url('./assets/fonts/muli/Muli-Black.woff') format('woff');
 }
 
+/* .bg-default {
+  background-color: #EDEFF2;
+} */
+
 .bg-default {
-    background-color: #EDEFF2;
+    background-color: #ffffff;
 }
 
 body {
@@ -53,176 +57,17 @@ body {
     background-color: #EDEFF2 !important;
 }
 
-.outerSpace {
-    padding: 30px 0;
-}
-
-.innerCol {
-    width: 100%;
-    height: 100%;
-    padding: 15px 0;
-}
-
-.bigText {
-    font-weight: 600;
-    font-family: 'Muli ExtraBold';
-    font-size: 20px;
-}
-
-.mainContentSection {
-    margin-top: -57px;
-    margin-bottom: 57px;
-}
-
-.card {
-    border: none;
-    box-shadow: 0px 3px 6px 0px #193E6430;
-    border-radius: 15px !important;
-    overflow: hidden;
-}
-
-.card .card {
-    box-shadow: none !important;
-    border-radius: unset !important;
-    overflow: unset !important;
-}
-
-.card-header, .card-body {
-    background-color: #ffffff !important;
-}
-
-.card-header {
-    padding: 1rem 30px !important;
-}
-
-.card-body {
-    padding: 3em 30px !important;
-}
-
-.card-header * {
-    margin-bottom: 0;
-}
-
-.card-header h3 {
-    color: #245781;
-    font-weight: 600;
-    font-family: 'Muli Bold';
-    font-size: 20px !important;
-}
-
-/* Grid Table  */
-
-.gridTableCard .card-header {
-    border-bottom: none !important;
-}
-
-.gridTableCard table {
-    border-collapse: separate;
-    border-spacing: 0px 0px;
-    margin: 5px 0;
-    padding-bottom: 5px;
-}
-
-.dx-g-bs4-table,
-.dx-g-bs4-table * {
-    font-family: 'Muli SemiBold';
-}
-
-.dx-g-bs4-table thead tr {
-    background-image: linear-gradient(#56BBB7, #7DE0DD);
-    margin-bottom: 15px !important;
-    color: #ffffff;
-    text-align: center;
-    font-size: 0.9vw !important;
-}
-
-.dx-g-bs4-table thead tr * {
-    color: #ffffff;
-}
-
-.dx-g-bs4-table thead tr th > div > div {
-    justify-content: center !important;
-}
-
-.dx-g-bs4-table thead tr th > div > div .dx-g-bs4-sorting-indicator {
-    display: none;
-}
-
-.dx-g-bs4-table tr th:first-child {
-    border-radius: 10px 0px 0px 10px !important;
-}
-
-.dx-g-bs4-table tr th:last-child {
-    border-radius: 0px 10px 10px 0px !important;
-}
-
-.dx-g-bs4-table tr th,
-.dx-g-bs4-table tr td {
-    text-align: center;
-    border-bottom: none !important;
-}
-
-.dx-g-bs4-table tbody tr {
-    background-color: #EDEFF2;
-    color: #245781;
-}
-
-.dx-g-bs4-table tr td {
-    color: #245781 !important;
-    font-size: 0.9vw !important;
-    border-top: 5px solid #ffffff;
-    border-bottom: 5px solid #ffffff !important;
-}
-
-.dx-g-bs4-table tr:first-child td {
-    border-top: 10px solid #ffffff !important;
-}
-
-.dx-g-bs4-table tr:last-child td {
-    border-bottom: 0px solid #ffffff !important;
-}
-
-.dx-g-bs4-table tr:last-child {
-    margin-bottom: 5px !important;
-}
-
-.dx-g-bs4-table tr th,
-.dx-g-bs4-table tr td {
-    border-right: 2px dashed #70707050 !important;
-}
-
-.dx-g-bs4-table tr th:last-child,
-.dx-g-bs4-table tr td:last-child {
-    border-right: none !important;
-}
-
-.dx-g-bs4-paging-panel {
+.content-center {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
     align-items: center;
-    padding-left: 0;
-    padding-right: 0;
+    justify-content: center;
 }
 
-.dx-g-bs4-paging-panel::after {
-    display: none;
-}
-
-.dx-g-bs4-paging-panel .pagination .page-item a {
-    color: #56BBB7;
-}
-
-.dx-g-bs4-paging-panel .pagination .page-item.active a {
-    background-image: linear-gradient(#56BBB7, #7DE0DD );
-    margin-bottom: 15px !important;
-    color: #ffffff;
-    text-align: center;
-    border-color: #dee2e6;
-}
-
-.dx-g-bs4-paging-panel .pagination .page-item a:focus {
-    box-shadow: none !important;
+.content-center-dir-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 /* Login */
@@ -325,7 +170,6 @@ body {
 .invalid-feedback-msg {
     position: absolute;
     color: #f16978 !important;
-    bottom: 0;
 }
 
 .auth-section form.auth-form .formGroup-Btns {
@@ -340,4 +184,224 @@ body {
 
 .auth-section form.auth-form .formGroup-Btns .form-control:hover img {
     left: 5px;
+}
+
+.resetaction {
+    margin: 5px auto;
+}
+
+.resetaction, .resetaction a {
+    color: #66b3e6 !important;
+    font-family: "Muli SemiBold" !important;
+    font-size: 14px !important;
+    text-decoration: none;
+    text-align: center;
+    position: relative;
+}
+
+.resetaction a:after {
+    content: '';
+    width: 0%;
+    height: 1px;
+    background-color: #66b3e6;
+    display: block;
+    transition: all 0.2s ease;
+}
+
+.resetaction a:first-child {
+    margin-right: 5%;
+}
+
+.resetaction a:last-child {
+    margin-left: 5%;
+}
+
+.resetaction a:hover::after {
+    width: 100%;
+}
+
+
+/*Common, main section and card design */
+.outerSpace {
+    padding: 30px 0;
+}
+
+.innerCol {
+    width: 100%;
+    height: 100%;
+    padding: 15px 0;
+}
+
+.bigText {
+    font-weight: 600;
+    font-family: 'Muli ExtraBold';
+    font-size: 20px;
+}
+
+.mainContentSection {
+    margin-top: -57px;
+    margin-bottom: 57px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0px 3px 6px 0px #193E6430;
+    border-radius: 15px !important;
+    overflow: hidden;
+}
+
+.card .card {
+    box-shadow: none !important;
+    border-radius: unset !important;
+    overflow: unset !important;
+}
+
+.card-header, .card-body {
+    background-color: #ffffff !important;
+    border-color: #E5E9EE !important;
+}
+
+.card-header {
+    padding: 1rem 30px !important;
+}
+
+.card-body {
+    padding: 3em 30px !important;
+}
+
+.card-header * {
+    margin-bottom: 0;
+}
+
+.card-header h3 {
+    color: #1E303E;
+    font-weight: 600;
+    font-family: 'Muli Bold';
+    font-size: 20px !important;
+}
+
+/* Grid Table  */
+
+.gridTableCard .card-header {
+    border-bottom: none !important;
+}
+
+.gridTableCard table {
+    border-collapse: separate;
+    border-spacing: 0px 0px;
+    margin: 5px 0;
+    padding-bottom: 5px;
+}
+
+.dx-g-bs4-table,
+.dx-g-bs4-table * {
+    font-family: 'Muli Bold';
+}
+
+.dx-g-bs4-table thead tr {
+    background-image: linear-gradient(#658499, #8BA9BE);
+    margin-bottom: 15px !important;
+    color: #ffffff;
+    text-align: center;
+    font-size: 0.9vw !important;
+}
+
+.dx-g-bs4-table thead tr * {
+    color: #ffffff;
+}
+
+.dx-g-bs4-table thead tr th > div > div {
+    justify-content: center !important;
+}
+
+.dx-g-bs4-table thead tr th > div > div .dx-g-bs4-sorting-indicator {
+    display: none;
+}
+
+.dx-g-bs4-table tr th:first-child {
+    border-radius: 10px 0px 0px 10px !important;
+}
+
+.dx-g-bs4-table tr th:last-child {
+    border-radius: 0px 10px 10px 0px !important;
+}
+
+.dx-g-bs4-table tr th,
+.dx-g-bs4-table tr td {
+    text-align: center;
+    border-bottom: none !important;
+}
+
+.dx-g-bs4-table tbody tr {
+    background-color: #EDEFF2;
+    color: #1E303E;
+}
+
+.dx-g-bs4-table tr td {
+    color: #1E303E !important;
+    font-size: 0.9vw !important;
+    border-top: 5px solid #ffffff;
+    border-bottom: 5px solid #ffffff !important;
+}
+
+.dx-g-bs4-table tr:first-child td {
+    border-top: 10px solid #ffffff !important;
+}
+
+.dx-g-bs4-table tr:last-child td {
+    border-bottom: 0px solid #ffffff !important;
+}
+
+.dx-g-bs4-table tr:last-child {
+    margin-bottom: 5px !important;
+}
+
+.dx-g-bs4-table tr th,
+.dx-g-bs4-table tr td {
+    border-right: 2px dashed #70707050 !important;
+}
+
+.dx-g-bs4-table tr th:last-child,
+.dx-g-bs4-table tr td:last-child {
+    border-right: none !important;
+}
+
+.dx-g-bs4-paging-panel {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dx-g-bs4-paging-panel::after {
+    display: none;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item a {
+    color: #1E303E;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item.active a {
+    background-image: linear-gradient(#658499, #8BA9BE);
+    margin-bottom: 15px !important;
+    color: #ffffff;
+    text-align: center;
+    border-color: #dee2e6;
+}
+
+.dx-g-bs4-paging-panel .pagination .page-item a:focus {
+    box-shadow: none !important;
+}
+
+.card-footer {
+    background-color: transparent !important;
+}
+
+/* five-column-row */
+
+.five-col .col-xl-2 {
+    width: 20% !important;
+    margin-bottom: 20px !important;
 }

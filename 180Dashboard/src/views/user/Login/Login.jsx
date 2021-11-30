@@ -15,7 +15,7 @@ const Login = (props) => {
 
     const save = async (values) => {
         await login(dispatch, values);
-        props.history.push("/app/rewards");
+        props.history.push("/app");
     }
 
     const validate = (values) => {
