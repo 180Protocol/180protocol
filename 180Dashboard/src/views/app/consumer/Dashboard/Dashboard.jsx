@@ -20,6 +20,7 @@ import selectDownArrow from "../../../../assets/images/select-down-arrow.svg";
 import exportIcon from "../../../../assets/images/export.svg";
 import {fetchDecryptedRewardsData} from "../../../../store/provider/actions";
 import {ucWords} from "../../../../utils/helpers";
+import moment from "moment";
 
 const RightArrowIcon = () => {
     return (
@@ -37,6 +38,7 @@ const Dashboard = () => {
     const [encryptedDataOutput, setEncryptedDataOutput] = useState([]);
 
     const [rows, setRows] = useState([]);
+    const [lastRequestDate, setLastRequestDate] = useState(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -45,6 +47,11 @@ const Dashboard = () => {
 
         fetchData().then((response) => {
             setEncryptedDataOutput(response);
+            let sortedDataOutput = response.states.sort(function (a, b) {
+                return new Date(b.state.data.dateCreated) - new Date(a.state.data.dateCreated)
+            })
+            setLastRequestDate(moment.utc(sortedDataOutput[0].state.data.dateCreated).format("MMM DD, YYYY hh:mm:ss A"));
+
             getDecryptedDataOutput(response.states[0].state.data)
         });
     }, [dispatch]);
@@ -136,7 +143,7 @@ const Dashboard = () => {
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Last Request</p>
-                                    <p className='bigText mb-0'>Aug 31, 2021 11:45:23 AM</p>
+                                    <p className='bigText mb-0'>{lastRequestDate}</p>
                                 </div>
                             </div>
                         </div>

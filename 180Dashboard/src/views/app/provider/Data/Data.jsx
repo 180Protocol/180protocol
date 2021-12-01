@@ -12,22 +12,23 @@ import styles from './Data.module.scss';
 
 // Images
 import uploadIcon from "../../../../assets/images/upload.svg";
+import moment from "moment";
 
 const Dashboard = () => {
     const dispatch = useAuthDispatch();
     const userDetails = useAuthState();
 
     const [columns,] = useState([
-        {name: 'coApp', title: 'CoApp'},
+        {name: 'coApplication', title: 'CoApp'},
         {name: 'id', title: 'ID'},
-        {name: 'role', title: 'Role'},
         {name: 'qualityScore', title: 'Quality Score'},
-        {name: 'time', title: 'Time'},
+        {name: 'date', title: 'Time'},
         {name: 'rewards', title: 'Rewards'},
         {name: 'rewardsBalance', title: 'Rewards Balance'}
     ]);
 
     const [rows, setRows] = useState([]);
+    const [lastUpdated, setLastUpdated] = useState(null);
 
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [dataType, setDataType] = useState({});
@@ -55,9 +56,14 @@ const Dashboard = () => {
 
                 let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, params)
                 setRows(decryptedRewardsData.result.value);
+                let sortedRewardsData = decryptedRewardsData.result.value.sort(function (a, b) {
+                    return new Date(b.date) - new Date(a.date)
+                })
+
+                setLastUpdated(moment.utc(sortedRewardsData[0].date).format("MMM DD, YYYY hh:mm:ss A"));
             }
         });
-    }, [dispatch, rows]);
+    }, [dispatch]);
 
     const onDrop = useCallback((acceptedFiles) => {
         setSelectedFiles(acceptedFiles);
@@ -89,13 +95,13 @@ const Dashboard = () => {
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Total Aggregations</p>
-                                    <p className='bigText mb-0'>13</p>
+                                    <p className='bigText mb-0'>{rows.length}</p>
                                 </div>
                             </div>
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Last Updated</p>
-                                    <p className='bigText mb-0'>Aug 31, 2021 11:45:23 AM</p>
+                                    <p className='bigText mb-0'>{lastUpdated}</p>
                                 </div>
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-@import './../../../../App.css';
+@import "../../../../App.css";
 
 .accessData {
   position: relative;
@@ -85,9 +85,11 @@
           .selectCateBox {
             .customSelect {
               color: #1e303e;
+              border-color: #678098;
 
               * {
                 color: #1e303e;
+                border-color: #678098;
               }
 
               .IndicatorArrowDiv {
@@ -105,6 +107,7 @@
               }
             }
           }
+
           .descriptionCateBox {
             color: #1e303e;
 
@@ -261,7 +264,7 @@
 
     .previewTableCardBody {
       padding: 2rem 30px !important;
-  
+
       .previewTableBodyInner {
         padding: 1.5rem 5rem 0rem !important;
         border: 2px dashed #707070 !important;

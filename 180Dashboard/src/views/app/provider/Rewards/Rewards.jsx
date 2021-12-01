@@ -8,6 +8,7 @@ import {average, sum} from "../../../../utils/helpers";
 
 // Styles
 import styles from './Rewards.module.scss';
+import moment from "moment";
 
 const Rewards = () => {
     const dispatch = useAuthDispatch();
@@ -24,7 +25,14 @@ const Rewards = () => {
     ]);
 
     const [rows, setRows] = useState([]);
-    const [options, setOptions] = useState({});
+    const [changeThisWeek, setChangeThisWeek] = useState(0);
+
+    const [options, setOptions] = useState({
+        amountProvided: [],
+        completeness: [],
+        uniqueness: [],
+        updateFrequency: []
+    });
 
     useEffect(() => {
         async function fetchData() {
@@ -35,8 +43,8 @@ const Rewards = () => {
             if (response && response.states && response.states.length > 0) {
                 let rewardsData = response.states.map((item) => {
                     return {
-                        "rewards": item.rewards,
-                        "flowTopic": item.flowTopic
+                        "rewards": item.state.data.rewards,
+                        "flowTopic": item.state.data.flowTopic
                     }
                 });
 
@@ -49,6 +57,18 @@ const Rewards = () => {
 
                 let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, params)
                 setRows(decryptedRewardsData.result.value);
+                let todayRewards = decryptedRewardsData.result.value.find((item) => {
+                    return moment.utc(item.date).isSame(moment().toISOString(), 'day')
+                });
+
+                let oneWeekBeforeRewards = decryptedRewardsData.result.value.find((item) => {
+                    return moment.utc(item.date).isSame(moment().subtract(7, 'd').toISOString(), 'day')
+                });
+
+                if (todayRewards && oneWeekBeforeRewards) {
+                    setChangeThisWeek(todayRewards.rewards - oneWeekBeforeRewards.rewards);
+                }
+
                 setOptions({
                     amountProvided: [
                         {
@@ -101,7 +121,7 @@ const Rewards = () => {
                 });
             }
         });
-    }, [dispatch, rows]);
+    }, [dispatch]);
 
     return (
         <>
@@ -119,7 +139,7 @@ const Rewards = () => {
                             <div className="col-sm-12 col-md-4">
                                 <div className="innerCol">
                                     <p>Change this Week</p>
-                                    <p className='bigText mb-0'>+2,526</p>
+                                    <p className='bigText mb-0'>{Intl.NumberFormat().format(changeThisWeek.toFixed(1))}</p>
                                 </div>
                             </div>
                             <div className="col-sm-12 col-md-4">
@@ -233,7 +253,7 @@ const Rewards = () => {
                             <div className={`card-body ${styles.transactionCardBody}`}>
                                 <div className="row">
                                     <div className="col-sm-12 col-md-6 col-lg-5">
-                                        <p>TBD</p>
+                                        <p>Coming Soon</p>
                                     </div>
                                 </div>
                             </div>

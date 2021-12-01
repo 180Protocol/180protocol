@@ -11,6 +11,11 @@ import user from "./views/user";
 import app from "./views/app";
 import error from "./views/error";
 import main from "./views"
+import {makeServer} from "./server"
+
+if (process.env.NODE_ENV === 'development') {
+    makeServer()
+}
 
 const App = () => {
     return (

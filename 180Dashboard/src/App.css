@@ -170,6 +170,7 @@ body {
 .invalid-feedback-msg {
     position: absolute;
     color: #f16978 !important;
+    bottom: 0;
 }
 
 .auth-section form.auth-form .formGroup-Btns {
@@ -258,7 +259,7 @@ body {
 
 .card-header, .card-body {
     background-color: #ffffff !important;
-    border-color: #E5E9EE !important;
+    border-color: #678098 !important;
 }
 
 .card-header {

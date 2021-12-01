@@ -61,15 +61,15 @@
     color: #1E303E;
 
     .chartBoxContain {
-      border: 1px solid #DCE2E8;
+      border: 1px solid #678098;
       border-radius: 15px;
       transform: scale(90%);
 
-      .reviewChartContainer{
+      .reviewChartContainer {
         display: flex;
         align-items: center;
         justify-content: space-evenly;
-        border-bottom: 1px solid #DCE2E8;
+        border-bottom: 1px solid #678098;
         padding: 7.5px 15px;
 
         .chartContent {
@@ -133,7 +133,7 @@
       width: 100%;
       max-width: 320px;
       margin: 10px auto;
-      border: 1px solid #E5E9EE;
+      border: 1px solid #678098;
       border-radius: 15px;
       transform: scale(1.1);
 
@@ -145,7 +145,7 @@
         color: #1E303E;
         font-family: 'Muli Bold';
         padding: 7.5px 15px;
-        border-bottom: 1px solid #E5E9EE;
+        border-bottom: 1px solid #678098;
       }
 
       .transDetail {
@@ -162,11 +162,11 @@
             margin: 12px 0 !important;
           }
 
-          &:first-child{
-            border-right: 1px solid #E5E9EE;
+          &:first-child {
+            border-right: 1px solid #678098;
           }
 
-          p{
+          p {
             margin-bottom: 0px;
           }
 
