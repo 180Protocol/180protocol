@@ -52,7 +52,7 @@ const Dashboard = () => {
             })
             setLastRequestDate(moment.utc(sortedDataOutput[0].state.data.dateCreated).format("MMM DD, YYYY hh:mm:ss A"));
 
-            getDecryptedDataOutput(response.states[0].state.data)
+            getDecryptedDataOutput(response.states[0].ref)
         });
     }, [dispatch]);
 
@@ -88,10 +88,7 @@ const Dashboard = () => {
                 "trackProgress": "true"
             },
             "dataOutputData": [
-                {
-                    "dataOutput": data.dataOutput,
-                    "flowTopic": data.flowTopic
-                }
+                data
             ]
         }
 
@@ -233,7 +230,7 @@ const Dashboard = () => {
                                             encryptedDataOutput.states.map((output, index) => {
                                                 return (
                                                     <div key={index}
-                                                         onClick={() => getDecryptedDataOutput(output.state.data)}
+                                                         onClick={() => getDecryptedDataOutput(output.ref)}
                                                          className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
                                                         <div className={styles.downloadRequestBox}>
                                                             <img src={downloadIcon} alt="download"/>

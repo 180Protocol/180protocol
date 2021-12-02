@@ -31,8 +31,10 @@ export async function fetchEncryptedRewardsData(dispatch, payload) {
         }
     };
 
+    let userInfo = JSON.parse(localStorage.getItem('user'));
+
     try {
-        let response = await fetch(`${API_URL}/api/encryptedRewardsData`, requestOptions);
+        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/RewardsState/query?participant=${userInfo.name}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_REWARDS_DATA_SUCCESS', payload: data});
@@ -57,7 +59,7 @@ export async function fetchDecryptedRewardsData(dispatch, payload) {
     };
 
     try {
-        let response = await fetch(`${API_URL}/api/decryptedRewardsData`, requestOptions);
+        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/RewardsDecryptFlow`, requestOptions);
         let data = await response.json();
         let sum = 0;
         for (let i = 0; i < data.result.value.length; i++) {

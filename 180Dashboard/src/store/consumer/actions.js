@@ -10,7 +10,7 @@ export async function createAggregationRequest(dispatch, payload) {
     };
 
     try {
-        let response = await fetch(`${API_URL}/uploadNodeAttachment`, requestOptions);
+        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/ConsumerAggregationProposeFlow`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -31,11 +31,12 @@ export async function fetchEncryptedDataOutput(dispatch, payload) {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(payload)
     };
 
     try {
-        let response = await fetch(`${API_URL}/api/encryptedDataOutput`, requestOptions);
+        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/DataOutputState/query`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -56,12 +57,13 @@ export async function fetchDecryptedDataOutput(dispatch, payload) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        }
     };
 
+    let userInfo = JSON.parse(localStorage.getItem('user'));
+
     try {
-        let response = await fetch(`${API_URL}/api/decryptedDataOutput`, requestOptions);
+        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/DataOutputDecryptFlow?participant=${userInfo.name}`, requestOptions);
         let data = await response.json();
 
         if (data) {

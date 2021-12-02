@@ -5,9 +5,7 @@ export function makeServer({environment = "development"} = {}) {
         environment,
 
         routes() {
-            this.namespace = "api";
-
-            this.get("/encryptedDataOutput", () => {
+            this.get("/180Protocol Broker Contracts/DataOutputState/query", () => {
                 return {
                     "stateTypes": "UNCONSUMED",
                     "states": [
@@ -203,7 +201,7 @@ export function makeServer({environment = "development"} = {}) {
                 };
             });
 
-            this.post("/decryptedDataOutput", (schema, request) => {
+            this.post("/180 Protocol Broker Flows/DataOutputDecryptFlow", (schema, request) => {
                 let attrs = JSON.parse(request.requestBody);
                 return {
                     "flowClass": "com.protocol180.aggregator.flows.DataOutputDecryptFlow",
@@ -277,7 +275,7 @@ export function makeServer({environment = "development"} = {}) {
                 };
             });
 
-            this.get("/encryptedRewardsData", () => {
+            this.get("/180Protocol Broker Contracts/RewardsState/query", (schema, request) => {
                 return {
                     "stateTypes": "UNCONSUMED",
                     "states": [{
@@ -463,7 +461,7 @@ export function makeServer({environment = "development"} = {}) {
                 };
             });
 
-            this.post("/decryptedRewardsData", (schema, request) => {
+            this.post("/180 Protocol Broker Flows/RewardsDecryptFlow", (schema, request) => {
                 let attrs = JSON.parse(request.requestBody);
                 return {
                     "flowClass": "com.protocol180.aggregator.flows.RewardsDecryptFlow",

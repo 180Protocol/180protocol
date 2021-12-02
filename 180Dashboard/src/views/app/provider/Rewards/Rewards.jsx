@@ -4,7 +4,7 @@ import MyResponsivePie from "../../../../components/Chart";
 import Menu from "../../../../containers/navs/Menu";
 import {fetchDecryptedRewardsData, fetchEncryptedRewardsData} from "../../../../store/provider/actions";
 import {useAuthDispatch} from "../../../../store/context";
-import {average, sum} from "../../../../utils/helpers";
+import {average, getYamlInfo, sum} from "../../../../utils/helpers";
 
 // Styles
 import styles from './Rewards.module.scss';
@@ -34,6 +34,8 @@ const Rewards = () => {
         updateFrequency: []
     });
 
+    const rewardsWeights = JSON.parse(localStorage.getItem('rewards'));
+
     useEffect(() => {
         async function fetchData() {
             return await fetchEncryptedRewardsData(dispatch, {});
@@ -42,10 +44,7 @@ const Rewards = () => {
         fetchData().then(async (response) => {
             if (response && response.states && response.states.length > 0) {
                 let rewardsData = response.states.map((item) => {
-                    return {
-                        "rewards": item.state.data.rewards,
-                        "flowTopic": item.state.data.flowTopic
-                    }
+                    return item.ref
                 });
 
                 let params = {
@@ -175,7 +174,7 @@ const Rewards = () => {
                                                 <div className={styles.reviewTitleContainer}>
                                                     <div className={styles.contentBox}>
                                                         <p className={styles.counterTitle}>Amount Provided</p>
-                                                        <p className={styles.counterAmount}>30%</p>
+                                                        <p className={styles.counterAmount}>{rewardsWeights.amountProvided || 0}%</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -194,7 +193,7 @@ const Rewards = () => {
                                                 <div className={styles.reviewTitleContainer}>
                                                     <div className={styles.contentBox}>
                                                         <p className={styles.counterTitle}>Completeness</p>
-                                                        <p className={styles.counterAmount}>30%</p>
+                                                        <p className={styles.counterAmount}>{rewardsWeights.completeness || 0}%</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -213,7 +212,7 @@ const Rewards = () => {
                                                 <div className={styles.reviewTitleContainer}>
                                                     <div className={styles.contentBox}>
                                                         <p className={styles.counterTitle}>Uniqueness</p>
-                                                        <p className={styles.counterAmount}>30%</p>
+                                                        <p className={styles.counterAmount}>{rewardsWeights.uniqueness || 0}%</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -232,7 +231,7 @@ const Rewards = () => {
                                                 <div className={styles.reviewTitleContainer}>
                                                     <div className={styles.contentBox}>
                                                         <p className={styles.counterTitle}>Update Frequency</p>
-                                                        <p className={styles.counterAmount}>10%</p>
+                                                        <p className={styles.counterAmount}>{rewardsWeights.updateFrequency || 0}%</p>
                                                     </div>
                                                 </div>
                                             </div>
