@@ -10,9 +10,9 @@ export async function upload(dispatch, payload) {
         let response = await fetch(`${API_URL}/uploadNodeAttachment`, requestOptions);
         let data = await response.json();
 
-        if (payload) {
-            dispatch({type: 'UPLOAD_SUCCESS', payload: payload});
-            return payload;
+        if (data) {
+            dispatch({type: 'UPLOAD_SUCCESS', payload: data});
+            return data;
         }
 
         dispatch({type: 'UPLOAD_ERROR', error: 'Error'});
@@ -34,7 +34,7 @@ export async function fetchEncryptedRewardsData(dispatch, payload) {
     let userInfo = JSON.parse(localStorage.getItem('user'));
 
     try {
-        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/RewardsState/query?participant=${userInfo.name}`, requestOptions);
+        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/RewardsState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_REWARDS_DATA_SUCCESS', payload: data});

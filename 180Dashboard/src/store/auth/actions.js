@@ -1,4 +1,5 @@
 import {getYamlInfo} from "../../utils/helpers";
+import {API_URL} from "../../utils/constants";
 
 export async function login(dispatch, payload) {
     try {
@@ -10,7 +11,6 @@ export async function login(dispatch, payload) {
 
         if (nodeInfo) {
             delete nodeInfo.password;
-            delete nodeInfo.port;
             dispatch({type: 'LOGIN_SUCCESS', payload: nodeInfo});
             localStorage.setItem('user', JSON.stringify(nodeInfo));
             localStorage.setItem('rewards', JSON.stringify(info.rewards));
@@ -28,4 +28,6 @@ export async function login(dispatch, payload) {
 export async function logout(dispatch) {
     dispatch({type: 'LOGOUT'});
     localStorage.removeItem('user');
+    localStorage.removeItem('rewards');
+    window.location.reload();
 }

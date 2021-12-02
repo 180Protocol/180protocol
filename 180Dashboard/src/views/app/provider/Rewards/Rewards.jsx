@@ -4,11 +4,11 @@ import MyResponsivePie from "../../../../components/Chart";
 import Menu from "../../../../containers/navs/Menu";
 import {fetchDecryptedRewardsData, fetchEncryptedRewardsData} from "../../../../store/provider/actions";
 import {useAuthDispatch} from "../../../../store/context";
-import {average, getYamlInfo, sum} from "../../../../utils/helpers";
+import {average, sum} from "../../../../utils/helpers";
+import moment from "moment";
 
 // Styles
 import styles from './Rewards.module.scss';
-import moment from "moment";
 
 const Rewards = () => {
     const dispatch = useAuthDispatch();
@@ -56,17 +56,11 @@ const Rewards = () => {
 
                 let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, params)
                 setRows(decryptedRewardsData.result.value);
-                let todayRewards = decryptedRewardsData.result.value.find((item) => {
-                    return moment.utc(item.date).isSame(moment().toISOString(), 'day')
+                let lastWeekRewards = decryptedRewardsData.result.value.filter((item) => {
+                    return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));
                 });
 
-                let oneWeekBeforeRewards = decryptedRewardsData.result.value.find((item) => {
-                    return moment.utc(item.date).isSame(moment().subtract(7, 'd').toISOString(), 'day')
-                });
-
-                if (todayRewards && oneWeekBeforeRewards) {
-                    setChangeThisWeek(todayRewards.rewards - oneWeekBeforeRewards.rewards);
-                }
+                setChangeThisWeek(sum(lastWeekRewards, 'rewards'));
 
                 setOptions({
                     amountProvided: [
@@ -138,7 +132,7 @@ const Rewards = () => {
                             <div className="col-sm-12 col-md-4">
                                 <div className="innerCol">
                                     <p>Change this Week</p>
-                                    <p className='bigText mb-0'>{Intl.NumberFormat().format(changeThisWeek.toFixed(1))}</p>
+                                    <p className='bigText mb-0'>{Intl.NumberFormat().format(changeThisWeek)}</p>
                                 </div>
                             </div>
                             <div className="col-sm-12 col-md-4">
