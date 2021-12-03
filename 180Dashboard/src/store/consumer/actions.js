@@ -1,6 +1,4 @@
-import {API_URL} from "../../utils/constants";
-
-export async function createAggregationRequest(dispatch, payload) {
+export async function createAggregationRequest(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -9,7 +7,7 @@ export async function createAggregationRequest(dispatch, payload) {
         body: JSON.stringify(payload)
     };
     try {
-        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/ConsumerAggregationProposeFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/180 Protocol Broker Flows/ConsumerAggregationProposeFlow`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -25,7 +23,7 @@ export async function createAggregationRequest(dispatch, payload) {
     }
 }
 
-export async function fetchEncryptedDataOutput(dispatch, payload) {
+export async function fetchEncryptedDataOutput(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'GET',
         headers: {
@@ -36,7 +34,7 @@ export async function fetchEncryptedDataOutput(dispatch, payload) {
     let userInfo = JSON.parse(localStorage.getItem('user'));
 
     try {
-        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/DataOutputState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
+        let response = await fetch(`${apiUrl}/180Protocol Broker Contracts/DataOutputState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_SUCCESS', payload: data});
@@ -51,7 +49,7 @@ export async function fetchEncryptedDataOutput(dispatch, payload) {
     }
 }
 
-export async function fetchDecryptedDataOutput(dispatch, payload) {
+export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -61,7 +59,7 @@ export async function fetchDecryptedDataOutput(dispatch, payload) {
     };
 
     try {
-        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/DataOutputDecryptFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/180 Protocol Broker Flows/DataOutputDecryptFlow`, requestOptions);
         let data = await response.json();
 
         if (data) {

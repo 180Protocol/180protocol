@@ -11,8 +11,8 @@ export default (props) => {
         <AppLayout>
             <Switch>
                 <Redirect exact from={`${match.url}/`} to={`${match.url}/rewards`}/>
-                <Route path={`${match.url}/rewards`} component={Rewards}/>
-                <Route path={`${match.url}/data`} component={Data}/>
+                <Route path={`${match.url}/rewards`} render={() => <Rewards apiUrl={props.apiUrl}/>}/>
+                <Route path={`${match.url}/data`} render={() => <Data apiUrl={props.apiUrl}/>}/>
                 <Redirect to="/error"/>
             </Switch>
         </AppLayout>

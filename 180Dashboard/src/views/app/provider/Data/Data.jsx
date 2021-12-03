@@ -14,7 +14,7 @@ import styles from './Data.module.scss';
 import uploadIcon from "../../../../assets/images/upload.svg";
 import moment from "moment";
 
-const Dashboard = () => {
+const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
     const userDetails = useAuthState();
 
@@ -35,7 +35,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         async function fetchData() {
-            return await fetchEncryptedRewardsData(dispatch, {});
+            return await fetchEncryptedRewardsData(dispatch, props.apiUrl, {});
         }
 
         fetchData().then(async (response) => {
@@ -54,7 +54,7 @@ const Dashboard = () => {
                     "rewardsData": rewardsData
                 }
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, params)
+                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
                 setRows(decryptedRewardsData.result.value);
                 let sortedRewardsData = decryptedRewardsData.result.value.sort(function (a, b) {
                     return new Date(b.date) - new Date(a.date)

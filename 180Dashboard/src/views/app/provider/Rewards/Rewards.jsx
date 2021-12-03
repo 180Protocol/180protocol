@@ -10,7 +10,7 @@ import moment from "moment";
 // Styles
 import styles from './Rewards.module.scss';
 
-const Rewards = () => {
+const Rewards = (props) => {
     const dispatch = useAuthDispatch();
 
     const [columns,] = useState([
@@ -38,7 +38,7 @@ const Rewards = () => {
 
     useEffect(() => {
         async function fetchData() {
-            return await fetchEncryptedRewardsData(dispatch, {});
+            return await fetchEncryptedRewardsData(dispatch, props.apiUrl, {});
         }
 
         fetchData().then(async (response) => {
@@ -54,7 +54,7 @@ const Rewards = () => {
                     "rewardsData": rewardsData
                 }
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, params)
+                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
                 setRows(decryptedRewardsData.result.value);
                 let lastWeekRewards = decryptedRewardsData.result.value.filter((item) => {
                     return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));

@@ -30,7 +30,7 @@ const RightArrowIcon = () => {
     )
 }
 
-const Dashboard = () => {
+const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
 
     const [columns, setColumns] = useState([]);
@@ -42,7 +42,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         async function fetchData() {
-            return await fetchEncryptedDataOutput(dispatch, {});
+            return await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
         }
 
         fetchData().then((response) => {
@@ -65,7 +65,7 @@ const Dashboard = () => {
             "consumerAggregationRequest": values
         };
 
-        await createAggregationRequest(dispatch, params);
+        await createAggregationRequest(dispatch, props.apiUrl, params);
     }
 
     const validate = (values) => {
@@ -92,7 +92,7 @@ const Dashboard = () => {
             ]
         }
 
-        let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, params);
+        let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
         let columns = [];
         for (let i = 0; i < decryptedDataOutput.result.value[0].data.length; i++) {
             for (let property in decryptedDataOutput.result.value[0].data[i]) {

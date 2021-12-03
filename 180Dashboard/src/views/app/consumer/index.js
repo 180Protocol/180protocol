@@ -10,7 +10,7 @@ export default (props) => {
         <AppLayout>
             <Switch>
                 <Redirect exact from={`${match.url}/`} to={`${match.url}/dashboard`}/>
-                <Route path={`${match.url}/dashboard`} component={Dashboard}/>
+                <Route path={`${match.url}/dashboard`} render={() => <Dashboard apiUrl={props.apiUrl}/>}/>
                 <Redirect to="/error"/>
             </Switch>
         </AppLayout>

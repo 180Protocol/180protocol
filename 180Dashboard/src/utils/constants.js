@@ -3,5 +3,3 @@ export const OPTIONS = [
     {value: 'Risk Metrics Data', label: 'Risk Metrics Data'},
     {value: 'ESG Data', label: 'ESG Data'}
 ]
-
-export const API_URL = 'http://localhost:3000';

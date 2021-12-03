@@ -1,13 +1,11 @@
-import {API_URL} from "../../utils/constants";
-
-export async function upload(dispatch, payload) {
+export async function upload(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
         body: payload,
     };
 
     try {
-        let response = await fetch(`${API_URL}/uploadNodeAttachment`, requestOptions);
+        let response = await fetch(`${apiUrl}//uploadNodeAttachment`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -23,7 +21,7 @@ export async function upload(dispatch, payload) {
     }
 }
 
-export async function fetchEncryptedRewardsData(dispatch, payload) {
+export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'GET',
         headers: {
@@ -34,7 +32,7 @@ export async function fetchEncryptedRewardsData(dispatch, payload) {
     let userInfo = JSON.parse(localStorage.getItem('user'));
 
     try {
-        let response = await fetch(`${API_URL}/180Protocol Broker Contracts/RewardsState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
+        let response = await fetch(`${apiUrl}//180Protocol Broker Contracts/RewardsState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_REWARDS_DATA_SUCCESS', payload: data});
@@ -49,7 +47,7 @@ export async function fetchEncryptedRewardsData(dispatch, payload) {
     }
 }
 
-export async function fetchDecryptedRewardsData(dispatch, payload) {
+export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -59,7 +57,7 @@ export async function fetchDecryptedRewardsData(dispatch, payload) {
     };
 
     try {
-        let response = await fetch(`${API_URL}/180 Protocol Broker Flows/RewardsDecryptFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}//180 Protocol Broker Flows/RewardsDecryptFlow`, requestOptions);
         let data = await response.json();
         let sum = 0;
         for (let i = 0; i < data.result.value.length; i++) {
