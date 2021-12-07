@@ -5,7 +5,7 @@
 
   .bgGradient {
     height: 300px;
-    background-image: linear-gradient(#3376A5, #133054);
+    background-image: linear-gradient(#35607E, #1E303E);
   }
 
   .headerContainer {
@@ -14,7 +14,9 @@
   }
 
   .logo {
-    width: 200px;
+    width: 100%;
+    height: auto;
+    max-width: 180px;
   }
 
   .headerRightBar {
@@ -23,7 +25,7 @@
     justify-content: center;
 
     h3 {
-      margin-right: 10px;
+      margin-right: 20px;
       font-family: 'Muli Bold';
       font-style: normal;
       font-weight: normal;
@@ -67,8 +69,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      top: -10px;
-      right: -10px;
+      top: -5px;
+      right: -5px;
+      color: #ffffff;
     }
   }
 }

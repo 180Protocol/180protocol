@@ -2,12 +2,13 @@
 
 footer {
   background-color: #607185;
-  padding: 10px 15px;
+  padding:10px 15px;
 
   .footerText {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 14px;
 
     p {
       color: #ffffff !important;
@@ -18,7 +19,7 @@ footer {
         text-decoration: none;
 
         &:hover {
-          color: #cdfdff !important;
+          color: #8fc5eb !important;
         }
       }
     }

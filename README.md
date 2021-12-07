@@ -47,7 +47,7 @@ To run the sample 180ProtocolPOC Coalition network using Docker:
 1. Run below command from the project root path to start 180Dashboard service & pocCordApp
    service using docker compose
 
-   `docker-compose -f ./compose-corda-network.yml -f ./compose-cordaptor.yml up`
+   `docker-compose -f ./compose-corda-network.yml -f ./compose-codaptor.yml up`
 
 2. The 180Dashboard can be accessed at `http://localhost:3000` on a browser 
 3. Each data provider data can be viewed on the dashboard using their login credentials (corda node hostname as user and
@@ -55,3 +55,61 @@ port number as the password) -
 Ex, for provider A use 
 `username: partya-node 
 password: 9500`
+
+#### Configuring 180Protocol Dashboard users info and rewards weights
+
+We provide a yaml file to configure the number of nodes in the coalition - providers or consumers - who have access to 
+the 180Dashboard. Users can be configured in `userInfo.yml` provided under the `180Dashboard/src` directory. These 
+users must be in accordance with the Corda network setup configured under the `pocCordApp/build.gradle`. 
+The corda network gradle config allows specifying the party name for each Corda node. This party name must also be 
+specified under the userInfo.yml file. The node role (provider or consumer) can also be specified in the userInfo.yml.
+
+Further, the port number under userInfo.yml must be the same as that specified `compose-codaptor.yml` file. This
+is to ensure that the dashboard can query the correct OpenAPI endpoint for the said node. 
+
+Finally, the rewards weights used by the Rewards Engine must be configured for the dashboard to display correctly.
+
+#### Adding a new node to the 180Protocol network
+
+To add a new node for the 180Protocol POC, configurations need to be added to the 180Dashboard, the Codaptor OpenAPI and
+the corda network configurations -
+
+1. Corda Network: add the new node config under the `deployNodes` task of the `pocCordApp/build.gradle` file, e.x. -
+
+   ```
+   node {
+     name "O=PartyB,L=New York,C=US"
+     p2pAddress "partyb-node:10008"
+     rpcSettings {
+       address("0.0.0.0:10009")
+       adminAddress("0.0.0.0:10049")
+     }
+     rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+   }
+   ```
+
+   In the above, the name corresponds to the node name under the `180Dashboard/src/userInfo.yml`. Run the `deployNodes` 
+task to generate the build for the new node. 
+
+2. Codaptor OpenAPI: add the new node details to the `compose-corda-network.yml` and `compose-codaptor.yml`
+files by following the examples given in these files. Note the Corda RPC and P2P port configurations under `compose-corda-network.yml` 
+are the same as the those specified under the `build.gradle` file for the new node. Additionally, the `compose-codaptor.yml`
+exposes the Codaptor OpenAPI for the new node. The `CORDAPTOR_API_EXTERNAL_ADDRESS` specified here should match with the 
+port number specified under the `180Dashboard/src/userInfo.yml`. 
+For further details around Codaptor configurations see: [Codaptor](https://github.com/180Protocol/codaptor)
+
+3. 180Dashboard: add details of the new node under the `nodes` section of `180Dashboard/src/userInfo.yml` file. It includes
+   `username`, `password` and `role` fields of the node user to enable login into the dashboard. You can also
+   specify `port` number and party `name` of new node. 
+   
+   ```
+   providerA:
+     username: providerA
+     password: test
+     port: 9500
+     role: provider
+     name: O=PartyA,L=London,C=GB
+   ```
+   Here the `username`, `password` are arbitrary but `port` and `role` need to follow the dependencies described in the steps above
+
+   

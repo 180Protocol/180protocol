@@ -1,20 +1,25 @@
 import React from "react";
-import {Route, Switch, Redirect} from "react-router-dom";
-import AppLayout from "../../layout/AppLayout";
-import Data from "./Data";
-import Rewards from "./Rewards";
+import Provider from "./provider";
+import Consumer from "./consumer";
+import {useAuthState} from "../../store/context";
+
+const renderRoleBasedComponent = (user, props) => {
+    const apiUrl = 'http://localhost:' + user.port || '3000';
+
+    switch (user.role) {
+        case 'consumer':
+            return <Consumer property={props} apiUrl={apiUrl}/>;
+        case 'provider':
+            return <Provider property={props} apiUrl={apiUrl}/>;
+        default:
+            return null
+    }
+}
 
 export default (props) => {
-    const {match} = props;
-    console.log(match);
+    const userDetails = useAuthState();
+
     return (
-        <AppLayout>
-            <Switch>
-                <Redirect exact from={`${match.url}/`} to={`${match.url}/rewards`}/>
-                <Route path={`${match.url}/rewards`} component={Rewards}/>
-                <Route path={`${match.url}/data`} component={Data}/>
-                <Redirect to="/error"/>
-            </Switch>
-        </AppLayout>
-    );
+        userDetails.user && userDetails.user.role ? renderRoleBasedComponent(userDetails.user, props) : null
+    )
 }

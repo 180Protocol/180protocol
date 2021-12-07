@@ -1,15 +1,24 @@
+import {getYamlInfo} from "../../utils/helpers";
+import {API_URL} from "../../utils/constants";
+
 export async function login(dispatch, payload) {
     try {
         dispatch({type: 'LOGIN'});
+        let info = await getYamlInfo();
+        let nodeInfo = Object.values(info.nodes).find((item) => {
+            return item.username === payload.username && item.password === payload.password ? item : null
+        });
 
-        if (payload) {
-            dispatch({type: 'LOGIN_SUCCESS', payload: payload});
-            localStorage.setItem('user', JSON.stringify(payload));
-            return payload;
+        if (nodeInfo) {
+            delete nodeInfo.password;
+            dispatch({type: 'LOGIN_SUCCESS', payload: nodeInfo});
+            localStorage.setItem('user', JSON.stringify(nodeInfo));
+            localStorage.setItem('rewards', JSON.stringify(info.rewards));
+            return nodeInfo;
+        } else {
+            dispatch({type: 'LOGIN_ERROR', error: 'Error'});
+            return null;
         }
-
-        dispatch({type: 'LOGIN_ERROR', error: 'Error'});
-        return;
     } catch (error) {
         dispatch({type: 'LOGIN_ERROR', error: error});
         console.log(error);
@@ -19,4 +28,6 @@ export async function login(dispatch, payload) {
 export async function logout(dispatch) {
     dispatch({type: 'LOGOUT'});
     localStorage.removeItem('user');
+    localStorage.removeItem('rewards');
+    window.location.reload();
 }

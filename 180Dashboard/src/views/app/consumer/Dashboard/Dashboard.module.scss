@@ -1,0 +1,276 @@
+@import "../../../../App.css";
+
+.accessData {
+  position: relative;
+
+  .bgGradient {
+    background-image: linear-gradient(#35607e, #1e303e);
+
+    * {
+      color: #ffffff !important;
+    }
+
+    .headerContainer {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: center;
+
+      .headerLinksUl {
+        display: inline-flex;
+        text-align: center;
+        list-style: none !important;
+        padding-left: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        li {
+          display: inline-block;
+          list-style: none !important;
+          margin: 0 15px;
+
+          a.menuLink {
+            text-decoration: none;
+            display: block;
+            font-family: "Muli SemiBold";
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+
+    .OverviewContainer {
+      padding: 3em 0;
+      text-align: center;
+
+      .innerCol p {
+        margin-bottom: 25px;
+
+        &:first-child {
+          font-size: 18px !important;
+        }
+      }
+    }
+  }
+
+  .accessDataContainer {
+    .accessDataCardBody {
+      padding: 1rem 30px !important;
+
+      .accessDataBodyInner {
+        padding: 1rem 5rem !important;
+
+        .accessDataBoxInner {
+          padding: 4.5rem 0rem !important;
+          height: 100%;
+          width: 100%;
+          display: inline-flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+
+          p {
+            color: #1e303e;
+            font-size: 18px;
+            font-family: "Muli SemiBold";
+          }
+
+          .selectCateBox,
+          .descriptionCateBox {
+            width: calc(45% - 60px);
+            // max-width: 250px;
+          }
+
+          .selectCateBox {
+            .customSelect {
+              color: #1e303e;
+              border-color: #678098;
+
+              * {
+                color: #1e303e;
+                border-color: #678098;
+              }
+
+              .IndicatorArrowDiv {
+                padding: 8px;
+                height: 34px;
+                width: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                img {
+                  width: 18px;
+                  height: auto;
+                }
+              }
+            }
+          }
+
+          .descriptionCateBox {
+            color: #1e303e;
+
+            .inputFormControl {
+              width: 100% !important;
+              padding-right: 15px;
+              padding-left: 15px;
+              -webkit-align-items: center;
+              -webkit-box-align: center;
+              -ms-flex-align: center;
+              align-items: center;
+              background-color: hsl(0, 0%, 100%);
+              border-color: hsl(0, 0%, 80%);
+              border-radius: 4px;
+              border-style: solid;
+              border-width: 1px;
+              cursor: default;
+              display: -webkit-box;
+              display: -webkit-flex;
+              display: -ms-flexbox;
+              display: flex;
+              -webkit-box-flex-wrap: wrap;
+              -webkit-flex-wrap: wrap;
+              -ms-flex-wrap: wrap;
+              flex-wrap: wrap;
+              -webkit-box-pack: justify;
+              -webkit-justify-content: space-between;
+              justify-content: space-between;
+              min-height: 38px;
+              outline: 0 !important;
+              position: relative;
+              -webkit-transition: all 100ms;
+              transition: all 100ms;
+              box-sizing: border-box;
+              color: #1e303e;
+            }
+          }
+        }
+
+        .submitBoxInner {
+          .submitBtnBox {
+            text-align: center;
+
+            button {
+              background-color: transparent !important;
+
+              padding: 6px 20px;
+              font-size: 18px;
+              text-transform: uppercase;
+              font-family: "Muli Bold";
+              border: none;
+              outline: none;
+              background: transparent;
+              color: #1e303e;
+              border-radius: 15px;
+              cursor: pointer;
+              border: 3px solid #193e6430 !important;
+            }
+
+            p {
+              font-family: "Muli SemiBold";
+              margin-top: 10px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .requestsContainer {
+    color: #1e303e;
+
+    .requestsCardBody {
+      padding: 1rem 30px !important;
+
+      .requestsBodyInner {
+        padding: 1rem 5rem !important;
+
+        .requestsBoxInner {
+          border: 2px solid rgba(112, 112, 112, 0.35);
+          background-color: #edeff2 !important;
+          padding: 15px !important;
+          max-height: 565px;
+          overflow-y: auto;
+          overflow-x: hidden;
+
+          p {
+            color: #1e303e;
+            font-size: 20px;
+            font-family: "Muli SemiBold";
+          }
+
+          .downloadRequestBox {
+            background-color: #65849915;
+            border: 2px dashed #707070;
+            text-align: center;
+            padding: 30px 15px 15px;
+            border-radius: 35px;
+            transform: scale(0.85);
+
+            .requestInfoBox {
+              color: #1e303e;
+              text-align: center;
+              margin-top: 25px;
+
+              p {
+                color: #1e303e;
+                margin-bottom: 20px;
+
+                &:last-child {
+                  margin-bottom: 0;
+                  font-size: 15px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .exportDataContainer {
+
+    .exportCardHeader {
+      display: inline-flex;
+      flex: 1 1 auto;
+      align-items: center;
+      justify-content: space-between;
+
+      button {
+        background-color: transparent !important;
+        padding: 6px 20px;
+        font-size: 16px;
+        text-transform: uppercase;
+        font-family: "Muli Bold";
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #1e303e;
+        border-radius: 15px;
+        cursor: pointer;
+        border: 2px solid #193e6430 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 3px 3px 0px #00000015;
+
+        img {
+          width: 15px;
+          margin-left: 10px;
+        }
+      }
+    }
+
+    .previewTableCardBody {
+      padding: 2rem 30px !important;
+
+      .previewTableBodyInner {
+        padding: 1.5rem 5rem 0rem !important;
+        border: 2px dashed #707070 !important;
+        border-radius: 30px;
+      }
+    }
+
+  }
+}

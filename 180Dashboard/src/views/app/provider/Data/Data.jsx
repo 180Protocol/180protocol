@@ -1,105 +1,69 @@
-import React, {useState, useCallback} from "react";
+import React, {useState, useCallback, useEffect} from "react";
 import Select from 'react-select';
-import Grid from "../../../components/Grid";
+import Grid from "../../../../components/Grid";
 import {useDropzone} from "react-dropzone";
-import Menu from "../../../containers/navs/Menu";
-import {useAuthDispatch, useAuthState} from "../../../store/context";
-import {upload} from "../../../store/data/actions";
+import Menu from "../../../../containers/navs/Menu";
+import {useAuthDispatch, useAuthState} from "../../../../store/context";
+import {fetchDecryptedRewardsData, fetchEncryptedRewardsData, upload} from "../../../../store/provider/actions";
+import {OPTIONS} from "../../../../utils/constants";
 
 // Styles
 import styles from './Data.module.scss';
 
 // Images
-import uploadIcon from "../../../assets/images/upload.svg";
+import uploadIcon from "../../../../assets/images/upload.svg";
+import moment from "moment";
 
-const options = [
-    {value: 'Fixed Income Demand Data', label: 'Fixed Income Demand Data'},
-    {value: 'Risk Metrics Data', label: 'Risk Metrics Data'},
-    {value: 'ESG Data', label: 'ESG Data'}
-]
-
-const Dashboard = () => {
+const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
     const userDetails = useAuthState();
 
     const [columns,] = useState([
-        {name: 'coApp', title: 'CoApp'},
+        {name: 'coApplication', title: 'CoApp'},
         {name: 'id', title: 'ID'},
-        {name: 'role', title: 'Role'},
         {name: 'qualityScore', title: 'Quality Score'},
-        {name: 'time', title: 'Time'},
+        {name: 'date', title: 'Time'},
         {name: 'rewards', title: 'Rewards'},
         {name: 'rewardsBalance', title: 'Rewards Balance'}
     ]);
 
-    const [rows,] = useState([
-        {
-            coApp: 'DMS',
-            id: 1008,
-            role: 'Provider',
-            qualityScore: 8.2,
-            time: 'Aug 31, 2021 11:30:15',
-            rewards: 196,
-            rewardsBalance: 56523
-        },
-        {
-            coApp: 'DMS',
-            id: 1007,
-            role: 'Provider',
-            qualityScore: 7.1,
-            time: 'Aug 31, 2021 10:30:15',
-            rewards: 175,
-            rewardsBalance: 55323
-        },
-        {
-            coApp: 'DMS',
-            id: 1006,
-            role: 'Provider',
-            qualityScore: 9.2,
-            time: 'Aug 30, 2021 11:30:15',
-            rewards: 253,
-            rewardsBalance: 54656
-        },
-        {
-            coApp: 'DMS',
-            id: 1005,
-            role: 'Provider',
-            qualityScore: 2.1,
-            time: 'Aug 29, 2021 11:30:58',
-            rewards: 45,
-            rewardsBalance: 52633
-        },
-        {
-            coApp: 'DMS',
-            id: 1004,
-            role: 'Provider',
-            qualityScore: 0.7,
-            time: 'Aug 28, 2021 11:30:15',
-            rewards: 12,
-            rewardsBalance: 47379
-        },
-        {
-            coApp: 'DMS',
-            id: 1003,
-            role: 'Provider',
-            qualityScore: 5.5,
-            time: 'Aug 27, 2021 11:30:15',
-            rewards: 95,
-            rewardsBalance: 47236
-        },
-        {
-            coApp: 'DMS',
-            id: 1002,
-            role: 'Provider',
-            qualityScore: 6.3,
-            time: 'Aug 25, 2021 11:30:15',
-            rewards: 120,
-            rewardsBalance: 46556
-        },
-    ]);
+    const [rows, setRows] = useState([]);
+    const [lastUpdated, setLastUpdated] = useState(null);
 
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [dataType, setDataType] = useState({});
+
+    useEffect(() => {
+        async function fetchData() {
+            return await fetchEncryptedRewardsData(dispatch, props.apiUrl, {});
+        }
+
+        fetchData().then(async (response) => {
+            if (response && response.states && response.states.length > 0) {
+                let rewardsData = response.states.map((item) => {
+                    return {
+                        "rewards": item.rewards,
+                        "flowTopic": item.flowTopic
+                    }
+                });
+
+                let params = {
+                    "options": {
+                        "trackProgress": "true"
+                    },
+                    "rewardsData": rewardsData
+                }
+
+                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
+                setRows(decryptedRewardsData.result.value);
+                let sortedRewardsData = decryptedRewardsData.result.value.sort(function (a, b) {
+                    return new Date(b.date) - new Date(a.date)
+                })
+
+                setLastUpdated(moment.utc(sortedRewardsData[0].date).format("MMM DD, YYYY hh:mm:ss A"));
+            }
+        });
+    }, [dispatch]);
 
     const onDrop = useCallback((acceptedFiles) => {
         setSelectedFiles(acceptedFiles);
@@ -131,13 +95,13 @@ const Dashboard = () => {
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Total Aggregations</p>
-                                    <p className='bigText mb-0'>13</p>
+                                    <p className='bigText mb-0'>{rows.length}</p>
                                 </div>
                             </div>
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Last Updated</p>
-                                    <p className='bigText mb-0'>Aug 31, 2021 11:45:23 AM</p>
+                                    <p className='bigText mb-0'>{lastUpdated}</p>
                                 </div>
                             </div>
                         </div>
@@ -157,7 +121,8 @@ const Dashboard = () => {
 
                                             <div className={styles.selectCateBox}>
                                                 <p>Data Category</p>
-                                                <Select defaultValue={dataType} options={options} onChange={handleChange} className={styles.customSelect}/>
+                                                <Select defaultValue={dataType} options={OPTIONS}
+                                                        onChange={handleChange} className={styles.customSelect}/>
                                             </div>
 
                                             <div className={styles.previewImgBox}>

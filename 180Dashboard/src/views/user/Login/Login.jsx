@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {Field, Form, Formik} from "formik";
 import {useAuthDispatch} from "../../../store/context";
 import {login} from "../../../store/auth/actions";
@@ -12,10 +12,15 @@ import RightAngleArrow from "../../../assets/images/right_angle_arrow.svg";
 
 const Login = (props) => {
     const dispatch = useAuthDispatch();
+    const [error, setError] = useState();
 
     const save = async (values) => {
-        await login(dispatch, values);
-        props.history.push("/app/rewards");
+        let response = await login(dispatch, values);
+        if (response) {
+            props.history.push("/app");
+        } else {
+            setError("Invalid credentials")
+        }
     }
 
     const validate = (values) => {
@@ -74,6 +79,11 @@ const Login = (props) => {
                                     </div>
                                 )}
                             </div>
+                            {error ? (
+                                <div className="invalid-feedback-msg" style={{color: "#F16978", marginTop: -15}}>
+                                    {error}
+                                </div>
+                            ) : null}
                             <div className="form-group formGroup-Btns">
                                 <button type="submit" className="form-control">
                                     <span>Sign In</span> <img src={RightAngleArrow}/>

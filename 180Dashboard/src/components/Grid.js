@@ -8,12 +8,14 @@ import {
     TableHeaderRow,
     PagingPanel
 } from '@devexpress/dx-react-grid-bootstrap4';
+import moment from "moment";
 
 export default (props) => {
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
     const [amountColumns] = useState(['rewardsBalance']);
     const [decimalColumns] = useState(['qualityScore']);
+    const [dateColumns] = useState(['date']);
 
     const [sorting, setSorting] = useState([{columnName: 'coApp', direction: 'desc'}]);
     const [currentPage, setCurrentPage] = useState(0);
@@ -31,6 +33,7 @@ export default (props) => {
 
     const AmountFormatter = ({value}) => value ? Intl.NumberFormat().format(value.toFixed(1)) : '$0';
     const DecimalsFormatter = ({value}) => value ? value.toFixed(1) : '';
+    const DateFormatter = ({value}) => value ? moment.utc(value).format("YYYY-MM-DD HH:mm:ss") : '';
 
     return (
         <div className="card">
@@ -38,6 +41,11 @@ export default (props) => {
                 <DataTypeProvider
                     for={amountColumns}
                     formatterComponent={AmountFormatter}
+                    {...props}
+                />
+                <DataTypeProvider
+                    for={dateColumns}
+                    formatterComponent={DateFormatter}
                     {...props}
                 />
                 <DataTypeProvider

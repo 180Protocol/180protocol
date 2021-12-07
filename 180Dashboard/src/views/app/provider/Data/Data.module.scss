@@ -1,10 +1,10 @@
-@import '../../../App.css';
+@import '../../../../App.css';
 
 .dashboard {
   position: relative;
 
   .bgGradient {
-    background-image: linear-gradient(#3376A5, #133054);
+    background-image: linear-gradient(#35607E, #1E303E);
 
     * {
       color: #ffffff !important;
@@ -48,6 +48,10 @@
 
       .innerCol p {
         margin-bottom: 25px;
+
+        &:first-child {
+          font-size: 18px !important;
+        }
       }
 
     }
@@ -63,19 +67,38 @@
       flex-direction: column;
 
       p {
-        color: #245781;
+        color: #1E303E;
         font-size: 18px;
         font-family: 'Muli SemiBold';
       }
 
       .selectCateBox {
         width: 100%;
-        max-width: 250px;
+        max-width: 420px;
 
         .customSelect {
-          color: #245781;
-        }
+          color: #1E303E;
 
+
+          * {
+            color: #1E303E;
+            border-color: #678098;
+          }
+
+          .IndicatorArrowDiv {
+            padding: 8px;
+            height: 34px;
+            width: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            img{
+              width: 18px;
+              height: auto;
+            }
+          }
+        }
       }
 
       .previewImgBox {
@@ -90,22 +113,20 @@
         text-align: center;
 
         button {
-          border: 3px solid #193E6429 !important;
           background-color: transparent !important;
 
-          padding: 5px 20px;
-          font-size: 20px;
+          padding: 6px 20px;
+          font-size: 18px;
           text-transform: uppercase;
-          font-family: 'Muli ExtraBold';
+          font-family: 'Muli Bold';
           border: none;
           outline: none;
           background: transparent;
-          color: #245781;
+          color: #1E303E;
           border-radius: 15px;
           cursor: pointer;
-          border: 3px solid #193E6430;
+          border: 3px solid #193E6430 !important;
         }
-
       }
     }
 
@@ -113,18 +134,18 @@
       width: 100%;
       height: 100%;
 
-      .dragArea {
+      .dragArea{
         width: 100%;
         height: 100%;
         background-color: #EDEFF2;
-        border-radius: 15px;
+        border-radius: 5px;
         padding: 15px;
-        border: 1px solid #707070;
+        border: 2px solid #707070;
         box-shadow: 0px 3px 6px 0px #00000040;
 
         .dragAreaInner {
           border: 2px dashed #707070;
-          border-radius: 15px;
+          border-radius: 5px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -132,7 +153,7 @@
           width: 100%;
           height: 100%;
 
-          .icon {
+          .icon{
             display: block;
             margin-bottom: 15px;
           }
@@ -143,24 +164,24 @@
             color: #3E3B3B;
           }
 
-          span {
+          span{
             margin: 10px 0 15px 0;
           }
 
-          button {
+          button{
             padding: 8px 20px;
             font-size: 20px;
-            font-family: 'Muli Bold';
+            font-family: 'Muli SemiBold';
             border: none;
             outline: none;
             background: transparent;
             color: #000000;
             border-radius: 15px;
             cursor: pointer;
-            border: 3px solid #000000;
+            border:2px solid #000000;
           }
 
-          img {
+          img{
             height: 100%;
             width: 100%;
             object-fit: cover;
@@ -168,7 +189,7 @@
           }
         }
 
-        &.active {
+        &.active{
           border: 2px solid #707070;
         }
       }
@@ -176,9 +197,9 @@
   }
 
   .aggregTableCardBody {
-    padding: 15px !important;
+    padding: 1rem 30px !important;
 
-    table tr th:nth-child(5) {
+    table tr th:nth-child(5){
       border-right-color: transparent !important;
     }
 
