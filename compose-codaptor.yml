@@ -2,9 +2,9 @@
 # version 3 does not support setting memory limits for docker-compose
 version: '2'
 services:
-  cordaptora:
+  codaptora:
     image: b180tech/cordaptor:0.2.0-corda4.5-SNAPSHOT
-    hostname: cordaptora
+    hostname: codaptora
     mem_limit: 512m
     environment:
       - CORDA_RPC_NODE_ADDRESS=partya-node:10006 # using hostname known within the Docker network
@@ -21,9 +21,9 @@ services:
     volumes:
       # Corda RPC requires CorDapp JARs to be available in the classpath
       - ./pocCordApp/build/nodes/PartyA/cordapps:/cordaptor/cordapps
-  cordaptorb:
+  codaptorb:
     image: b180tech/cordaptor:0.2.0-corda4.5-SNAPSHOT
-    hostname: cordaptorb
+    hostname: codaptorb
     mem_limit: 512m
     environment:
       - CORDA_RPC_NODE_ADDRESS=partyb-node:10009 # using hostname known within the Docker network
