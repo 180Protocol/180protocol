@@ -18,8 +18,14 @@ nodes:
     role: consumer
     name: O=PartyB,L=London,C=GB
 rewards:
-  amountProvided: 20 
+  amountProvided: 20
   completeness: 30
   uniqueness: 20
   updateFrequency: 30
-
+dataTypes:
+  - value: fixedIncomeDemandData
+    label: Fixed Income Demand Data
+  - value: riskMetricsData
+    label: Risk Metrics Data
+  - value: esgData
+    label: ESG Data

@@ -1,13 +1,11 @@
 import React, {useEffect, useState} from "react";
 import Grid from "../../../../components/Grid";
 import {Field, Form, Formik} from "formik";
-import {OPTIONS} from "../../../../utils/constants";
 import {FormikReactSelect} from "../../../../containers/FormikFields";
 import {
     createAggregationRequest,
     fetchDecryptedDataOutput,
-    fetchEncryptedDataOutput,
-    fetchRequests
+    fetchEncryptedDataOutput
 } from "../../../../store/consumer/actions";
 import {useAuthDispatch} from "../../../../store/context";
 
@@ -39,6 +37,8 @@ const Dashboard = (props) => {
 
     const [rows, setRows] = useState([]);
     const [lastRequestDate, setLastRequestDate] = useState(null);
+
+    const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
 
     useEffect(() => {
         async function fetchData() {
@@ -176,7 +176,7 @@ const Dashboard = (props) => {
                                                                     id="dataType"
                                                                     value={values.dataType}
                                                                     isMulti={false}
-                                                                    options={OPTIONS}
+                                                                    options={dataTypeOptions}
                                                                     onChange={setFieldValue}
                                                                     onBlur={setFieldTouched}
                                                                     components={{

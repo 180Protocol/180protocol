@@ -5,7 +5,6 @@ import {useDropzone} from "react-dropzone";
 import Menu from "../../../../containers/navs/Menu";
 import {useAuthDispatch, useAuthState} from "../../../../store/context";
 import {fetchDecryptedRewardsData, fetchEncryptedRewardsData, upload} from "../../../../store/provider/actions";
-import {OPTIONS} from "../../../../utils/constants";
 
 // Styles
 import styles from './Data.module.scss';
@@ -32,6 +31,8 @@ const Dashboard = (props) => {
 
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [dataType, setDataType] = useState({});
+
+    const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
 
     useEffect(() => {
         async function fetchData() {
@@ -121,7 +122,7 @@ const Dashboard = (props) => {
 
                                             <div className={styles.selectCateBox}>
                                                 <p>Data Category</p>
-                                                <Select defaultValue={dataType} options={OPTIONS}
+                                                <Select defaultValue={dataType} options={dataTypeOptions}
                                                         onChange={handleChange} className={styles.customSelect}/>
                                             </div>
 
