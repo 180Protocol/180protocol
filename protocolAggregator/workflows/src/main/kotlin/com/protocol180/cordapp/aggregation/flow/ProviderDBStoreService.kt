@@ -12,7 +12,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
  * @param services The node's service hub.
  */
 @CordaService
-class DatabaseService(val services: ServiceHub) : SingletonSerializeAsToken() {
+class ProviderDBStoreService(val services: ServiceHub) : SingletonSerializeAsToken() {
 
     /**
      * Adds a List of Provider Input into database table for particular transaction.

@@ -19,7 +19,7 @@ class DataPersistenceFlow(private val dataOutputMap: Map<String, Map<String, Byt
     override fun call() {
 
 
-        val databaseService = serviceHub.cordaService(DatabaseService::class.java)
+        val databaseService = serviceHub.cordaService(ProviderDBStoreService::class.java)
 
         // Persisting State Ref pointer & payload(Byte array) into Table
         dataOutputMap.forEach { (stateRef, providerInputMap) -> databaseService.addProviderInputWithStateRef(stateRef, providerInputMap) }
@@ -39,7 +39,7 @@ class DataRetrievalFlow(private val stateRef: String) :
     override fun call(): Map<String, ByteArray>? {
 
 
-        val databaseService = serviceHub.cordaService(DatabaseService::class.java)
+        val databaseService = serviceHub.cordaService(ProviderDBStoreService::class.java)
 
         // Retrieving the Record from the schema created for persisting data
 
