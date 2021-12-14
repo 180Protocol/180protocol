@@ -8,6 +8,8 @@ import {
     fetchEncryptedDataOutput
 } from "../../../../store/consumer/actions";
 import {useAuthDispatch} from "../../../../store/context";
+import {ucWords} from "../../../../utils/helpers";
+import moment from "moment";
 
 // Styles
 import styles from './Dashboard.module.scss';
@@ -16,9 +18,7 @@ import styles from './Dashboard.module.scss';
 import downloadIcon from "../../../../assets/images/download.svg";
 import selectDownArrow from "../../../../assets/images/select-down-arrow.svg";
 import exportIcon from "../../../../assets/images/export.svg";
-import {fetchDecryptedRewardsData} from "../../../../store/provider/actions";
-import {ucWords} from "../../../../utils/helpers";
-import moment from "moment";
+import refreshIcon from "../../../../assets/images/refresh.svg";
 
 const RightArrowIcon = () => {
     return (
@@ -65,7 +65,10 @@ const Dashboard = (props) => {
             "consumerAggregationRequest": values
         };
 
-        await createAggregationRequest(dispatch, props.apiUrl, params);
+        let response = await createAggregationRequest(dispatch, props.apiUrl, params);
+        if (response) {
+            alert("Request submitted successfully");
+        }
     }
 
     const validate = (values) => {
@@ -204,7 +207,8 @@ const Dashboard = (props) => {
                                                         <div className={styles.submitBoxInner}>
                                                             <div className={styles.submitBtnBox}>
                                                                 <button type="submit" name="Submit">Submit</button>
-                                                                <p>Completed requests will show in the table below</p>
+                                                                <p>Completed requests will be shown in the table
+                                                                    below</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -213,57 +217,68 @@ const Dashboard = (props) => {
                                         </Formik>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
                     <div className={`container mb-5 ${styles.requestsContainer}`}>
                         <div className="card">
-                            <div className="card-header">
+                            <div className={`card-header ${styles.requestsCardHeader}`}>
                                 <h3>Requests</h3>
+                                <div className={styles.refreshContainer}>
+                                    <p>Use refresh button to load latest results</p>
+                                    <button type="button" name="Refresh"
+                                            onClick={() => fetchEncryptedDataOutput(dispatch, props.apiUrl, {})}>REFRESH <img
+                                        src={refreshIcon} alt="refresh"/>
+                                    </button>
+                                </div>
                             </div>
                             <div className={`card-body ${styles.requestsCardBody}`}>
                                 <div className={styles.requestsBodyInner}>
                                     <div className={styles.requestsBoxInner}>
                                         <div className="row five-col">
-                                            {encryptedDataOutput && encryptedDataOutput.states && encryptedDataOutput.states.length > 0 &&
-                                            encryptedDataOutput.states.map((output, index) => {
-                                                return (
-                                                    <div key={index}
-                                                         onClick={() => getDecryptedDataOutput(output.ref)}
-                                                         className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
-                                                        <div className={styles.downloadRequestBox}>
-                                                            <img src={downloadIcon} alt="download"/>
-                                                            <div className={styles.requestInfoBox}>
-                                                                <p>{output.state.data.dataType}</p>
-                                                                <p>{output.state.data.description}</p>
+                                            {
+                                                encryptedDataOutput && encryptedDataOutput.states && encryptedDataOutput.states.length > 0 ?
+                                                    encryptedDataOutput.states.map((output, index) => {
+                                                        return (
+                                                            <div key={index}
+                                                                 onClick={() => getDecryptedDataOutput(output.ref)}
+                                                                 className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
+                                                                <div className={styles.downloadRequestBox}>
+                                                                    <img src={downloadIcon} alt="download"/>
+                                                                    <div className={styles.requestInfoBox}>
+                                                                        <p>{output.state.data.dataType}</p>
+                                                                        <p>{output.state.data.description}</p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                        );
+                                                    }) : <p>No completed requests at this time.</p>
+                                            }
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className={`container mb-5 ${styles.exportDataContainer}`}>
-                        <div className="card">
-                            <div className={`card-header ${styles.exportCardHeader}`}>
-                                <h3>Preview</h3>
-                                <button onClick={exportAsCSV}>EXPORT <img src={exportIcon}
-                                                                          className={styles.exportbtnIcon}
-                                                                          alt="export"/>
-                                </button>
-                            </div>
-                            <div className={`card-body ${styles.previewTableCardBody}`}>
-                                <div className={styles.previewTableBodyInner}>
-                                    <Grid className={styles.aggregationsTable} columns={columns} rows={rows}/>
+                    {
+                        encryptedDataOutput && encryptedDataOutput.states && encryptedDataOutput.states.length > 0 ?
+                            <div className={`container mb-5 ${styles.exportDataContainer}`}>
+                                <div className="card">
+                                    <div className={`card-header ${styles.exportCardHeader}`}>
+                                        <h3>Preview</h3>
+                                        <button onClick={exportAsCSV}>EXPORT <img src={exportIcon}
+                                                                                  className={styles.exportbtnIcon}
+                                                                                  alt="export"/>
+                                        </button>
+                                    </div>
+                                    <div className={`card-body ${styles.previewTableCardBody}`}>
+                                        <div className={styles.previewTableBodyInner}>
+                                            <Grid className={styles.aggregationsTable} columns={columns} rows={rows}/>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                            </div> : null
+                    }
                 </div>
             </section>
         </>
