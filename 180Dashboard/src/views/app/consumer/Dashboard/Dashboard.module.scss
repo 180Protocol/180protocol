@@ -180,6 +180,46 @@
   .requestsContainer {
     color: #1e303e;
 
+    .requestsCardHeader {
+      display: inline-flex;
+      flex: 1 1 auto;
+      align-items: center;
+      justify-content: space-between;
+
+      .refreshContainer {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      p {
+        padding: 6px;
+      }
+
+      button {
+        background-color: transparent !important;
+        padding: 6px 20px;
+        font-size: 16px;
+        text-transform: uppercase;
+        font-family: "Muli Bold";
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #1e303e;
+        border-radius: 15px;
+        cursor: pointer;
+        border: 2px solid #193e6430 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 3px 3px 0px #00000015;
+
+        img {
+          width: 15px;
+          margin-left: 10px;
+        }
+      }
+    }
+
     .requestsCardBody {
       padding: 1rem 30px !important;
 
