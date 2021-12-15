@@ -1,5 +1,4 @@
 import {getYamlInfo} from "../../utils/helpers";
-import {API_URL} from "../../utils/constants";
 
 export async function login(dispatch, payload) {
     try {
@@ -14,6 +13,7 @@ export async function login(dispatch, payload) {
             dispatch({type: 'LOGIN_SUCCESS', payload: nodeInfo});
             localStorage.setItem('user', JSON.stringify(nodeInfo));
             localStorage.setItem('rewards', JSON.stringify(info.rewards));
+            localStorage.setItem('dataTypeOptions', JSON.stringify(info.dataTypes));
             return nodeInfo;
         } else {
             dispatch({type: 'LOGIN_ERROR', error: 'Error'});
