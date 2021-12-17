@@ -23,19 +23,23 @@ class ConsumerAggregationProposeFlowTest {
     lateinit var network: MockNetwork
     lateinit var consumer: StartedMockNode
     lateinit var host: StartedMockNode
+    lateinit var provider1: StartedMockNode
+//    lateinit var provider2: StartedMockNode
 
     @Before
     fun setup() {
         network = MockNetwork(
-            MockNetworkParameters(
-                cordappsForAllNodes = listOf(
-                    TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
-                    TestCordapp.findCordapp("com.protocol180.cordapp.aggregation.flow")
+                MockNetworkParameters(
+                        cordappsForAllNodes = listOf(
+                                TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
+                                TestCordapp.findCordapp("com.protocol180.cordapp.aggregation.flow")
+                        )
                 )
-            )
         )
         consumer = network.createPartyNode()
         host = network.createPartyNode()
+        provider1 = network.createNode()
+//        provider2 = network.createNode()
         network.runNetwork()
     }
 
@@ -59,6 +63,21 @@ class ConsumerAggregationProposeFlowTest {
 
     @Test
     fun txHasOnlyOneValidOutputState() {
+        val flow = ConsumerAggregationProposeFlow(host.info.chooseIdentityAndCert().party)
+        val future = consumer.startFlow(flow)
+        network.runNetwork()
+        val signedTransaction = future.get()
+
+        assertEquals(1, signedTransaction.tx.outputStates.size)
+
+        val output = signedTransaction.tx.getOutput(0) as ConsumerAggregationState
+
+        assertEquals(host.info.legalIdentities[0], output.host)
+
+    }
+
+    @Test
+    fun flowWorksWithEnclaveProperly() {
         val flow = ConsumerAggregationProposeFlow(host.info.chooseIdentityAndCert().party)
         val future = consumer.startFlow(flow)
         network.runNetwork()

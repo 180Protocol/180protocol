@@ -73,7 +73,7 @@ abstract class CordaEnclave : Enclave() {
      * processed at this level, are forwarded to the abstract [CordaEnclave.receiveMail] callback which is defined
      * by the derived class.
      */
-    final override fun receiveMail(id: Long, mail: EnclaveMail, routingHint: String?) {
+    override fun receiveMail(id: Long, mail: EnclaveMail, routingHint: String?) {
         if (isTopicFirstMessage(mail)) {
             // only login supported so far
             val authenticated = tryAuthenticateAndStoreIdentity(mail)
@@ -83,7 +83,7 @@ abstract class CordaEnclave : Enclave() {
             postMail(reply, routingHint)
         } else {
             val identity = getSenderIdentity(mail.authenticatedSender)
-            receiveMail(id, mail, routingHint, identity)
+            receiveMail(id, mail, routingHint)
         }
     }
 
@@ -104,7 +104,7 @@ abstract class CordaEnclave : Enclave() {
      * @param identity The identity of the sender validated by the enclave. This can be used to uniquely identify the sender.
      * Please be aware that this parameter is null if the sender decides to keep its anonymity.
      */
-    protected abstract fun receiveMail(id: Long, mail: EnclaveMail, routingHint: String?, identity: SenderIdentity?)
+//    protected abstract fun receiveMail(id: Long, mail: EnclaveMail, routingHint: String?, identity: PublicKey)
 
     companion object {
         private const val topicFirstMessageSequenceNumber = 0L

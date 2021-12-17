@@ -2,26 +2,18 @@ package com.protocol180.cordapp.aggregation.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.ConsumerAggregationContract
+import com.protocol180.aggregator.cordapp.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.ConsumerAggregationState
-import com.protocol180.aggregator.states.ProviderAggregationState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.ReceiveFinalityFlow
-import net.corda.core.flows.SignTransactionFlow
-import net.corda.core.flows.StartableByRPC
-import net.corda.core.identity.AnonymousParty
+import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.services.queryBy
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
+import net.corda.core.utilities.unwrap
+import java.security.PublicKey
 
 /**
  * This is the flow which handles issuance of new Aggregation Request .
@@ -30,7 +22,7 @@ import net.corda.core.utilities.ProgressTracker
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationProposeFlow(val host : Party) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationProposeFlow(val host: Party) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -39,26 +31,19 @@ class ConsumerAggregationProposeFlow(val host : Party) : FlowLogic<SignedTransac
     override fun call(): SignedTransaction {
 
 
-        // Step 1. Get a reference to the notary service on our network and our key pair.
-        // Note: ongoing work to support multiple notary identities is still in progress.
-
-        /**
-         *  METHOD 1: Take first notary on network, WARNING: use for test, non-prod environments, and single-notary networks only!*
-         *  METHOD 2: Explicit selection of notary by CordaX500Name - argument can by coded in flow or parsed from config (Preferred)
-         *
-         *  * - For production you always want to use Method 2 as it guarantees the expected notary is returned.
-         */
+        //Get a reference to the notary service on our network and our key pair.
         val notary = serviceHub.networkMapCache.notaryIdentities.single() // METHOD 1
 
         val consumer = ourIdentity
 
-        var consumerAggregationState = ConsumerAggregationState(consumer.anonymise(),host,null, null,null)
 
         // Step 2. Create a new propose command.
         // Remember that a command is a CommandData object and a list of CompositeKeys
         val commandData: CommandData = ConsumerAggregationContract.Commands.Propose()
 
-//        val proposeCommand = Command(ConsumerAggregationContract.Commands.Propose(), consumerAggregationState.participants.map { it.owningKey })
+        var consumerAggregationState = ConsumerAggregationState(consumer.anonymise(), host, null, null, null)
+
+        val proposeCommand = Command(ConsumerAggregationContract.Commands.Propose(), consumerAggregationState.participants.map { it.owningKey })
 
         // Step 3. Create a new TransactionBuilder object.
         val builder = TransactionBuilder(notary = notary)
@@ -71,14 +56,15 @@ class ConsumerAggregationProposeFlow(val host : Party) : FlowLogic<SignedTransac
         builder.verify(serviceHub)
 
 
-
         // we sign the transaction with our private key & making it immutable.
         val ptx = serviceHub.signInitialTransaction(builder)
 
         val session = initiateFlow(host)
 
+
         //The counterparty(host) signs the transaction.
         val fullySignedTransaction = subFlow(CollectSignaturesFlow(ptx, listOf(session)))
+
 
         // Assuming no exceptions, we can now finalise the transaction.
         return subFlow(FinalityFlow(fullySignedTransaction, listOf(session)))
@@ -91,18 +77,42 @@ class ConsumerAggregationProposeFlow(val host : Party) : FlowLogic<SignedTransac
  * The signing is handled by the [SignTransactionFlow].
  */
 @InitiatedBy(ConsumerAggregationProposeFlow::class)
+@InitiatingFlow
 class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
+        println("Inside Responder flow available to host")
+        val notary = serviceHub.networkMapCache.notaryIdentities.single()
+
+        val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
+
+        val attestationBytes = enclaveService.attestationBytes
+        val providers = serviceHub.networkMapCache.allNodes.map { it.legalIdentities.get(0) } - ourIdentity - notary - flowSession.counterparty
+
+        val clientKeyMapWithRandomKeyGenerated = mutableMapOf<PublicKey, String>()
+//        enclaveService.deliverAndPickUpMail()
+
+        val providerSessions = providers.map { initiateFlow(it) }
+        providerSessions.forEach { providerSession ->
+            val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(attestationBytes).unwrap { it }
+            println("Provider Data Pair:" + providerDataPair.toString())
+            clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair.first)
+
+            val encryptedPayloadFromProvider = providerDataPair.second
+
+            val encryptedResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, encryptedPayloadFromProvider))
+            println(String(encryptedResponseByteFromEnclave))
+        }
+
+
         val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
+
             override fun checkTransaction(stx: SignedTransaction) = requireThat {
                 val output = stx.tx.outputs.single().data
-                "This Output state must be type of ConsumerAggregationState " using (output is ConsumerAggregationState)
             }
         }
         val txWeJustSignedId = subFlow(signedTransactionFlow)
-//        subFlow(ProviderAggregationProposeFlow(ProviderAggregationState(output.)))
         return subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
     }
 }

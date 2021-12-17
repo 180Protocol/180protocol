@@ -192,17 +192,15 @@ public class AggregationEnclave extends CordaEnclave {
 
 
     @Override
-    protected void receiveMail(long id, EnclaveMail mail, String routingHint, SenderIdentity identity) {
+    protected void receiveMail(long id, EnclaveMail mail, String routingHint) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
 
 
         MailType mailType = getMailType(new String(unencryptedMail));
         System.out.println("Type of mail for current request is:" + mailType);
 
-        if (identity == null || mailType==null)
-            throw new IllegalArgumentException("Mail sent to this enclave must be authenticated so we can reply.");
-
-        String senderEncodedPublicKey = Base64.getEncoder().encodeToString(identity.getPublicKey().getEncoded());
+        String senderEncodedPublicKey = Base64.getEncoder().encodeToString(mail.getAuthenticatedSender().getEncoded());
+        System.out.println("Providers randomly generated public key is: "+senderEncodedPublicKey);
 
         try {
 
@@ -217,16 +215,16 @@ public class AggregationEnclave extends CordaEnclave {
 
                 final byte[] responseBytes = postOffice(mail).encryptMail(aggregateInputSchema.toString().getBytes());
                 postMail(responseBytes, routingHint);
-            } else if (mailType.equals(MailType.TYPE_IDENTITIES)) {
-                //store provided identities into enclave
-                if (clientIdentityStore == null) {
-                    initializeLocalClientIdentityStore();
-                }
-                System.out.println("Identity schema for identities request: " + identitySchema);
-                convertIdentitiesToRawIdentities(unencryptedMail);
-                final byte[] responseBytes = postOffice(mail).encryptMail(String.valueOf(clientIdentityStore.size()).getBytes());
-                postMail(responseBytes, routingHint);
-
+//            } else if (mailType.equals(MailType.TYPE_IDENTITIES)) {
+//                //store provided identities into enclave
+//                if (clientIdentityStore == null) {
+//                    initializeLocalClientIdentityStore();
+//                }
+//                System.out.println("Identity schema for identities request: " + identitySchema);
+//                convertIdentitiesToRawIdentities(unencryptedMail);
+//                final byte[] responseBytes = postOffice(mail).encryptMail(String.valueOf(clientIdentityStore.size()).getBytes());
+//                postMail(responseBytes, routingHint);
+//
             } else if (mailType.equals(MailType.TYPE_CLIENT) && clientIdentityStore.containsKey(senderEncodedPublicKey)) {
                 String clientType = clientIdentityStore.get(senderEncodedPublicKey);
 
@@ -237,7 +235,7 @@ public class AggregationEnclave extends CordaEnclave {
                     if (clientToEncryptedDataMap == null && clientToRawDataMap == null) {
                         initializeLocalStore();
                     }
-                    putUnencryptedMailToClient(identity.getPublicKey(), unencryptedMail);
+                    putUnencryptedMailToClient(mail.getAuthenticatedSender(), unencryptedMail);
                     System.out.println(clientToEncryptedDataMap.size());
 
                     final byte[] responseBytes = postOffice(mail).encryptMail(String.valueOf(clientToEncryptedDataMap.size()).getBytes());
@@ -275,6 +273,8 @@ public class AggregationEnclave extends CordaEnclave {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        final byte[] responseBytes = postOffice(mail).encryptMail("Invalid Request".getBytes());
+        postMail(responseBytes, routingHint);
 
     }
 
