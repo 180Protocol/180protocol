@@ -91,6 +91,10 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         enclave.deliverMail(counter.incrementAndGet(), encryptedMail, null);
     }
 
+    public void initializeAvroSchema(byte[] schemaBytes) {
+        enclave.callEnclave(schemaBytes);
+    }
+
     /**
      * Delivers a mail to the enclave and returns an operation that can be used to suspend a flow until the enclave
      * chooses to send a reply. This may not happen immediately. This is equivalent to calling

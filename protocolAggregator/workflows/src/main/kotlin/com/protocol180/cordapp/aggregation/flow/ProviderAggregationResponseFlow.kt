@@ -17,7 +17,7 @@ import net.corda.core.utilities.unwrap
  */
 @InitiatedBy(ConsumerAggregationProposeFlowResponder::class)
 //class ProviderAggregationResponseFlow(val attestation: EnclaveInstanceInfo) : FlowLogic<ByteArray>() {
-class ProviderAggregationResponseFlow(val hostSession: FlowSession) : FlowLogic<Unit>() {
+class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<Unit>() {
     private val mockConstraint = "S:0000000000000000000000000000000000000000000000000000000000000000 PROD:1 SEC:INSECURE"
 
     @Suspendable
@@ -27,10 +27,13 @@ class ProviderAggregationResponseFlow(val hostSession: FlowSession) : FlowLogic<
 
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
-        println("inside provider flow, postoffice has been created successfully")
+
+        val mockClientUtil = com.protocol180.utils.MockClientUtil()
+
+        println("inside provider flow, postOffice has been created successfully")
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
-        val providerDataPair = Pair(encryptionKey.publicKey.toString(), postOffice.encryptMail("sample data".toByteArray()))
+        val providerDataPair = Pair(encryptionKey.publicKey.toString(), postOffice.encryptMail(mockClientUtil.createProviderDataRecordForAggregation()))
 
         println(providerDataPair)
         hostSession.send(providerDataPair)

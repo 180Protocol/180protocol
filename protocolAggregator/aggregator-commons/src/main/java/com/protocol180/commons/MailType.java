@@ -4,12 +4,15 @@ public enum MailType {
 
     TYPE_SCHEMA("schema"),
     TYPE_IDENTITIES("identities"),
-    TYPE_CLIENT("client");
+    TYPE_CONSUMER("consumer"),
+    TYPE_PROVIDER("provider"),
+    TYPE_PROVENANCE("provenance");
 
     public final String type;
 
     private MailType(String type) {
         this.type = type;
     }
+
 
 }

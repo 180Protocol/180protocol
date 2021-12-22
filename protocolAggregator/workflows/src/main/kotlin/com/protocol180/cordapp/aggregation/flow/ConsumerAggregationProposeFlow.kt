@@ -4,15 +4,20 @@ import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.ConsumerAggregationContract
 import com.protocol180.aggregator.cordapp.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.ConsumerAggregationState
+import com.protocol180.utils.MockClientUtil
+import com.r3.conclave.common.EnclaveInstanceInfo
+import com.r3.conclave.mail.Curve25519PrivateKey
+import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.CommandData
-import net.corda.core.contracts.requireThat
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.unwrap
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericRecord
 import java.security.PublicKey
 
 /**
@@ -22,13 +27,13 @@ import java.security.PublicKey
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationProposeFlow(val host: Party) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationProposeFlow(val host: Party, val envelopeSchema: Schema) : FlowLogic<List<GenericRecord>>() {
 
     override val progressTracker = ProgressTracker()
 
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call(): List<GenericRecord> {
 
 
         //Get a reference to the notary service on our network and our key pair.
@@ -59,15 +64,28 @@ class ConsumerAggregationProposeFlow(val host: Party) : FlowLogic<SignedTransact
         // we sign the transaction with our private key & making it immutable.
         val ptx = serviceHub.signInitialTransaction(builder)
 
-        val session = initiateFlow(host)
+        val hostSession = initiateFlow(host)
+
+        val attestationBytes = hostSession.sendAndReceive<ByteArray>(envelopeSchema.toString()).unwrap { it }
+
+        val encryptionKey = Curve25519PrivateKey.random()
+        val flowTopic: String = this.runId.uuid.toString()
+        val mockClientUtil = com.protocol180.utils.MockClientUtil()
+
+        val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
+
+        val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(MockClientUtil.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
+
+        val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
 
 
         //The counterparty(host) signs the transaction.
-        val fullySignedTransaction = subFlow(CollectSignaturesFlow(ptx, listOf(session)))
-
-
-        // Assuming no exceptions, we can now finalise the transaction.
-        return subFlow(FinalityFlow(fullySignedTransaction, listOf(session)))
+//        val fullySignedTransaction = subFlow(CollectSignaturesFlow(ptx, listOf(session)))
+//
+//
+//        // Assuming no exceptions, we can now finalise the transaction.
+//        return subFlow(FinalityFlow(fullySignedTransaction, listOf(session)))
+        return MockClientUtil.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
 
     }
 }
@@ -78,26 +96,35 @@ class ConsumerAggregationProposeFlow(val host: Party) : FlowLogic<SignedTransact
  */
 @InitiatedBy(ConsumerAggregationProposeFlow::class)
 @InitiatingFlow
-class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : FlowLogic<Unit>() {
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call() {
         println("Inside Responder flow available to host")
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
 
+        val envelopeSchema = flowSession.receive<String>().unwrap { it }
+
+
+        // initiate & configure enclave service to be used for aggregation
         val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
 
         val attestationBytes = enclaveService.attestationBytes
+
+        enclaveService.initializeAvroSchema(envelopeSchema.toByteArray())
+
+
+        // Initiate Provider flows and acquire encrypted payload according to given schema
         val providers = serviceHub.networkMapCache.allNodes.map { it.legalIdentities.get(0) } - ourIdentity - notary - flowSession.counterparty
 
-        val clientKeyMapWithRandomKeyGenerated = mutableMapOf<PublicKey, String>()
-//        enclaveService.deliverAndPickUpMail()
+        val clientKeyMapWithRandomKeyGenerated = mutableMapOf<PublicKey, Pair<String, ByteArray>>()
+
 
         val providerSessions = providers.map { initiateFlow(it) }
         providerSessions.forEach { providerSession ->
             val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(attestationBytes).unwrap { it }
             println("Provider Data Pair:" + providerDataPair.toString())
-            clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair.first)
+            clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair)
 
             val encryptedPayloadFromProvider = providerDataPair.second
 
@@ -105,14 +132,20 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
             println(String(encryptedResponseByteFromEnclave))
         }
 
+        val encryptedBytesFromConsumer = flowSession.sendAndReceive<ByteArray>(attestationBytes).unwrap { it }
 
-        val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
+        val encryptedConsumerResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, encryptedBytesFromConsumer))
 
-            override fun checkTransaction(stx: SignedTransaction) = requireThat {
-                val output = stx.tx.outputs.single().data
-            }
-        }
-        val txWeJustSignedId = subFlow(signedTransactionFlow)
-        return subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
+        flowSession.send(encryptedConsumerResponseByteFromEnclave)
+
+
+//        val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
+//
+//            override fun checkTransaction(stx: SignedTransaction) = requireThat {
+//                val output = stx.tx.outputs.single().data
+//            }
+//        }
+//        val txWeJustSignedId = subFlow(signedTransactionFlow)
+//        return subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
     }
 }
