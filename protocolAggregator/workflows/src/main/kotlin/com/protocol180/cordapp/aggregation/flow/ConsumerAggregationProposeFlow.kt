@@ -79,12 +79,6 @@ class ConsumerAggregationProposeFlow(val host: Party, val envelopeSchema: Schema
         val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
 
 
-        //The counterparty(host) signs the transaction.
-//        val fullySignedTransaction = subFlow(CollectSignaturesFlow(ptx, listOf(session)))
-//
-//
-//        // Assuming no exceptions, we can now finalise the transaction.
-//        return subFlow(FinalityFlow(fullySignedTransaction, listOf(session)))
         return MockClientUtil.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
 
     }
@@ -105,6 +99,10 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
 
         val envelopeSchema = flowSession.receive<String>().unwrap { it }
 
+        val providerInputSchema= Schema.Parser().parse(envelopeSchema).getField("aggregateInput").schema().toString()
+
+        val providerRewardsSchema= Schema.Parser().parse(envelopeSchema).getField("provenanceOutput").schema().toString()
+
 
         // initiate & configure enclave service to be used for aggregation
         val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
@@ -122,7 +120,7 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
 
         val providerSessions = providers.map { initiateFlow(it) }
         providerSessions.forEach { providerSession ->
-            val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(attestationBytes).unwrap { it }
+            val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, providerInputSchema)).unwrap { it }
             println("Provider Data Pair:" + providerDataPair.toString())
             clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair)
 
@@ -138,14 +136,18 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
 
         flowSession.send(encryptedConsumerResponseByteFromEnclave)
 
+        // Calculate reward points for each provider & submit reward response back to provider
+        providerSessions.forEach { providerSession ->
+            val providerEncryptedBytesForRewards = providerSession.sendAndReceive<ByteArray>(providerRewardsSchema).unwrap { it }
+//            clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair)
 
-//        val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
-//
-//            override fun checkTransaction(stx: SignedTransaction) = requireThat {
-//                val output = stx.tx.outputs.single().data
-//            }
-//        }
-//        val txWeJustSignedId = subFlow(signedTransactionFlow)
-//        return subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
+//            val encryptedPayloadFromProvider = providerDataPair.second
+
+            val encryptedRewardResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, providerEncryptedBytesForRewards))
+            println(String(encryptedRewardResponseByteFromEnclave))
+            providerSession.send(encryptedRewardResponseByteFromEnclave)
+        }
+
+
     }
 }
