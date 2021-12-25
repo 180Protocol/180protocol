@@ -4,13 +4,17 @@ import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.ConsumerAggregationContract
 import com.protocol180.aggregator.cordapp.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.ConsumerAggregationState
-import com.protocol180.utils.MockClientUtil
 import com.r3.conclave.common.EnclaveInstanceInfo
 import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.CommandData
-import net.corda.core.flows.*
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -19,6 +23,7 @@ import net.corda.core.utilities.unwrap
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import java.security.PublicKey
+import java.util.*
 
 /**
  * This is the flow which handles issuance of new Aggregation Request .
@@ -27,18 +32,19 @@ import java.security.PublicKey
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationProposeFlow(val host: Party, val envelopeSchema: Schema) : FlowLogic<List<GenericRecord>>() {
+class ConsumerAggregationProposeFlow(val host: Party, val envelopeSchema: Schema) : FlowLogic<ArrayList<GenericRecord?>?>() {
 
     override val progressTracker = ProgressTracker()
 
 
     @Suspendable
-    override fun call(): List<GenericRecord> {
+    override fun call(): ArrayList<GenericRecord?>? {
 
+        val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
+        val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
 
         //Get a reference to the notary service on our network and our key pair.
         val notary = serviceHub.networkMapCache.notaryIdentities.single() // METHOD 1
-
         val consumer = ourIdentity
 
 
@@ -70,16 +76,15 @@ class ConsumerAggregationProposeFlow(val host: Party, val envelopeSchema: Schema
 
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
-        val mockClientUtil = com.protocol180.utils.MockClientUtil()
 
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
-        val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(MockClientUtil.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
+        val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(enclaveClientService.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
 
-        val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes)
 
 
-        return MockClientUtil.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
+        return enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(consumerDbStoreService.retrieveConsumerDataOutputWithFlowId(this.runId.uuid.toString()), "aggregate")
 
     }
 }
@@ -99,9 +104,9 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
 
         val envelopeSchema = flowSession.receive<String>().unwrap { it }
 
-        val providerInputSchema= Schema.Parser().parse(envelopeSchema).getField("aggregateInput").schema().toString()
+        val providerInputSchema = Schema.Parser().parse(envelopeSchema).getField("aggregateInput").schema().toString()
 
-        val providerRewardsSchema= Schema.Parser().parse(envelopeSchema).getField("provenanceOutput").schema().toString()
+        val providerRewardsSchema = Schema.Parser().parse(envelopeSchema).getField("provenanceOutput").schema().toString()
 
 
         // initiate & configure enclave service to be used for aggregation
@@ -139,9 +144,6 @@ class ConsumerAggregationProposeFlowResponder(val flowSession: FlowSession) : Fl
         // Calculate reward points for each provider & submit reward response back to provider
         providerSessions.forEach { providerSession ->
             val providerEncryptedBytesForRewards = providerSession.sendAndReceive<ByteArray>(providerRewardsSchema).unwrap { it }
-//            clientKeyMapWithRandomKeyGenerated.put(providerSession.counterparty.owningKey, providerDataPair)
-
-//            val encryptedPayloadFromProvider = providerDataPair.second
 
             val encryptedRewardResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, providerEncryptedBytesForRewards))
             println(String(encryptedRewardResponseByteFromEnclave))
