@@ -1,6 +1,7 @@
 package com.protocol180.cordapp.aggregation.flow
 
 import com.protocol180.aggregator.schema.ProviderInputSchemaV1
+import com.protocol180.aggregator.schema.ProviderRewardSchemaV1
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
@@ -8,11 +9,42 @@ import net.corda.core.serialization.SingletonSerializeAsToken
 
 /**
  * A database service subclass for handling a table used for persisting encrypted Provider inputs.
+ * & also for handling a table used for persisting decrypted provider rewards received from enclave.
  *
  * @param services The node's service hub.
  */
 @CordaService
 class ProviderDBStoreService(val services: ServiceHub) : SingletonSerializeAsToken() {
+
+    /**
+     * Adds a decrypted Response rewards(Generic Record Bytes) received from enclave into provider db store.
+     */
+    fun addRewardResponseWithFlowId(flowId: String, providerRewardResponseBytes: ByteArray) {
+        val decryptedRewardOutput = ProviderRewardSchemaV1.ProviderReward(flowId, providerRewardResponseBytes)
+        services.withEntityManager {
+            persist(decryptedRewardOutput)
+        }
+    }
+
+    /**
+     * Retrieves a decrypted Response Reward from provider db store.
+     */
+    fun retrieveRewardResponseWithFlowId(flowId: String): ByteArray? {
+        var result: MutableList<ProviderRewardSchemaV1.ProviderReward>? = null
+        services.withEntityManager {
+            val query = criteriaBuilder.createQuery(ProviderRewardSchemaV1.ProviderReward::class.java)
+            val type = query.from(ProviderRewardSchemaV1.ProviderReward::class.java)
+            query.select(type).where(criteriaBuilder.equal(type.get<Set<String>>("flowId"), flowId))
+            result = createQuery(query).resultList
+        }
+        if (result?.size == 0)
+            return null
+
+        val rewardBytes = result?.get(0)
+
+        return rewardBytes?.rewardGenericRecordBytes
+    }
+
 
     /**
      * Adds a List of Provider Input into database table for particular transaction.
@@ -24,6 +56,7 @@ class ProviderDBStoreService(val services: ServiceHub) : SingletonSerializeAsTok
         services.withEntityManager {
             persist(dataOutput)
         }
+
     }
 
     /**
