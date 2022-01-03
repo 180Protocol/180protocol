@@ -6,8 +6,8 @@ cordapp {
     targetPlatformVersion corda_platform_version
     minimumPlatformVersion corda_platform_version
     workflow {
-        name "CorDapp with enclave flows"
-        vendor "R3"
+        name "180 Protocol Broker Flows"
+        vendor "180Protocol Pte Ltd"
         licence "Apache License, Version 2.0"
         versionId 1
     }
