@@ -73,7 +73,7 @@ abstract class CordaEnclave : Enclave() {
      * processed at this level, are forwarded to the abstract [CordaEnclave.receiveMail] callback which is defined
      * by the derived class.
      */
-    override fun receiveMail(id: Long, mail: EnclaveMail, routingHint: String?) {
+    override fun receiveMail(mail: EnclaveMail, routingHint: String?) {
         if (isTopicFirstMessage(mail)) {
             // only login supported so far
             val authenticated = tryAuthenticateAndStoreIdentity(mail)
@@ -83,7 +83,7 @@ abstract class CordaEnclave : Enclave() {
             postMail(reply, routingHint)
         } else {
             val identity = getSenderIdentity(mail.authenticatedSender)
-            receiveMail(id, mail, routingHint)
+            receiveMail(mail, routingHint)
         }
     }
 

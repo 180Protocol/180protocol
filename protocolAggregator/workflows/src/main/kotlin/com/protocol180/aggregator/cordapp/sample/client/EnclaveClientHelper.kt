@@ -1,8 +1,8 @@
 package com.protocol180.aggregator.cordapp.sample.client
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.conclave.client.EnclaveConstraint
-import com.r3.conclave.client.InvalidEnclaveException
+import com.r3.conclave.common.EnclaveConstraint
+import com.r3.conclave.common.InvalidEnclaveException
 import com.r3.conclave.common.EnclaveInstanceInfo
 import com.protocol180.aggregator.cordapp.host.EnclaveHostService
 import net.corda.core.flows.FlowException

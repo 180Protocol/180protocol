@@ -201,7 +201,7 @@ public class AggregationEnclave extends CordaEnclave {
 
 
     @Override
-    protected void receiveMail(long id, EnclaveMail mail, String routingHint) {
+    protected void receiveMail(EnclaveMail mail, String routingHint) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
 
 

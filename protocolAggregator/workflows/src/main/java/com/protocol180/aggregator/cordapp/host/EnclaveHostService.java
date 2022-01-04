@@ -4,6 +4,7 @@ import com.r3.conclave.host.AttestationParameters;
 import com.r3.conclave.host.EnclaveHost;
 import com.r3.conclave.host.EnclaveLoadException;
 import com.r3.conclave.host.MailCommand;
+import com.r3.conclave.mail.MailDecryptionException;
 import net.corda.core.flows.FlowExternalOperation;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.node.services.CordaService;
@@ -36,7 +37,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
             enclave = EnclaveHost.load(enclaveClassName);
             // If you want to use pre-DCAP hardware via the older EPID protocol, you'll need to get the relevant API
             // keys from Intel and replace AttestationParameters.DCAP with AttestationParameters.EPID.
-            enclave.start(new AttestationParameters.DCAP(), (commands) -> {
+            enclave.start(new AttestationParameters.DCAP(), null, null, (commands) -> {
                 // The enclave is requesting that we deliver messages transactionally. In Corda there's no way to
                 // do an all-or-nothing message delivery to multiple peers at once: for that you need a genuine
                 // ledger transaction which is more complex and slower. So for now we'll just deliver messages
@@ -45,10 +46,6 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
                     if (command instanceof MailCommand.PostMail) {
                         MailCommand.PostMail post = (MailCommand.PostMail) command;
                         enclaveToFlow(post.getEncryptedBytes(), post.getRoutingHint());
-                    }
-                    else if (command instanceof MailCommand.AcknowledgeMail) {
-                        System.out.println("Ack Mail Command inside enclave response");
-                        MailCommand.AcknowledgeMail acknowledge= (MailCommand.AcknowledgeMail) command;
                     }
                 }
             });
@@ -86,9 +83,9 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
      *
      * @param encryptedMail The bytes of an encrypted message as created via {@link com.r3.conclave.mail.PostOffice}.
      */
-    public void deliverMail(byte[] encryptedMail) {
+    public void deliverMail(byte[] encryptedMail) throws MailDecryptionException {
         System.out.println("inside deliverMail of Enclave host services");
-        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, null);
+        enclave.deliverMail(encryptedMail, null);
     }
 
     public void initializeAvroSchema(byte[] schemaBytes) {
@@ -106,12 +103,12 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
      * @return An operation that can be passed to {@link FlowLogic#await(FlowExternalOperation)} to suspend the flow until
      * the enclave provides a mail to send.
      */
-    public FlowExternalOperation<byte[]> deliverAndPickUpMail(FlowLogic<?> flow, byte[] encryptedMail) {
+    public FlowExternalOperation<byte[]> deliverAndPickUpMail(FlowLogic<?> flow, byte[] encryptedMail) throws MailDecryptionException {
         // Prepare the object that the enclave will signal if it wants to send a response. It must be in the map
         // before we enter the enclave, as the enclave may immediately call back to request we deliver a response
         // and that will happen on the same call stack.
         FlowExternalOperation<byte[]> operation = pickUpMail(flow);
-        enclave.deliverMail(counter.incrementAndGet(), encryptedMail, flow.getRunId().getUuid().toString());
+        enclave.deliverMail(encryptedMail, flow.getRunId().getUuid().toString());
         // The operation might be completed already, but if not, the flow can sleep until the enclave decides to
         // reply (e.g. due to some other mail from some other flow) by calling await on this operation.
         return operation;
