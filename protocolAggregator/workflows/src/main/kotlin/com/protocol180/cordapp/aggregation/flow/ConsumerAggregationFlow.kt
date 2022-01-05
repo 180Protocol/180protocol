@@ -1,18 +1,23 @@
 package com.protocol180.cordapp.aggregation.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import com.protocol180.aggregator.contracts.ConsumerAggregationContract
 import com.protocol180.aggregator.contracts.DataOutputContract
 import com.protocol180.aggregator.cordapp.sample.host.AggregationEnclaveService
-import com.protocol180.aggregator.states.ConsumerAggregationState
 import com.protocol180.aggregator.states.DataOutputState
 import com.r3.conclave.common.EnclaveInstanceInfo
 import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
-import net.corda.core.contracts.Command
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.*
+import net.corda.core.flows.CollectSignaturesFlow
+import net.corda.core.flows.FinalityFlow
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.ReceiveFinalityFlow
+import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -53,15 +58,15 @@ class ConsumerAggregationFlow(val host: Party) : FlowLogic<SignedTransaction>() 
 
         //send data output schema to be aggregated to host
         val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail
-            (enclaveClientService.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
+        (enclaveClientService.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
         val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
-        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes)
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, "Temp_Data_Type")
 
         //optional reading of records - needed for the front end read flow
         //enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
         val commandData: CommandData = DataOutputContract.Commands.Create()
         val dataOutputState = DataOutputState(consumer, host, encryptedAggregationDataRecordBytes, Instant.now(),
-            attestationBytes, flowTopic)
+                attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(dataOutputState, DataOutputContract.ID)

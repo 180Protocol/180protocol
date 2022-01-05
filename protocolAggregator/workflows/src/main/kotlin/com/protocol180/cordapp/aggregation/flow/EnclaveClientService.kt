@@ -101,7 +101,7 @@ class EnclaveClientService(val services: ServiceHub) : SingletonSerializeAsToken
         return demandRecord
     }
 
-    fun readGenericRecordsFromOutputBytesAndSchema(outputBytes: ByteArray?, schemaType: String): ArrayList<GenericRecord?>? {
+    fun readGenericRecordsFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ArrayList<GenericRecord?> {
         val datumReader: DatumReader<GenericRecord> = if (schemaType == "aggregate") GenericDatumReader(aggregationInputSchema) else GenericDatumReader(provenanceOutputSchema)
         val input: SeekableInput = SeekableByteArrayInput(outputBytes)
         val dataFileReader = DataFileReader(input, datumReader)

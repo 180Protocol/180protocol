@@ -129,4 +129,45 @@ class ConsumerAggregationFlowTest {
     }
 
 
+    @Test
+    fun consumerOutputQueryTestAfterAggregation() {
+        val flow = ConsumerAggregationFlow(host.info.chooseIdentityAndCert().party)
+        val future = consumer.startFlow(flow)
+        network.runNetwork()
+        val signedTransaction = future.get()
+        assertEquals(1, signedTransaction.tx.outputStates.size)
+        val output = signedTransaction.tx.getOutput(0) as DataOutputState
+        assertEquals(host.info.legalIdentities[0], output.host)
+        assertEquals(consumer.info.legalIdentities.first(), output.consumer)
+
+        //Check data output from consumer node
+        val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(flow.runId.uuid.toString())
+        val dataOutputFuture = consumer.startFlow(consumerDataOutputRetrievalFlow)
+        val dataOutputRecords = dataOutputFuture.get()
+        assert(dataOutputRecords.size > 1)
+        println(dataOutputRecords)
+        network.runNetwork()
+
+
+        //Check reward output for each providers node
+        val provider1RewardsState: RewardsState = provider1.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+        var providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider1RewardsState.flowTopic)
+        val rewardOutputFuture1 = provider1.startFlow(providerRewardOutputRetrievalFlow)
+        val provider1RewardOutput = rewardOutputFuture1.get()
+        println(provider1RewardOutput)
+        assertEquals(provider1RewardOutput.size, 1)
+        network.runNetwork()
+
+        val provider2RewardsState: RewardsState = provider2.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+        providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider2RewardsState.flowTopic)
+        val rewardOutputFuture2 = provider2.startFlow(providerRewardOutputRetrievalFlow)
+        val provider2RewardOutput = rewardOutputFuture2.get()
+        println(provider2RewardOutput)
+        assertEquals(provider2RewardOutput.size, 1)
+        network.runNetwork()
+
+    }
+
 }

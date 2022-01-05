@@ -1,7 +1,6 @@
 package com.protocol180.cordapp.aggregation.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import com.protocol180.aggregator.contracts.DataOutputContract
 import com.protocol180.aggregator.contracts.RewardsContract
 import com.protocol180.aggregator.states.RewardsState
 import com.r3.conclave.common.EnclaveInstanceInfo
@@ -9,7 +8,14 @@ import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.*
+import net.corda.core.flows.CollectSignaturesFlow
+import net.corda.core.flows.FinalityFlow
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.ReceiveFinalityFlow
+import net.corda.core.flows.SignTransactionFlow
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.unwrap
@@ -25,7 +31,7 @@ import java.time.Instant
 class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
-    override fun call() : SignedTransaction {
+    override fun call(): SignedTransaction {
         val provider = ourIdentity
         val host = hostSession.counterparty
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
@@ -51,14 +57,14 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val providerRewardSchema = hostSession.receive<String>().unwrap { it }
         //Provider receives encrypted rewards data from enclave via host
         val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(providerRewardSchema.toByteArray())).unwrap { it }
-        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes)
-        println("Provider Rewards: "+ enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString()), "provenance"))
+        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes, "Temp_Data_Type")
+        println("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
 
 
         val hostRewardsResponseSession = initiateFlow(host)
         val commandData: CommandData = RewardsContract.Commands.Create()
         val rewardsState = RewardsState(provider, host, encryptedRewardByteArray, Instant.now(),
-            attestationBytes, flowTopic)
+                attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(rewardsState, RewardsContract.ID)
