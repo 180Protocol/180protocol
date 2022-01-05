@@ -19,8 +19,8 @@ class ProviderDBStoreService(val services: ServiceHub) : SingletonSerializeAsTok
     /**
      * Adds a decrypted Response rewards(Generic Record Bytes) received from enclave into provider db store.
      */
-    fun addRewardResponseWithFlowId(flowId: String, providerRewardResponseBytes: ByteArray) {
-        val decryptedRewardOutput = ProviderRewardSchemaV1.ProviderReward(flowId, providerRewardResponseBytes)
+    fun addRewardResponseWithFlowId(flowId: String, providerRewardResponseBytes: ByteArray, dataType: String) {
+        val decryptedRewardOutput = ProviderRewardSchemaV1.ProviderReward(flowId, providerRewardResponseBytes, dataType)
         services.withEntityManager {
             persist(decryptedRewardOutput)
         }

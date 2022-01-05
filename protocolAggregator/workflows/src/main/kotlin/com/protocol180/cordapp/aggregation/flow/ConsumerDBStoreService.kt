@@ -17,8 +17,8 @@ class ConsumerDBStoreService(val services: ServiceHub) : SingletonSerializeAsTok
     /**
      * Adds a decrypted Consumer Data Output Bytes received from enclave into consumer db store.
      */
-    fun addConsumerDataOutputWithFlowId(flowId: String, consumerAggregationDataOutputResponseBytes: ByteArray) {
-        val decryptedConsumerDataOutput = ConsumerAggregationDataOutputSchemaV1.ConsumerDataOutput(flowId, consumerAggregationDataOutputResponseBytes)
+    fun addConsumerDataOutputWithFlowId(flowId: String, consumerAggregationDataOutputResponseBytes: ByteArray, dataType: String) {
+        val decryptedConsumerDataOutput = ConsumerAggregationDataOutputSchemaV1.ConsumerDataOutput(flowId, consumerAggregationDataOutputResponseBytes, dataType)
         services.withEntityManager {
             persist(decryptedConsumerDataOutput)
         }

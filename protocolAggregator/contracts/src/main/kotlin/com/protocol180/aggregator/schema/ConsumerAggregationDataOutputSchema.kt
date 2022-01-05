@@ -20,9 +20,11 @@ object ConsumerAggregationDataOutputSchemaV1 : MappedSchema(schemaFamily = Consu
                              var flowId: String,
                              @Lob
                              @Column(name = "consumer_data_output_bytes", nullable = false)
-                             val consumerDataOutputBytes: ByteArray
+                             val consumerDataOutputBytes: ByteArray,
+                             @Column(name = "consumer_output_data_type", nullable = false)
+                             val consumerOutputDataType: String
     ) {
-        constructor() : this("", ByteArray(0))
+        constructor() : this("", ByteArray(0), "")
     }
 
 }

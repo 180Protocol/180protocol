@@ -18,9 +18,11 @@ object ProviderRewardSchemaV1 : MappedSchema(schemaFamily = ProviderRewardSchema
                          @Column(name = "flow_id", nullable = false, unique = true)
                          var flowId: String,
                          @Column(name = "reward_generic_record_bytes", nullable = false)
-                         val rewardGenericRecordBytes: ByteArray
+                         val rewardGenericRecordBytes: ByteArray,
+                         @Column(name = "reward_output_data_type", nullable = false)
+                         val rewardOutputDataType: String
     ) {
-        constructor() : this("", ByteArray(0))
+        constructor() : this("", ByteArray(0), "")
     }
 
 }
