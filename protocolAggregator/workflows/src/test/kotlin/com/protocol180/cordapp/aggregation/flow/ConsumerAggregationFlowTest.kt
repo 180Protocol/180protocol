@@ -14,6 +14,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Practical exercise instructions Flows part 1.
@@ -28,7 +29,7 @@ class ConsumerAggregationFlowTest {
     lateinit var consumer: StartedMockNode
     lateinit var host: StartedMockNode
     lateinit var provider1: StartedMockNode
-//    lateinit var provider2: StartedMockNode
+    lateinit var provider2: StartedMockNode
 
     @Before
     fun setup() {
@@ -43,7 +44,7 @@ class ConsumerAggregationFlowTest {
         consumer = network.createPartyNode()
         host = network.createPartyNode()
         provider1 = network.createNode()
-//        provider2 = network.createNode()
+        provider2 = network.createNode()
         network.runNetwork()
     }
 
@@ -54,7 +55,7 @@ class ConsumerAggregationFlowTest {
     }
 
     @Test
-    fun flowWorksWithEnclaveProperly() {
+    fun consumerAggregationFlowStateCreationTest() {
         val flow = ConsumerAggregationFlow(host.info.chooseIdentityAndCert().party)
         val future = consumer.startFlow(flow)
         network.runNetwork()
@@ -68,15 +69,27 @@ class ConsumerAggregationFlowTest {
         host.transaction {
             val dataOutputState : DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
                 VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
-            val rewardsState : RewardsState = provider1.services.vaultService.queryBy<RewardsState>(
-                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+            val rewardsStates = provider1.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states
 
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer.info.legalIdentities.first(), dataOutputState.consumer)
+            assertTrue { dataOutputState.participants.containsAll(
+                listOf(host.info.legalIdentities[0], consumer.info.legalIdentities.first())) }
 
-            assertEquals(host.info.legalIdentities[0], rewardsState.host)
-            assertEquals(provider1.info.legalIdentities.first(), rewardsState.provider)
+            val rewardsState1 = rewardsStates[0].state.data
+            val rewardsState2 = rewardsStates[1].state.data
+
+            assertEquals(host.info.legalIdentities[0], rewardsState1.host)
+            assertEquals(provider1.info.legalIdentities.first(), rewardsState1.provider)
+            assertTrue { rewardsState1.participants.containsAll(
+                listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first())) }
+
+            assertEquals(host.info.legalIdentities[0], rewardsState2.host)
+            assertEquals(provider2.info.legalIdentities.first(), rewardsState2.provider)
+            assertTrue { rewardsState2.participants.containsAll(
+                listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first())) }
         }
 
         //check data output transaction for consumer
@@ -87,6 +100,8 @@ class ConsumerAggregationFlowTest {
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer.info.legalIdentities.first(), dataOutputState.consumer)
+            assertTrue { dataOutputState.participants.containsAll(
+                listOf(host.info.legalIdentities[0], consumer.info.legalIdentities.first())) }
         }
 
         //check rewards transaction for provider
@@ -96,6 +111,19 @@ class ConsumerAggregationFlowTest {
 
             assertEquals(host.info.legalIdentities[0], rewardsState.host)
             assertEquals(provider1.info.legalIdentities.first(), rewardsState.provider)
+            assertTrue { rewardsState.participants.containsAll(
+                listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first())) }
+        }
+
+        //check rewards transaction for provider
+        provider2.transaction {
+            val rewardsState : RewardsState = provider2.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+
+            assertEquals(host.info.legalIdentities[0], rewardsState.host)
+            assertEquals(provider2.info.legalIdentities.first(), rewardsState.provider)
+            assertTrue { rewardsState.participants.containsAll(
+                listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first())) }
         }
 
     }

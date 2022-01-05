@@ -243,7 +243,6 @@ public class AggregationEnclave extends CordaEnclave {
                 File provenanceOutput = createProvenanceDataOutput(mail.getAuthenticatedSender());
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
                 postMail(responseBytes, routingHint);
-                clearLocalStore();
 
             } else {
                 clientTypeForCurrRequest = null;
