@@ -141,11 +141,11 @@ class ConsumerAggregationFlowTest {
         assertEquals(consumer.info.legalIdentities.first(), output.consumer)
 
         //Check data output from consumer node
-        val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(flow.runId.uuid.toString())
+        val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(output.flowTopic)
         val dataOutputFuture = consumer.startFlow(consumerDataOutputRetrievalFlow)
         val dataOutputRecords = dataOutputFuture.get()
         assert(dataOutputRecords.size > 1)
-        println(dataOutputRecords)
+        println("Consumer Data Output Retrieval : $dataOutputRecords")
         network.runNetwork()
 
 
@@ -155,7 +155,7 @@ class ConsumerAggregationFlowTest {
         var providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider1RewardsState.flowTopic)
         val rewardOutputFuture1 = provider1.startFlow(providerRewardOutputRetrievalFlow)
         val provider1RewardOutput = rewardOutputFuture1.get()
-        println(provider1RewardOutput)
+        println("Provider 1 Rewards Retrieval : $provider1RewardOutput")
         assertEquals(provider1RewardOutput.size, 1)
         network.runNetwork()
 
@@ -164,7 +164,7 @@ class ConsumerAggregationFlowTest {
         providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider2RewardsState.flowTopic)
         val rewardOutputFuture2 = provider2.startFlow(providerRewardOutputRetrievalFlow)
         val provider2RewardOutput = rewardOutputFuture2.get()
-        println(provider2RewardOutput)
+        println("Provider 2 Rewards Retrieval : $provider2RewardOutput")
         assertEquals(provider2RewardOutput.size, 1)
         network.runNetwork()
 
