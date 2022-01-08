@@ -122,6 +122,7 @@ dependencies {
 
     // Depend on the main module.
     cordapp project(":workflows")
+    cordapp project(':contracts')
 
     // Logging components built in to the node.
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
@@ -140,7 +141,18 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         projectCordapp {
             deploy = false
         }
-        cordapp project(':workflows')
+        cordapp project(':contracts')
+    }
+    node {
+        name "O=Notary,L=London,C=GB"
+        notary = [validating : false]
+        p2pPort 10200
+        cordapp (project(':workflows'))
+        rpcSettings {
+            address("localhost:10201")
+            adminAddress("localhost:10202")
+            useSsl(false)
+        }
     }
     node {
         name "O=PartyA,L=London,C=GB"
@@ -148,6 +160,11 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         rpcSettings {
             address("localhost:10006")
             adminAddress("localhost:10046")
+        }
+        cordapp (project(':workflows')) {
+            config '''\
+                participantRole = COALITION_HOST
+            '''.stripIndent()
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
@@ -157,6 +174,25 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         rpcSettings {
             address("localhost:10009")
             adminAddress("localhost:10049")
+        }
+        cordapp (project(':workflows')) {
+            config '''\
+                participantRole = DATA_PROVIDER
+            '''.stripIndent()
+        }
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=PartyC,L=New York,C=US"
+        p2pPort 10002
+        rpcSettings {
+            address("localhost:10003")
+            adminAddress("localhost:10050")
+        }
+        cordapp (project(':workflows')) {
+            config '''\
+                participantRole = DATA_CONSUMER
+            '''.stripIndent()
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
