@@ -8,16 +8,10 @@ import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.ReceiveFinalityFlow
-import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
+import net.corda.core.utilities.loggerFor
 import net.corda.core.utilities.unwrap
 import java.time.Instant
 
@@ -29,6 +23,10 @@ import java.time.Instant
 @InitiatingFlow
 @InitiatedBy(ConsumerAggregationFlowResponder::class)
 class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<SignedTransaction>() {
+
+    companion object{
+        private val log = loggerFor<ProviderAggregationResponseFlow>()
+    }
 
     @Suspendable
     override fun call(): SignedTransaction {
@@ -47,8 +45,10 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
 
         if (inputSchemaType != enclaveClientService.aggregationInputSchema.toString())
             throw IllegalArgumentException("Wrong schema provided from host.")
-        println("inside provider flow, postOffice has been created successfully")
+        log.info("inside provider flow, postOffice has been created successfully")
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
+        //vault query to get attachment for data type - zip file
+        //convert zip to
         val providerDataPair = Pair(encryptionKey.publicKey.toString(), postOffice.encryptMail(enclaveClientService.createProviderDataRecordForAggregation()!!))
         //Provider shares public key and encrypted data with host
         hostSession.send(providerDataPair)
@@ -58,13 +58,13 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         //Provider receives encrypted rewards data from enclave via host
         val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(providerRewardSchema.toByteArray())).unwrap { it }
         providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes, "Temp_Data_Type")
-        println("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
+        log.info("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
 
 
         val hostRewardsResponseSession = initiateFlow(host)
         val commandData: CommandData = RewardsContract.Commands.Create()
         val rewardsState = RewardsState(provider, host, encryptedRewardByteArray, Instant.now(),
-                attestationBytes, flowTopic)
+            attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(rewardsState, RewardsContract.ID)
@@ -80,6 +80,10 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
 @InitiatedBy(ProviderAggregationResponseFlow::class)
 @InitiatingFlow
 class ProviderAggregationResponseFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
+
+    companion object{
+        private val log = loggerFor<ProviderAggregationResponseFlowResponder>()
+    }
 
     @Suspendable
     override fun call() {

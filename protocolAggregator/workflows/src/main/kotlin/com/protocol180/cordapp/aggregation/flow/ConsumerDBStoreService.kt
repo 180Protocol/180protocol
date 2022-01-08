@@ -1,7 +1,7 @@
 package com.protocol180.cordapp.aggregation.flow
 
 import com.protocol180.aggregator.schema.ConsumerAggregationDataOutputSchemaV1
-import net.corda.core.node.ServiceHub
+import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
 
@@ -12,7 +12,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
  * @param services The node's service hub.
  */
 @CordaService
-class ConsumerDBStoreService(val services: ServiceHub) : SingletonSerializeAsToken() {
+class ConsumerDBStoreService(val services: AppServiceHub) : SingletonSerializeAsToken() {
 
     /**
      * Adds a decrypted Consumer Data Output Bytes received from enclave into consumer db store.

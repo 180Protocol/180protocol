@@ -1,6 +1,6 @@
 package com.protocol180.cordapp.aggregation.flow
 
-import net.corda.core.node.ServiceHub
+import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
 import org.apache.avro.Schema
@@ -26,7 +26,7 @@ import java.util.function.Consumer
  * generating response records from decrypted output
  */
 @CordaService
-class EnclaveClientService(val services: ServiceHub) : SingletonSerializeAsToken() {
+class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsToken() {
 
 
     var envelopeSchema: Schema? = null

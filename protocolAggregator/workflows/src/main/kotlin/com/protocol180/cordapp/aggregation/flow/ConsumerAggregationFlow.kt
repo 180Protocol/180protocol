@@ -22,22 +22,28 @@ import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
+import net.corda.core.utilities.loggerFor
 import net.corda.core.utilities.unwrap
 import org.apache.avro.Schema
 import java.security.PublicKey
 import java.time.Instant
 
 /**
- * This is the flow which handles issuance of new Aggregation Request .
- * Providing the information related to different provider required to be participated in the flow .
+ * ConsumerAggregationFlow allows consumers in coalitions to initiate a data aggregation request. The flow accepts
+ * a supported dataType as an argument and initiates a request to the coalition host to perform an aggregation by
+ * requesting data from providers in the network. The flow queries and checks the CoalitionConfigurationState to
+ * determine whether the requested dataType is valid and supported by the coalition.
  * The flow returns the [SignedTransaction] that was committed to the ledger.
  */
 @InitiatingFlow
 @StartableByRPC
 class ConsumerAggregationFlow(val host: Party) : FlowLogic<SignedTransaction>() {
 
-    override val progressTracker = ProgressTracker()
+    companion object{
+        private val log = loggerFor<ConsumerAggregationFlow>()
+    }
 
+    override val progressTracker = ProgressTracker()
 
     @Suspendable
     override fun call(): SignedTransaction {
@@ -86,9 +92,13 @@ class ConsumerAggregationFlow(val host: Party) : FlowLogic<SignedTransaction>() 
 @InitiatingFlow
 class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
 
+    companion object{
+        private val log = loggerFor<ConsumerAggregationFlowResponder>()
+    }
+
     @Suspendable
     override fun call() {
-        println("Inside Responder flow available to host")
+        log.info("Inside Responder flow available to host")
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
         //receive data output schema from consumer
         val envelopeSchema = flowSession.receive<String>().unwrap { it }
@@ -108,12 +118,12 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
         providerSessions.forEach { providerSession ->
             //receive provider data pair - provider public key -> encrypted input data payload
             val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, providerInputSchema)).unwrap { it }
-            println("Provider Data Pair:$providerDataPair")
+            log.info("Provider Data Pair:$providerDataPair")
             clientKeyMapWithRandomKeyGenerated[providerSession.counterparty.owningKey] = providerDataPair
             val encryptedPayloadFromProvider = providerDataPair.second
             //send data to enclave
             val encryptedResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, encryptedPayloadFromProvider))
-            println(String(encryptedResponseByteFromEnclave))
+            log.info(String(encryptedResponseByteFromEnclave))
         }
 
         //send attestation to consumer
@@ -126,7 +136,7 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
         providerSessions.forEach { providerSession ->
             val providerEncryptedBytesForRewards = providerSession.sendAndReceive<ByteArray>(providerRewardsSchema).unwrap { it }
             val encryptedRewardResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, providerEncryptedBytesForRewards))
-            println(String(encryptedRewardResponseByteFromEnclave))
+            log.info(String(encryptedRewardResponseByteFromEnclave))
             providerSession.send(encryptedRewardResponseByteFromEnclave)
         }
 

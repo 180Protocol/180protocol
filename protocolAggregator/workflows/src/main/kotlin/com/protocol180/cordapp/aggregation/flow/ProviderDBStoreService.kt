@@ -2,7 +2,7 @@ package com.protocol180.cordapp.aggregation.flow
 
 import com.protocol180.aggregator.schema.ProviderInputSchemaV1
 import com.protocol180.aggregator.schema.ProviderRewardSchemaV1
-import net.corda.core.node.ServiceHub
+import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
 
@@ -14,7 +14,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
  * @param services The node's service hub.
  */
 @CordaService
-class ProviderDBStoreService(val services: ServiceHub) : SingletonSerializeAsToken() {
+class ProviderDBStoreService(val services: AppServiceHub) : SingletonSerializeAsToken() {
 
     /**
      * Adds a decrypted Response rewards(Generic Record Bytes) received from enclave into provider db store.
