@@ -2,17 +2,19 @@ package com.protocol180.aggregator.states
 
 import com.protocol180.aggregator.contracts.CoalitionConfigurationContract
 import net.corda.core.contracts.BelongsToContract
-import net.corda.core.contracts.ContractState
+import net.corda.core.contracts.LinearState
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
-import java.io.File
+import java.io.InputStream
 
 @BelongsToContract(CoalitionConfigurationContract::class)
 data class CoalitionConfigurationState(
+    override val linearId: UniqueIdentifier,
     val coalitionPartyToRole: Map<Party, RoleType>,
-    val supportedDataTypes: DataTypes
-) : ContractState {
+    val supportedCoalitionDataTypes: List<CoalitionDataType>
+) : LinearState {
 
     fun getPartiesForRole(role: RoleType): Set<Party> {
         return coalitionPartyToRole.filterValues{ it == role }.keys
@@ -20,6 +22,10 @@ data class CoalitionConfigurationState(
 
     fun getRoleForParty(party: Party): RoleType? {
         return coalitionPartyToRole[party]
+    }
+
+    fun getDataTypeForCode(dataTypeCode: String): CoalitionDataType? {
+        return supportedCoalitionDataTypes.firstOrNull { it.dataTypeCode == dataTypeCode }
     }
 
     /**
@@ -37,11 +43,31 @@ data class CoalitionConfigurationState(
  *  EnclaveClientService and dictate enclave communication
  */
 @CordaSerializable
-data class DataTypes(
+data class CoalitionDataType(
     val dataTypeCode: String,
     val dataTypeDisplay: String,
-    val schemaFile: File
-)
+    val schemaFile: ByteArray
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CoalitionDataType
+
+        if (dataTypeCode != other.dataTypeCode) return false
+        if (dataTypeDisplay != other.dataTypeDisplay) return false
+        if (!schemaFile.contentEquals(other.schemaFile)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = dataTypeCode.hashCode()
+        result = 31 * result + dataTypeDisplay.hashCode()
+        result = 31 * result + schemaFile.contentHashCode()
+        return result
+    }
+}
 
 /**
  * Various Roles that can be played by nodes in coalitions.

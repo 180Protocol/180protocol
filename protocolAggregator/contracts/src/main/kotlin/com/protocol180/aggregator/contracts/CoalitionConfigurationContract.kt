@@ -21,9 +21,14 @@ class CoalitionConfigurationContract : Contract {
                 "No inputs should be consumed when issuing a data output state." using (tx.inputs.isEmpty())
                 "Only one output state should be created when issuing a data output state." using (tx.outputs.size == 1)
                 val coalitionConfigurationState = tx.outputsOfType<CoalitionConfigurationState>().single()
-
+                //TODO: add checks for coalition config state roles and supported data types
             }
-
+            is Commands.Update -> requireThat {
+                "Only one input should be consumed when updating a data output state." using (tx.inputs.size == 1)
+                "Only one output state should be created when issuing a data output state." using (tx.outputs.size == 1)
+                val coalitionConfigurationState = tx.outputsOfType<CoalitionConfigurationState>().single()
+                //TODO: add checks for coalition config state roles and supported data types
+            }
         }
     }
 
@@ -35,5 +40,6 @@ class CoalitionConfigurationContract : Contract {
     interface Commands : CommandData {
 
         class Issue : TypeOnlyCommandData(), Commands
+        class Update : TypeOnlyCommandData(), Commands
     }
 }
