@@ -5,12 +5,14 @@ import net.corda.core.internal.readFully
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
+import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentityAndCert
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -201,4 +203,19 @@ class ConsumerAggregationFlowTest {
 
     }
 
+    @Test
+    fun consumerAggregationFlowFailTest() {
+        //check unsupported data type
+        val flow = ConsumerAggregationFlow("testDataType3")
+        val future = consumer.startFlow(flow)
+        network.runNetwork()
+        assertFailsWith(ConsumerAggregationFlowException::class) { future.getOrThrow() }
+
+        //check new consumer added to coalition without updating coalition configuration
+        var consumer2: StartedMockNode = prepareNodeForRole(RoleType.DATA_CONSUMER)
+        val flow2 = ConsumerAggregationFlow("testDataType2")
+        val future2 = consumer2.startFlow(flow2)
+        network.runNetwork()
+        assertFailsWith(ConsumerAggregationFlowException::class) { future2.getOrThrow() }
+    }
 }
