@@ -16,17 +16,15 @@ data class CoalitionConfigurationState(
     val supportedCoalitionDataTypes: List<CoalitionDataType>
 ) : LinearState {
 
-    fun getPartiesForRole(role: RoleType): Set<Party> {
-        return coalitionPartyToRole.filterValues{ it == role }.keys
-    }
+    fun getPartiesForRole(role: RoleType): Set<Party> = coalitionPartyToRole.filterValues{ it == role }.keys
 
-    fun getRoleForParty(party: Party): RoleType? {
-        return coalitionPartyToRole[party]
-    }
+    fun getRoleForParty(party: Party): RoleType? = coalitionPartyToRole[party]
 
-    fun getDataTypeForCode(dataTypeCode: String): CoalitionDataType? {
-        return supportedCoalitionDataTypes.firstOrNull { it.dataTypeCode == dataTypeCode }
-    }
+    fun getDataTypeForCode(dataTypeCode: String): CoalitionDataType? = supportedCoalitionDataTypes.
+    firstOrNull { it.dataTypeCode == dataTypeCode }
+
+    fun isSupportedDataType(dataTypeCode: String): Boolean = supportedCoalitionDataTypes.
+    map { it.dataTypeCode }.contains(dataTypeCode)
 
     /**
      *  This property holds a list of the nodes which can "use" this state in a valid transaction. In this case, the

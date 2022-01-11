@@ -4,20 +4,12 @@ import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
 import com.protocol180.aggregator.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.DataOutputState
+import com.protocol180.aggregator.states.RoleType
 import com.r3.conclave.common.EnclaveInstanceInfo
 import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.CommandData
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.ReceiveFinalityFlow
-import net.corda.core.flows.SignTransactionFlow
-import net.corda.core.flows.StartableByRPC
-import net.corda.core.identity.Party
+import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
@@ -36,7 +28,7 @@ import java.time.Instant
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationFlow(val host: Party) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTransaction>() {
 
     companion object{
         private val log = loggerFor<ConsumerAggregationFlow>()
@@ -45,16 +37,29 @@ class ConsumerAggregationFlow(val host: Party) : FlowLogic<SignedTransaction>() 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
+    @Throws(ConsumerAggregationFlowException::class)
     override fun call(): SignedTransaction {
 
         //TODO: change API to accept data type argument - query host identity from coalition config state - fail if state not present
 
+        val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
 
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
         val consumer = ourIdentity
 
+        val coalitionConfiguration = coalitionConfigurationStateService.
+        findCoalitionConfigurationStateForParticipants(listOf(ourIdentity))
+
+        if(coalitionConfiguration == null){
+            throw ConsumerAggregationFlowException("Coalition Configuration is not known to node, host needs to update configuration and include node in participants")
+        } else if (!coalitionConfiguration.state.data.isSupportedDataType(dataType)){
+            throw ConsumerAggregationFlowException("Unsupported data type requested for aggregation, please use a supported data type configured in the coalition configuration")
+        }
+
+        val host = coalitionConfiguration.state.data.getPartiesForRole(RoleType.COALITION_HOST).single()
+        log.info("Found host in configuration state: $host")
         val hostSession = initiateFlow(host)
         //receive attestation from host
         val attestationBytes = hostSession.sendAndReceive<ByteArray>(enclaveClientService.envelopeSchema.toString()).unwrap { it }
@@ -98,6 +103,7 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
     }
 
     @Suspendable
+    @Throws(ConsumerAggregationFlowException::class)
     override fun call() {
         log.info("Inside Responder flow available to host")
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
@@ -157,3 +163,9 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
         subFlow(ReceiveFinalityFlow(otherSideSession = flowSession, expectedTxId = txWeJustSignedId.id))
     }
 }
+
+/**
+ * Thrown when the Consumer Aggregation Flow fails
+ */
+class ConsumerAggregationFlowException(private val reason: String)
+    : FlowException("Consumer Aggregation Flow failed: $reason")

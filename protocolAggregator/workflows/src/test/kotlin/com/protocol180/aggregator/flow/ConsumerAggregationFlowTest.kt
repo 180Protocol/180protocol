@@ -1,15 +1,12 @@
 package com.protocol180.aggregator.flow
 
-import com.protocol180.aggregator.states.DataOutputState
-import com.protocol180.aggregator.states.RewardsState
+import com.protocol180.aggregator.states.*
+import net.corda.core.internal.readFully
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
 import net.corda.testing.internal.chooseIdentityAndCert
-import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetworkParameters
-import net.corda.testing.node.StartedMockNode
-import net.corda.testing.node.TestCordapp
+import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -30,6 +27,7 @@ class ConsumerAggregationFlowTest {
     lateinit var host: StartedMockNode
     lateinit var provider1: StartedMockNode
     lateinit var provider2: StartedMockNode
+    lateinit var coalitionConfigurationState: CoalitionConfigurationState
 
     @Before
     fun setup() {
@@ -41,11 +39,12 @@ class ConsumerAggregationFlowTest {
                         )
                 )
         )
-        consumer = network.createNode()
-        host = network.createPartyNode()
-        provider1 = network.createNode()
-        provider2 = network.createNode()
+        consumer = prepareNodeForRole(RoleType.DATA_CONSUMER)
+        host = prepareNodeForRole(RoleType.COALITION_HOST)
+        provider1 = prepareNodeForRole(RoleType.DATA_PROVIDER)
+        provider2 = prepareNodeForRole(RoleType.DATA_PROVIDER)
         network.runNetwork()
+        createConfigurationState()
     }
 
 
@@ -54,9 +53,41 @@ class ConsumerAggregationFlowTest {
         network.stopNodes()
     }
 
+    private fun prepareNodeForRole(role: RoleType) : StartedMockNode {
+        return network.createNode(
+            parameters = MockNodeParameters(
+                additionalCordapps = listOf(
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow")
+                        .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name)))
+                )
+            )
+        )
+    }
+
+    private fun createConfigurationState(){
+        var coalitionPartyToRole = mapOf(host.info.chooseIdentityAndCert().party to RoleType.COALITION_HOST,
+            consumer.info.chooseIdentityAndCert().party to RoleType.DATA_CONSUMER,
+            provider1.info.chooseIdentityAndCert().party to RoleType.DATA_PROVIDER,
+            provider2.info.chooseIdentityAndCert().party to RoleType.DATA_PROVIDER)
+
+        val dataTypes = listOf(
+            CoalitionDataType("testDataType1", "Test Data Type 1",
+            ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully()),
+            CoalitionDataType("testDataType2", "Test Data Type 2",
+                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema2.avsc").readFully())
+        )
+
+        val flow1 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
+        val future1 = host.startFlow(flow1)
+        network.runNetwork()
+        val signedTransaction = future1.get()
+        assertEquals(1, signedTransaction.tx.outputStates.size)
+        coalitionConfigurationState = signedTransaction.tx.getOutput(0) as CoalitionConfigurationState
+    }
+
     @Test
     fun consumerAggregationFlowStateCreationTest() {
-        val flow = ConsumerAggregationFlow(host.info.chooseIdentityAndCert().party)
+        val flow = ConsumerAggregationFlow("testDataType2")
         val future = consumer.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -131,7 +162,7 @@ class ConsumerAggregationFlowTest {
 
     @Test
     fun consumerOutputQueryTestAfterAggregation() {
-        val flow = ConsumerAggregationFlow(host.info.chooseIdentityAndCert().party)
+        val flow = ConsumerAggregationFlow("testDataType2")
         val future = consumer.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
