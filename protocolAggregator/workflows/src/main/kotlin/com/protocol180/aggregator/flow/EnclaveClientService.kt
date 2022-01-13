@@ -14,12 +14,15 @@ import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.file.Files
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 import java.util.function.Consumer
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 
 /**
  * A utility service to provide functionality of avro serialization, creating data input for providers and
@@ -33,39 +36,46 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     var aggregationInputSchema: Schema? = null
     var aggregationOutputSchema: Schema? = null
     var provenanceOutputSchema: Schema? = null
-    var identitySchema: Schema? = null
 
-    init {
-        envelopeSchema = initializeSchema()
+    fun initializeSchema(envelopeSchema: String) {
+        val envelopeSchema = try {
+            Schema.Parser().parse(envelopeSchema)
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Wrong schema provided for data aggregation.")
+        }
         aggregationInputSchema = envelopeSchema!!.getField("aggregateInput").schema()
         aggregationOutputSchema = envelopeSchema!!.getField("aggregateOutput").schema()
         provenanceOutputSchema = envelopeSchema!!.getField("provenanceOutput").schema()
-        identitySchema = envelopeSchema!!.getField("identity").schema()
-    }
-
-    private fun initializeSchema(): Schema? {
-        val schemaFile = File(ClassLoader.getSystemClassLoader().getResource("envelope.avsc").path)
-        val schema: Schema? = try {
-            Schema.Parser().parse(schemaFile)
-        } catch (e: Exception) {
-            null
-        }
-        return schema
     }
 
 
-    fun createProviderDataRecordForAggregation(): ByteArray? {
+    fun createProviderDataRecordForAggregation(headerLine: String, lineList: MutableList<String>): ByteArray? {
         //create generic records using avro schema for aggregation and append to file
-        val records = createGenericSchemaRecords(aggregationInputSchema)
-        val dataFileForAggregation = createAvroDataFileFromGenericRecords(aggregationInputSchema, records, "aggregate.avro")
-        return Files.readAllBytes(dataFileForAggregation.toPath())
+        println("headerLine" + headerLine)
+        val genericRecords = ArrayList<GenericRecord>()
+        val headers = headerLine.split(",")
+        lineList.forEach() {
+            val demandRecord: GenericRecord = GenericData.Record(aggregationInputSchema)
+            val dataValues = it.split(",")
+            headers.forEachIndexed {
+
+                index, value ->
+                if (!dataValues[index].contains("\"")) demandRecord.put(value, dataValues[index].trim().toInt())
+                else demandRecord.put(value, dataValues[index].replace("\"", "").trim())
+
+            }
+            genericRecords.add(demandRecord)
+        }
+        println(genericRecords)
+
+        return createAvroDataFileFromGenericRecords(genericRecords)
     }
 
-    private fun createAvroDataFileFromGenericRecords(schema: Schema?, genericRecords: ArrayList<GenericRecord>, filename: String?): File {
-        val file = File(filename)
-        val datumWriter: DatumWriter<GenericRecord> = GenericDatumWriter(schema)
+    private fun createAvroDataFileFromGenericRecords(genericRecords: ArrayList<GenericRecord>): ByteArray {
+        val datumWriter: DatumWriter<GenericRecord> = GenericDatumWriter(aggregationInputSchema)
         val dataFileWriter = DataFileWriter(datumWriter)
-        dataFileWriter.create(schema, file)
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        dataFileWriter.create(aggregationInputSchema, byteArrayOutputStream)
         genericRecords.forEach(Consumer { genericRecord: GenericRecord ->
             try {
                 dataFileWriter.append(genericRecord)
@@ -73,31 +83,9 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
                 e.printStackTrace()
             }
         })
+        byteArrayOutputStream.close()
         dataFileWriter.close()
-        return file
-    }
-
-    private fun createGenericSchemaRecords(schema: Schema?): ArrayList<GenericRecord> {
-        val genericRecords = ArrayList<GenericRecord>()
-        for (i in 0..1) {
-            genericRecords.add(generateRandomDemandRecord(schema))
-        }
-        return genericRecords
-    }
-
-    private fun generateRandomDemandRecord(schema: Schema?): GenericRecord {
-        val creditRatings = arrayOf("A", "AA", "AAA", "B", "C")
-        val sectors = arrayOf("FINANCIALS", "INDUSTRIALS", "IT", "INFRASTRUCTURE", "ENERGY")
-        val assetTypes = arrayOf("B", "PP", "L")
-        val duration = arrayOf("1", "2", "3", "4", "5")
-        val demandRecord: GenericRecord = GenericData.Record(schema)
-        val randomizer = Random()
-        demandRecord.put("creditRating", creditRatings[randomizer.nextInt(creditRatings.size)])
-        demandRecord.put("sector", sectors[randomizer.nextInt(sectors.size)])
-        demandRecord.put("assetType", assetTypes[randomizer.nextInt(assetTypes.size)])
-        demandRecord.put("duration", duration[randomizer.nextInt(duration.size)])
-        demandRecord.put("amount", ThreadLocalRandom.current().nextInt(1000000, 1000000000 + 1))
-        return demandRecord
+        return byteArrayOutputStream.toByteArray()
     }
 
     fun readGenericRecordsFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ArrayList<GenericRecord?> {
@@ -112,5 +100,25 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             genericRecords.add(dataRecord)
         }
         return genericRecords
+    }
+
+    fun readInputDataFromAttachment(zipData: ByteArray): MutableList<String> {
+        val attachmentFile = File("provider_data_file.zip")
+        attachmentFile.writeBytes(zipData)
+        val zipAttachmentFile = ZipFile(attachmentFile)
+        val zis: ZipInputStream = ZipInputStream(FileInputStream(attachmentFile))
+
+        val zipEntry = zis.nextEntry
+                ?: throw FileNotFoundException("Input Data CSV file is not available into attachment.")
+        val inputStream = zipAttachmentFile.getInputStream(zipEntry)
+        val lineList = mutableListOf<String>()
+
+        inputStream.bufferedReader().forEachLine { if (it != "") lineList.add(it) }
+        inputStream.close()
+        zis.close()
+
+        zipAttachmentFile.close()
+        attachmentFile.delete()
+        return lineList
     }
 }
