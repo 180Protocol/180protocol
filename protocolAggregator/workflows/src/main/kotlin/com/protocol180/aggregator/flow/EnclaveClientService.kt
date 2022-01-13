@@ -51,7 +51,6 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
 
     fun createProviderDataRecordForAggregation(headerLine: String, lineList: MutableList<String>): ByteArray? {
         //create generic records using avro schema for aggregation and append to file
-        println("headerLine" + headerLine)
         val genericRecords = ArrayList<GenericRecord>()
         val headers = headerLine.split(",")
         lineList.forEach() {
@@ -66,8 +65,6 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             }
             genericRecords.add(demandRecord)
         }
-        println(genericRecords)
-
         return createAvroDataFileFromGenericRecords(genericRecords)
     }
 
@@ -96,7 +93,6 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
         var dataRecord: GenericRecord? = null
         while (dataFileReader.hasNext()) {
             dataRecord = dataFileReader.next()
-            println("Record: $dataRecord")
             genericRecords.add(dataRecord)
         }
         return genericRecords

@@ -204,7 +204,6 @@ class ConsumerAggregationFlowTest {
         val dataOutputFuture = consumer.startFlow(consumerDataOutputRetrievalFlow)
         val dataOutputRecords = dataOutputFuture.get()
         assert(dataOutputRecords.size > 1)
-        println("Consumer Data Output Retrieval : $dataOutputRecords")
         network.runNetwork()
 
 
@@ -214,7 +213,7 @@ class ConsumerAggregationFlowTest {
         var providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider1RewardsState.flowTopic)
         val rewardOutputFuture1 = provider1.startFlow(providerRewardOutputRetrievalFlow)
         val provider1RewardOutput = rewardOutputFuture1.get()
-        println("Provider 1 Rewards Retrieval : $provider1RewardOutput")
+
         assertEquals(provider1RewardOutput.size, 1)
         network.runNetwork()
 
@@ -223,7 +222,6 @@ class ConsumerAggregationFlowTest {
         providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider2RewardsState.flowTopic)
         val rewardOutputFuture2 = provider2.startFlow(providerRewardOutputRetrievalFlow)
         val provider2RewardOutput = rewardOutputFuture2.get()
-        println("Provider 2 Rewards Retrieval : $provider2RewardOutput")
         assertEquals(provider2RewardOutput.size, 1)
         network.runNetwork()
 
@@ -255,15 +253,4 @@ class ConsumerAggregationFlowTest {
         return attachmentHash.toString();
     }
 
-//    @Test
-//    fun createZipForAttachments() {
-//        val url = ClassLoader.getSystemClassLoader().getResource(".");
-//        println("test " + url)
-////        val writer = BufferedWriter(Paths.get("/resources/students.csv"));
-//
-//        Bu
-//
-//        val csvPrinter = CSVPrinter(writer, CSVFormat.DEFAULT
-//                .withHeader("StudentID", "FirstName", "LastName", "Score"));
-//    }
 }

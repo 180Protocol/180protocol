@@ -2,7 +2,6 @@ package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
-import com.protocol180.aggregator.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RoleType
 import com.r3.conclave.common.EnclaveInstanceInfo
