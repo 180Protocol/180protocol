@@ -10,7 +10,7 @@ import java.time.Instant
 @BelongsToContract(RewardsContract::class)
 data class RewardsState(val provider: Party,
                         val host: Party,
-                        val rewards: ByteArray,
+                        val decryptedRewardsBytes: ByteArray,
                         val dateCreated: Instant,
                         val enclaveAttestation: ByteArray,
                         val flowTopic: String) : ContractState {
@@ -28,7 +28,7 @@ data class RewardsState(val provider: Party,
 
         if (provider != other.provider) return false
         if (host != other.host) return false
-        if (!rewards.contentEquals(other.rewards)) return false
+        if (!decryptedRewardsBytes.contentEquals(other.decryptedRewardsBytes)) return false
         if (dateCreated != other.dateCreated) return false
         if (enclaveAttestation != other.enclaveAttestation) return false
         if (flowTopic != other.flowTopic) return false
@@ -39,7 +39,7 @@ data class RewardsState(val provider: Party,
     override fun hashCode(): Int {
         var result = provider.hashCode()
         result = 31 * result + host.hashCode()
-        result = 31 * result + rewards.contentHashCode()
+        result = 31 * result + decryptedRewardsBytes.contentHashCode()
         result = 31 * result + dateCreated.hashCode()
         result = 31 * result + enclaveAttestation.hashCode()
         result = 31 * result + flowTopic.hashCode()

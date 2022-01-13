@@ -49,21 +49,25 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
         //vault query to get attachment for data type - zip file
         //convert zip to
-        val providerDataPair = Pair(encryptionKey.publicKey.toString(), postOffice.encryptMail(enclaveClientService.createProviderDataRecordForAggregation()!!))
+        val providerDataPair = Pair(encryptionKey.publicKey.toString(),
+            postOffice.encryptMail(enclaveClientService.createProviderDataRecordForAggregation()!!))
         //Provider shares public key and encrypted data with host
         hostSession.send(providerDataPair)
 
         //Provider acknowledges rewards schema from host
         val providerRewardSchema = hostSession.receive<String>().unwrap { it }
         //Provider receives encrypted rewards data from enclave via host
-        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(providerRewardSchema.toByteArray())).unwrap { it }
-        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes, "Temp_Data_Type")
-        log.info("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
-
+        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(
+            providerRewardSchema.toByteArray())).unwrap { it }
+        val decryptedRewardByteArray = postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes
+        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(),
+            decryptedRewardByteArray, "Temp_Data_Type")
+        log.info("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(
+            providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
 
         val hostRewardsResponseSession = initiateFlow(host)
         val commandData: CommandData = RewardsContract.Commands.Create()
-        val rewardsState = RewardsState(provider, host, encryptedRewardByteArray, Instant.now(),
+        val rewardsState = RewardsState(provider, host, decryptedRewardByteArray, Instant.now(),
             attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)

@@ -44,9 +44,8 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     }
 
     private fun initializeSchema(): Schema? {
-        val schemaFile = File(ClassLoader.getSystemClassLoader().getResource("envelope.avsc").path)
         val schema: Schema? = try {
-            Schema.Parser().parse(schemaFile)
+            Schema.Parser().parse(javaClass.getResourceAsStream("/envelope.avsc"))
         } catch (e: Exception) {
             null
         }

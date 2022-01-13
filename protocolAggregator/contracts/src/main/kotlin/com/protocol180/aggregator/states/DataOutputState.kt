@@ -10,7 +10,6 @@ import java.time.Instant
 @BelongsToContract(DataOutputContract::class)
 data class DataOutputState(val consumer: Party,
                            val host: Party,
-                           val dataOutput: ByteArray,
                            val dateCreated: Instant,
                            val enclaveAttestation: ByteArray,
                            val flowTopic: String
@@ -29,7 +28,6 @@ data class DataOutputState(val consumer: Party,
 
         if (consumer != other.consumer) return false
         if (host != other.host) return false
-        if (!dataOutput.contentEquals(other.dataOutput)) return false
         if (dateCreated != other.dateCreated) return false
         if (enclaveAttestation != other.enclaveAttestation) return false
         if (flowTopic != other.flowTopic) return false
@@ -40,7 +38,6 @@ data class DataOutputState(val consumer: Party,
     override fun hashCode(): Int {
         var result = consumer.hashCode()
         result = 31 * result + host.hashCode()
-        result = 31 * result + dataOutput.contentHashCode()
         result = 31 * result + dateCreated.hashCode()
         result = 31 * result + enclaveAttestation.hashCode()
         result = 31 * result + flowTopic.hashCode()

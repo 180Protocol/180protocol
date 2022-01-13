@@ -72,13 +72,13 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
         val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail
         (enclaveClientService.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
         val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
-        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, "Temp_Data_Type")
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(),
+            decryptedAggregationDataRecordBytes, "Temp_Data_Type")
 
         //optional reading of records - needed for the front end read flow
         //enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
         val commandData: CommandData = DataOutputContract.Commands.Create()
-        val dataOutputState = DataOutputState(consumer, host, encryptedAggregationDataRecordBytes, Instant.now(),
-                attestationBytes, flowTopic)
+        val dataOutputState = DataOutputState(consumer, host, Instant.now(), attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(dataOutputState, DataOutputContract.ID)

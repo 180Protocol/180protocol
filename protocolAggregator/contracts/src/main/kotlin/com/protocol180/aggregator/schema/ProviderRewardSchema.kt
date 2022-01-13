@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.schema
 
 import net.corda.core.schemas.MappedSchema
+import java.io.Serializable
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
@@ -21,7 +22,7 @@ object ProviderRewardSchemaV1 : MappedSchema(schemaFamily = ProviderRewardSchema
                          val rewardGenericRecordBytes: ByteArray,
                          @Column(name = "reward_output_data_type", nullable = false)
                          val rewardOutputDataType: String
-    ) {
+    ) : Serializable {
         constructor() : this("", ByteArray(0), "")
     }
 

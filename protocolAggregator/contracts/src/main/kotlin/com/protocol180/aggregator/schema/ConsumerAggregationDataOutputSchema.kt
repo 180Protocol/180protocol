@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.schema
 
 import net.corda.core.schemas.MappedSchema
+import java.io.Serializable
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
@@ -23,7 +24,7 @@ object ConsumerAggregationDataOutputSchemaV1 : MappedSchema(schemaFamily = Consu
                              val consumerDataOutputBytes: ByteArray,
                              @Column(name = "consumer_output_data_type", nullable = false)
                              val consumerOutputDataType: String
-    ) {
+    ) : Serializable {
         constructor() : this("", ByteArray(0), "")
     }
 

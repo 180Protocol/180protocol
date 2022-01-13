@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.schema
 
 import net.corda.core.schemas.MappedSchema
+import java.io.Serializable
 import javax.persistence.*
 
 
@@ -18,7 +19,7 @@ object ProviderInputSchemaV1 : MappedSchema(schemaFamily = ProviderInputSchema.j
                         var publicKey: String,
                         @Column(name = "input", nullable = false)
                         val input: ByteArray
-    ) {
+    ) : Serializable {
         constructor() : this(0, "", ByteArray(0))
         constructor(publicKey: String, providerInput: ByteArray) : this(
                 0, publicKey, providerInput)
@@ -31,7 +32,7 @@ object ProviderInputSchemaV1 : MappedSchema(schemaFamily = ProviderInputSchema.j
                      val stateRef: String,
                      @OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
                      val providerInputs: List<ProviderInput>
-    ) {
+    ) : Serializable {
         constructor() : this("", listOf())
 
     }
