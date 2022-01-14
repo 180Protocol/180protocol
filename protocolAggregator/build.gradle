@@ -111,6 +111,14 @@ apply plugin: 'net.corda.plugins.cordapp'
 apply plugin: 'net.corda.plugins.cordformation'
 apply plugin: 'net.corda.plugins.quasar-utils'
 
+sourceSets {
+    main {
+        resources {
+            srcDir rootProject.file("config/dev")
+        }
+    }
+}
+
 dependencies {
     // Corda dependencies built in to the node.
     cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
@@ -139,8 +147,6 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
             deploy = false
         }
         cordapp project(':contracts')
-        cordapp project(':workflows')
-        runSchemaMigration = true
     }
     node {
         name "O=Notary,L=London,C=GB"
@@ -163,6 +169,7 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
                 participantRole = COALITION_HOST
             '''.stripIndent()
         }
+        runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
@@ -177,6 +184,7 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
                 participantRole = DATA_PROVIDER
             '''.stripIndent()
         }
+        runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
@@ -191,6 +199,14 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
                 participantRole = DATA_CONSUMER
             '''.stripIndent()
         }
+        runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+}
+
+task installQuasar(type: Copy) {
+    destinationDir rootProject.file("lib")
+    from(configurations.quasar) {
+        rename 'quasar-core(.*).jar', 'quasar.jar'
     }
 }

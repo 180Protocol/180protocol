@@ -16,6 +16,19 @@ cordapp {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDirs rootProject.file("config/dev"), "src/main/resources"
+        }
+    }
+    test {
+        resources {
+            srcDirs rootProject.file("config/test"), "src/test/resources"
+        }
+    }
+}
+
 // Override the default (simulation) with -PenclaveMode=
 def mode = findProperty("enclaveMode")?.toString()?.toLowerCase() ?: "mock"
 
