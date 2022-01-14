@@ -34,7 +34,7 @@ public class AggregationEnclave extends Enclave {
     HashMap<String, String> clientIdentityStore;
     Schema aggregateInputSchema;
     Schema aggregateOutputSchema;
-    Schema provenanceOutputSchema;
+    Schema rewardsOutputSchema;
     Schema identitySchema;
 
     String clientTypeForCurrRequest = null;
@@ -46,7 +46,7 @@ public class AggregationEnclave extends Enclave {
         Schema envelopSchema = new Schema.Parser().parse(new String(schemaBytes));
         aggregateInputSchema = envelopSchema.getField("aggregateInput").schema();
         aggregateOutputSchema = envelopSchema.getField("aggregateOutput").schema();
-        provenanceOutputSchema = envelopSchema.getField("provenanceOutput").schema();
+        rewardsOutputSchema = envelopSchema.getField("rewardsOutput").schema();
         identitySchema = envelopSchema.getField("identity").schema();
 
         return "Schema Initialized".getBytes();
@@ -77,8 +77,8 @@ public class AggregationEnclave extends Enclave {
         System.out.println("Raw Client Data to Process: " + clientToRawDataMap.toString());
     }
 
-    private int calculateProvenanceAllocation(ArrayList<GenericRecord> records) {
-        //calculations for provenance allocation on fixed income demand data
+    private int calculateRewards(ArrayList<GenericRecord> records) {
+        //calculations for rewards allocation on fixed income demand data
         ArrayList<Integer> allocationScores = new ArrayList<>();
         Map<String, Integer> creditRatings = Stream.of(
                 new AbstractMap.SimpleEntry<>("A", 1),
@@ -115,18 +115,18 @@ public class AggregationEnclave extends Enclave {
         return allocationScores.stream().mapToInt(a -> a).sum();
     }
 
-    protected File createProvenanceDataOutput(PublicKey providerKey) throws IOException {
-        //populate provenance output file here based on raw client data
-        File outputFile = new File("provenanceOutput.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(provenanceOutputSchema);
+    protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
+        //populate rewards output file here based on raw client data
+        File outputFile = new File("rewardsOutput.avro");
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(rewardsOutputSchema);
         DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(provenanceOutputSchema, outputFile);
+        dataFileWriter.create(rewardsOutputSchema, outputFile);
 
-        GenericRecord provenanceRecord = new GenericData.Record(provenanceOutputSchema);
-        provenanceRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-        provenanceRecord.put("allocation", calculateProvenanceAllocation(clientToRawDataMap.get(providerKey)));
+        GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
+        rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
+        rewardRecord.put("allocation", calculateRewards(clientToRawDataMap.get(providerKey)));
         try {
-            dataFileWriter.append(provenanceRecord);
+            dataFileWriter.append(rewardRecord);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -236,13 +236,13 @@ public class AggregationEnclave extends Enclave {
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
                 postMail(responseBytes, routingHint);
 
-            } else if (mailType.equals(MailType.TYPE_PROVENANCE)) {
-                clientTypeForCurrRequest = MailType.TYPE_PROVENANCE.type;
-                //send provenance result to required party
-                System.out.println("Provenance Mail");
-                //create provenance output
-                File provenanceOutput = createProvenanceDataOutput(mail.getAuthenticatedSender());
-                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(provenanceOutput.toPath()));
+            } else if (mailType.equals(MailType.TYPE_REWARDS)) {
+                clientTypeForCurrRequest = MailType.TYPE_REWARDS.type;
+                //send rewards result to party aka provider
+                System.out.println("Rewards Mail");
+                //create rewards output
+                File rewardsOutput = createRewardsDataOutput(mail.getAuthenticatedSender());
+                final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(rewardsOutput.toPath()));
                 postMail(responseBytes, routingHint);
 
             } else {
@@ -259,8 +259,8 @@ public class AggregationEnclave extends Enclave {
             return MailType.TYPE_PROVIDER;
         else if (unencryptedMail.contains("AggregateOutput"))
             return MailType.TYPE_CONSUMER;
-        else if (unencryptedMail.contains("Provenance"))
-            return MailType.TYPE_PROVENANCE;
+        else if (unencryptedMail.contains("Rewards"))
+            return MailType.TYPE_REWARDS;
         return null;
     }
 
