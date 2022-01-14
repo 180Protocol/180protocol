@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 @CordaService
 public class AggregationEnclaveService extends EnclaveHostService {
     public AggregationEnclaveService(@NotNull AppServiceHub serviceHub) {
-        super("com.protocol180.aggregator.enclave.AggregationEnclave");
+        super("com.protocol180.aggregator.clientEnclave.ExtendedAggregationEnclave");
         System.out.println("inside Aggregation Enclave service");
     }
 }

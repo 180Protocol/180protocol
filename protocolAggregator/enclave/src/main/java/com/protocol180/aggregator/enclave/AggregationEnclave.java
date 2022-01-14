@@ -26,21 +26,21 @@ import java.util.stream.Stream;
 /**
  * Simply reverses the bytes that are passed in.
  */
-public class AggregationEnclave extends Enclave {
+public abstract class AggregationEnclave extends Enclave {
 
     //Local store
-    HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
-    HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
+    protected HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
+    protected HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
     HashMap<String, String> clientIdentityStore;
-    Schema aggregateInputSchema;
-    Schema aggregateOutputSchema;
-    Schema rewardsOutputSchema;
+    protected Schema aggregateInputSchema;
+    protected Schema aggregateOutputSchema;
+    protected Schema rewardsOutputSchema;
     Schema identitySchema;
 
     String clientTypeForCurrRequest = null;
 
     @Override
-    protected byte[] receiveFromUntrustedHost(byte[] schemaBytes) {
+    final protected byte[] receiveFromUntrustedHost(byte[] schemaBytes) {
         // This is used for host->enclave calls so we don't have to think about authentication.
 
         Schema envelopSchema = new Schema.Parser().parse(new String(schemaBytes));
@@ -53,7 +53,7 @@ public class AggregationEnclave extends Enclave {
     }
 
 
-    private void convertEncryptedClientDataToRawData() {
+    final protected void convertEncryptedClientDataToRawData() {
         DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(aggregateInputSchema);
         clientToEncryptedDataMap.entrySet().forEach(entry ->
                 {
@@ -77,132 +77,26 @@ public class AggregationEnclave extends Enclave {
         System.out.println("Raw Client Data to Process: " + clientToRawDataMap.toString());
     }
 
-    private int calculateRewards(ArrayList<GenericRecord> records) {
-        //calculations for rewards allocation on fixed income demand data
-        ArrayList<Integer> allocationScores = new ArrayList<>();
-        Map<String, Integer> creditRatings = Stream.of(
-                new AbstractMap.SimpleEntry<>("A", 1),
-                new AbstractMap.SimpleEntry<>("AA", 2),
-                new AbstractMap.SimpleEntry<>("AAA", 3),
-                new AbstractMap.SimpleEntry<>("B", 1),
-                new AbstractMap.SimpleEntry<>("C", 0)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> sectors = Stream.of(
-                new AbstractMap.SimpleEntry<>("FINANCIALS", 1),
-                new AbstractMap.SimpleEntry<>("INDUSTRIALS", 2),
-                new AbstractMap.SimpleEntry<>("IT", 3),
-                new AbstractMap.SimpleEntry<>("INFRASTRUCTURE", 1),
-                new AbstractMap.SimpleEntry<>("ENERGY", 5)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> assetTypes = Stream.of(
-                new AbstractMap.SimpleEntry<>("B", 3),
-                new AbstractMap.SimpleEntry<>("PP", 2),
-                new AbstractMap.SimpleEntry<>("L", 1)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> durations = Stream.of(
-                new AbstractMap.SimpleEntry<>("1", 1),
-                new AbstractMap.SimpleEntry<>("2", 2),
-                new AbstractMap.SimpleEntry<>("3", 3),
-                new AbstractMap.SimpleEntry<>("4", 4),
-                new AbstractMap.SimpleEntry<>("5", 5)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    protected abstract File createRewardsDataOutput(PublicKey providerKey) throws IOException;
 
-        records.forEach(record -> {
-            Integer amount = (Integer) record.get("amount");
-            allocationScores.add((creditRatings.get(record.get("creditRating").toString()) + sectors.get(record.get("sector").toString()) +
-                    assetTypes.get(record.get("assetType").toString()) + durations.get(record.get("duration").toString())) + amount / 1000000);
-        });
-        return allocationScores.stream().mapToInt(a -> a).sum();
-    }
+    protected abstract File createAggregateDataOutput() throws IOException;
 
-    protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
-        //populate rewards output file here based on raw client data
-        File outputFile = new File("rewardsOutput.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(rewardsOutputSchema);
-        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(rewardsOutputSchema, outputFile);
-
-        GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
-        rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-        rewardRecord.put("allocation", calculateRewards(clientToRawDataMap.get(providerKey)));
-        try {
-            dataFileWriter.append(rewardRecord);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        dataFileWriter.close();
-        return outputFile;
-    }
-
-    protected File createAggregateDataOutput() throws IOException {
-        //populate aggregate logic here based on raw client data and return output file
-        System.out.println("Encrypted Client Data to Process: " + clientToEncryptedDataMap.toString());
-        convertEncryptedClientDataToRawData();
-
-        ArrayList<GenericRecord> allRecords = new ArrayList<>();
-        clientToRawDataMap.values().forEach(genericRecords -> allRecords.addAll(genericRecords));
-
-        File outputFile = new File("aggregateOutput.avro");
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(aggregateOutputSchema);
-        DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
-        dataFileWriter.create(aggregateOutputSchema, outputFile);
-
-
-        //simple aggregation of records into one file
-        //other possibilities include creating a output with a specified schema
-        allRecords.forEach(genericRecord -> {
-            try {
-                dataFileWriter.append(genericRecord);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        dataFileWriter.close();
-        return outputFile;
-    }
-
-    protected void initializeLocalStore() {
+    void initializeLocalStore() {
         clientToEncryptedDataMap = new HashMap();
         clientToRawDataMap = new HashMap();
     }
 
-    protected void clearLocalStore() {
+    void clearLocalStore() {
         clientToEncryptedDataMap = null;
         clientToRawDataMap = null;
     }
 
-    protected void putUnencryptedMailToClient(PublicKey sender, byte[] mailBytes) {
+    private void putUnencryptedMailToClient(PublicKey sender, byte[] mailBytes) {
         clientToEncryptedDataMap.put(sender, mailBytes);
     }
 
-    private void initializeLocalClientIdentityStore() {
-        clientIdentityStore = new HashMap<>();
-    }
-
-
-    private void convertIdentitiesToRawIdentities(byte[] unencryptedMail) {
-        DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(identitySchema);
-        try {
-            File dataFile = new File("identityFile");
-            Files.write(dataFile.toPath(), unencryptedMail);
-            System.out.println("identity schema inside enclave is: " + identitySchema);
-            DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(dataFile, datumReader);
-            while (dataFileReader.hasNext()) {
-                GenericRecord dataRecord = null;
-                dataRecord = dataFileReader.next(dataRecord);
-                clientIdentityStore.put(dataRecord.get("publicKey").toString(), dataRecord.get("clientType").toString());
-            }
-            System.out.println("Local Client Store: " + clientIdentityStore);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
     @Override
-    protected void receiveMail(EnclaveMail mail, String routingHint) {
+    protected final void receiveMail(EnclaveMail mail, String routingHint) {
         final byte[] unencryptedMail = mail.getBodyAsBytes();
 
 
