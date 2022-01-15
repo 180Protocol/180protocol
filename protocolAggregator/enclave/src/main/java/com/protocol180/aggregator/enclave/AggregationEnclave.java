@@ -32,6 +32,7 @@ public abstract class AggregationEnclave extends Enclave {
     protected HashMap<PublicKey, byte[]> clientToEncryptedDataMap;
     protected HashMap<PublicKey, ArrayList<GenericRecord>> clientToRawDataMap;
     HashMap<String, String> clientIdentityStore;
+    protected Schema envelopeSchema;
     protected Schema aggregateInputSchema;
     protected Schema aggregateOutputSchema;
     protected Schema rewardsOutputSchema;
@@ -43,11 +44,11 @@ public abstract class AggregationEnclave extends Enclave {
     final protected byte[] receiveFromUntrustedHost(byte[] schemaBytes) {
         // This is used for host->enclave calls so we don't have to think about authentication.
 
-        Schema envelopSchema = new Schema.Parser().parse(new String(schemaBytes));
-        aggregateInputSchema = envelopSchema.getField("aggregateInput").schema();
-        aggregateOutputSchema = envelopSchema.getField("aggregateOutput").schema();
-        rewardsOutputSchema = envelopSchema.getField("rewardsOutput").schema();
-        identitySchema = envelopSchema.getField("identity").schema();
+        envelopeSchema = new Schema.Parser().parse(new String(schemaBytes));
+        aggregateInputSchema = envelopeSchema.getField("aggregateInput").schema();
+        aggregateOutputSchema = envelopeSchema.getField("aggregateOutput").schema();
+        rewardsOutputSchema = envelopeSchema.getField("rewardsOutput").schema();
+        identitySchema = envelopeSchema.getField("identity").schema();
 
         return "Schema Initialized".getBytes();
     }
