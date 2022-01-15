@@ -1,7 +1,6 @@
 package com.protocol180.aggregator.clientEnclave;
 
 import com.protocol180.aggregator.enclave.AggregationEnclave;
-import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -20,11 +19,11 @@ import java.util.stream.Stream;
 
 public class ExampleAggregationEnclave extends AggregationEnclave {
 
-    Schema testSchema1 = initializeSchema("testSchema1.avsc");
-    Schema testSchema2 = initializeSchema("testSchema2.avsc");
+    final String TEST_SCHEMA_1 = "testSchema1";
+    final String TEST_SCHEMA_2 = "testSchema2";
 
-    @Override
     protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
+
         //populate rewards output file here based on raw client data
         File outputFile = new File("rewardsOutput.avro");
         DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(rewardsOutputSchema);
@@ -34,14 +33,17 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
 
-        if (envelopeSchema.equals(testSchema1)) {
-            rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-            rewardRecord.put("allocation", calculateRewardsForSchema1(clientToRawDataMap.get(providerKey)));
-        } else if (envelopeSchema.equals(testSchema2)) {
-            rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-            rewardRecord.put("allocation", calculateRewardsForSchema2(clientToRawDataMap.get(providerKey)));
+        switch (envelopeSchema.getName()) {
+            case TEST_SCHEMA_1:
+                rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
+                rewardRecord.put("allocation", calculateRewardsForSchema1(clientToRawDataMap.get(providerKey)));
+                break;
+            case TEST_SCHEMA_2:
+                rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
+                rewardRecord.put("allocation", calculateRewardsForSchema2(clientToRawDataMap.get(providerKey)));
+                break;
+            default:
         }
-
         try {
             dataFileWriter.append(rewardRecord);
         } catch (IOException e) {
@@ -118,7 +120,7 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         records.forEach(record -> {
             allocationScores.add((riskScore.get((Integer) record.get("riskScore")) + company.get(record.get("company").toString()) +
-                    region.get(record.get("region").toString()) ) );
+                    region.get(record.get("region").toString())));
         });
         return allocationScores.stream().mapToInt(a -> a).sum();
 
@@ -140,26 +142,31 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         //simple aggregation of records into one file
         //other possibilities include creating a output with a specified schema
-        allRecords.forEach(genericRecord -> {
-            try {
-                dataFileWriter.append(genericRecord);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+
+        switch (envelopeSchema.getName()) {
+            case TEST_SCHEMA_1:
+                allRecords.forEach(genericRecord -> {
+                    try {
+                        dataFileWriter.append(genericRecord);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                break;
+            case TEST_SCHEMA_2:
+                allRecords.forEach(genericRecord -> {
+                    try {
+                        dataFileWriter.append(genericRecord);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                break;
+        }
+
+
         dataFileWriter.close();
         return outputFile;
-    }
-
-    private Schema initializeSchema(String schemaPath) {
-        File schemaFile = new File(ClassLoader.getSystemClassLoader().getResource(schemaPath).getPath());
-        Schema schema;
-        try {
-            schema = new Schema.Parser().parse(schemaFile);
-        } catch (Exception e) {
-            schema = null;
-        }
-        return schema;
     }
 
 }
