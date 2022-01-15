@@ -151,18 +151,19 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
     node {
         name "O=Notary,L=London,C=GB"
         notary = [validating : false]
-        p2pPort 10002
+        p2pAddress "notary-node:10002"
         rpcSettings {
-            address("localhost:10003")
-            adminAddress("localhost:10043")
+            address("0.0.0.0:10003")
+            adminAddress("0.0.0.0:10043")
         }
+        cordapps.clear()
     }
     node {
         name "O=PartyA,L=London,C=GB"
-        p2pPort 10004
+        p2pAddress "partya-node:10004"
         rpcSettings {
-            address("localhost:10005")
-            adminAddress("localhost:10045")
+            address("0.0.0.0:10005")
+            adminAddress("0.0.0.0:10045")
         }
         cordapp (project(':workflows')) {
             config '''\
@@ -174,10 +175,10 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
     }
     node {
         name "O=PartyB,L=New York,C=US"
-        p2pPort 10006
+        p2pAddress "partyb-node:10006"
         rpcSettings {
-            address("localhost:10007")
-            adminAddress("localhost:10047")
+            address("0.0.0.0:10007")
+            adminAddress("0.0.0.0:10047")
         }
         cordapp (project(':workflows')) {
             config '''\
@@ -190,9 +191,10 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
     node {
         name "O=PartyC,L=Chicago,C=US"
         p2pPort 10008
+        p2pAddress "partyc-node:10008"
         rpcSettings {
-            address("localhost:10009")
-            adminAddress("localhost:10049")
+            address("0.0.0.0:10009")
+            adminAddress("0.0.0.0:10049")
         }
         cordapp (project(':workflows')) {
             config '''\

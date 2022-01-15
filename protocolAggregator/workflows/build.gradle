@@ -38,15 +38,22 @@ tasks.register("prepareForSigning") {
 }
 
 dependencies {
+    //internal
     compile project(":aggregator-commons")
     compile project(path: ":enclave", configuration: mode)
 
+    //external
+    compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'
+
+    //conclave
     compile "com.r3.conclave:conclave-host:$conclaveVersion"
     compile "com.r3.conclave:conclave-client:$conclaveVersion"
     compile "com.r3.conclave:conclave-common:$conclaveVersion"
+    compile "com.r3.conclave:conclave-mail:$conclaveVersion"
 
-    testImplementation(platform('org.junit:junit-bom:5.7.0'))
-    testImplementation('org.junit.jupiter:junit-jupiter')
+    //test
+    testCompile(platform('org.junit:junit-bom:5.7.0'))
+    testCompile('org.junit.jupiter:junit-jupiter')
 
     // Corda dependencies.
     cordapp project(":contracts")
