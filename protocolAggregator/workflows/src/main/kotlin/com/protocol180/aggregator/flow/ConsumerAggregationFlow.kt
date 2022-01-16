@@ -55,7 +55,7 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
 
         enclaveClientService.initializeSchema(String(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile))
 
-        val host = coalitionConfiguration.state.data.getPartiesForRole(RoleType.COALITION_HOST).single()
+        val host = coalitionConfiguration.state.data.getPartiesForRole(RoleType.COALITION_HOST)!!.single()
         log.info("Found host in configuration state: $host")
         val hostSession = initiateFlow(host)
         //receive attestation from host

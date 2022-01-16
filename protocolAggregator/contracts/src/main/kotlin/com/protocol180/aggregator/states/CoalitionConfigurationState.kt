@@ -7,18 +7,17 @@ import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
-import java.io.InputStream
 
 @BelongsToContract(CoalitionConfigurationContract::class)
 data class CoalitionConfigurationState(
     override val linearId: UniqueIdentifier,
-    val coalitionPartyToRole: Map<Party, RoleType>,
+    val coalitionPartyToRole: Map<RoleType, Set<Party>>,
     val supportedCoalitionDataTypes: List<CoalitionDataType>
 ) : LinearState {
 
-    fun getPartiesForRole(role: RoleType): Set<Party> = coalitionPartyToRole.filterValues{ it == role }.keys
+    fun getPartiesForRole(role: RoleType): Set<Party>? = coalitionPartyToRole[role]
 
-    fun getRoleForParty(party: Party): RoleType? = coalitionPartyToRole[party]
+    fun getRolesForParty(party: Party): Set<RoleType>? = coalitionPartyToRole.filterValues{ it.contains(party) }.keys
 
     fun getDataTypeForCode(dataTypeCode: String): CoalitionDataType? = supportedCoalitionDataTypes.
     firstOrNull { it.dataTypeCode == dataTypeCode }
@@ -30,7 +29,9 @@ data class CoalitionConfigurationState(
      *  This property holds a list of the nodes which can "use" this state in a valid transaction. In this case, the
      *  consumer or host.
      */
-    override val participants: List<AbstractParty> get() = coalitionPartyToRole.keys.toList()
+    override val participants: List<AbstractParty> get() = coalitionPartyToRole.values.fold(listOf()){
+        acc, e -> acc + e
+    }
 }
 
 /**
