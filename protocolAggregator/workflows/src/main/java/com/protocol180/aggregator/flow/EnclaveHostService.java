@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.host;
+package com.protocol180.aggregator.flow;
 
 import com.r3.conclave.host.AttestationParameters;
 import com.r3.conclave.host.EnclaveHost;
@@ -67,10 +67,8 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         try {
             UUID flowId = UUID.fromString(routingHint.substring(routingHint.indexOf(":")+1));   // NPE here means enclave didn't provide a hint.
 
-            System.out.println("flowId inside the EnclaveHostService is"+flowId);
             mailFutures.get(flowId).complete(encryptedBytes);  // NPE here means flow is gone.
         } catch (NullPointerException | IllegalArgumentException e) {
-            System.err.println(mailFutures.keySet());
             throw new IllegalArgumentException("To send mail the routingHint parameter must be a valid pending flow ID, was " + routingHint, e);
         }
     }
@@ -84,7 +82,6 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
      * @param encryptedMail The bytes of an encrypted message as created via {@link com.r3.conclave.mail.PostOffice}.
      */
     public void deliverMail(byte[] encryptedMail) throws MailDecryptionException {
-        System.out.println("inside deliverMail of Enclave host services");
         enclave.deliverMail(encryptedMail, null);
     }
 

@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.enclave;
 
 import com.protocol180.commons.MailType;
+import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
@@ -25,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Simply reverses the bytes that are passed in.
  */
-public class AggregationEnclave extends CordaEnclave {
+public class AggregationEnclave extends Enclave {
 
     //Local store
     HashMap<PublicKey, byte[]> clientToEncryptedDataMap;

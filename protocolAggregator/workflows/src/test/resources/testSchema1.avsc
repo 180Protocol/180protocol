@@ -1,7 +1,7 @@
 {
   "namespace": "com.180protocol",
   "type": "record",
-  "name": "Test Schema 1",
+  "name": "testSchema1",
   "fields": [
     {
         "name": "aggregateInput",

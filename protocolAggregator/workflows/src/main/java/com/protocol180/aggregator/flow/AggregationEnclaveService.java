@@ -1,6 +1,5 @@
-package com.protocol180.aggregator.sample.host;
+package com.protocol180.aggregator.flow;
 
-import com.protocol180.aggregator.host.EnclaveHostService;
 import net.corda.core.node.AppServiceHub;
 import net.corda.core.node.services.CordaService;
 import org.jetbrains.annotations.NotNull;

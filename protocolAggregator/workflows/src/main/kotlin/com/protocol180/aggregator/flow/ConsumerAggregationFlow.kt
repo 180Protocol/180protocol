@@ -2,7 +2,6 @@ package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
-import com.protocol180.aggregator.sample.host.AggregationEnclaveService
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RoleType
 import com.r3.conclave.common.EnclaveInstanceInfo
@@ -39,9 +38,6 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
     @Suspendable
     @Throws(ConsumerAggregationFlowException::class)
     override fun call(): SignedTransaction {
-
-        //TODO: change API to accept data type argument - query host identity from coalition config state - fail if state not present
-
         val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
@@ -49,8 +45,7 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
         val consumer = ourIdentity
 
-        val coalitionConfiguration = coalitionConfigurationStateService.
-        findCoalitionConfigurationStateForParticipants(listOf(ourIdentity))
+        val coalitionConfiguration = coalitionConfigurationStateService.findCoalitionConfigurationStateForParticipants(listOf(ourIdentity))
 
         if(coalitionConfiguration == null){
             throw ConsumerAggregationFlowException("Coalition Configuration is not known to node, host needs to update configuration and include node in participants")
@@ -58,25 +53,27 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
             throw ConsumerAggregationFlowException("Unsupported data type requested for aggregation, please use a supported data type configured in the coalition configuration")
         }
 
+        enclaveClientService.initializeSchema(String(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile))
+
         val host = coalitionConfiguration.state.data.getPartiesForRole(RoleType.COALITION_HOST).single()
         log.info("Found host in configuration state: $host")
         val hostSession = initiateFlow(host)
         //receive attestation from host
-        val attestationBytes = hostSession.sendAndReceive<ByteArray>(enclaveClientService.envelopeSchema.toString()).unwrap { it }
+        val attestationBytes = hostSession.sendAndReceive<ByteArray>(dataType).unwrap { it }
         //key for this aggregation
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
         //send data output schema to be aggregated to host
-        val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail
-        (enclaveClientService.aggregationOutputSchema.toString().toByteArray())).unwrap { it }
+        val encryptedAggregationDataRecordBytes = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(enclaveClientService
+                .aggregationOutputSchema.toString().toByteArray())).unwrap { it }
         val decryptedAggregationDataRecordBytes = postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
-        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(),
-            decryptedAggregationDataRecordBytes, "Temp_Data_Type")
+
+        //Store aggregation output data received from enclave into consumer's local db
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, dataType)
 
         //optional reading of records - needed for the front end read flow
-        //enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(decryptedAggregationDataRecordBytes, "aggregate")
         val commandData: CommandData = DataOutputContract.Commands.Create()
         val dataOutputState = DataOutputState(consumer, host, Instant.now(), attestationBytes, flowTopic)
 
@@ -107,24 +104,32 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
     override fun call() {
         log.info("Inside Responder flow available to host")
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
-        //receive data output schema from consumer
-        val envelopeSchema = flowSession.receive<String>().unwrap { it }
-        val providerInputSchema = Schema.Parser().parse(envelopeSchema).getField("aggregateInput").schema().toString()
-        val providerRewardsSchema = Schema.Parser().parse(envelopeSchema).getField("provenanceOutput").schema().toString()
+        //receive data type from consumer
+        val dataType = flowSession.receive<String>().unwrap { it }
+
+        //verify that host has agreed for aggregation of given data type
+        val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
+        val coalitionConfiguration = coalitionConfigurationStateService.findCoalitionConfigurationStateForParticipants(listOf(ourIdentity))
+
+        if (coalitionConfiguration == null) {
+            throw ConsumerAggregationFlowException("Coalition Configuration is not known to node, host needs to update configuration and include node in participants")
+        } else if (!coalitionConfiguration.state.data.isSupportedDataType(dataType)) {
+            throw ConsumerAggregationFlowException("Unsupported data type requested for aggregation, please use a supported data type configured in the coalition configuration")
+        }
 
         // initiate & configure enclave service to be used for aggregation
         val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
         val attestationBytes = enclaveService.attestationBytes
-        enclaveService.initializeAvroSchema(envelopeSchema.toByteArray())
+        enclaveService.initializeAvroSchema(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile)
 
         // Initiate Provider flows and acquire encrypted payload according to given schema
-        val providers = serviceHub.networkMapCache.allNodes.map { it.legalIdentities.get(0) } - ourIdentity - notary - flowSession.counterparty
+        val providers = serviceHub.networkMapCache.allNodes.map { it.legalIdentities[0] } - ourIdentity - notary - flowSession.counterparty
         val clientKeyMapWithRandomKeyGenerated = mutableMapOf<PublicKey, Pair<String, ByteArray>>()
 
         val providerSessions = providers.map { initiateFlow(it) }
         providerSessions.forEach { providerSession ->
             //receive provider data pair - provider public key -> encrypted input data payload
-            val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, providerInputSchema)).unwrap { it }
+            val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, dataType)).unwrap { it }
             log.info("Provider Data Pair:$providerDataPair")
             clientKeyMapWithRandomKeyGenerated[providerSession.counterparty.owningKey] = providerDataPair
             val encryptedPayloadFromProvider = providerDataPair.second
@@ -141,7 +146,7 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
 
         // Calculate reward points for each provider & submit reward response back to provider
         providerSessions.forEach { providerSession ->
-            val providerEncryptedBytesForRewards = providerSession.sendAndReceive<ByteArray>(providerRewardsSchema).unwrap { it }
+            val providerEncryptedBytesForRewards = providerSession.sendAndReceive<ByteArray>(dataType).unwrap { it }
             val encryptedRewardResponseByteFromEnclave = this.await(enclaveService.deliverAndPickUpMail(this, providerEncryptedBytesForRewards))
             log.info(String(encryptedRewardResponseByteFromEnclave))
             providerSession.send(encryptedRewardResponseByteFromEnclave)

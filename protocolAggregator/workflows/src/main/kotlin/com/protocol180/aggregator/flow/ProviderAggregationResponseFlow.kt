@@ -7,8 +7,18 @@ import com.r3.conclave.common.EnclaveInstanceInfo
 import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
 import net.corda.core.contracts.CommandData
-import net.corda.core.contracts.requireThat
-import net.corda.core.flows.*
+import net.corda.core.flows.CollectSignaturesFlow
+import net.corda.core.flows.FinalityFlow
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.ReceiveFinalityFlow
+import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.internal.readFully
+import net.corda.core.node.services.AttachmentId
+import net.corda.core.node.services.vault.AttachmentQueryCriteria
+import net.corda.core.node.services.vault.Builder
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.loggerFor
@@ -24,7 +34,7 @@ import java.time.Instant
 @InitiatedBy(ConsumerAggregationFlowResponder::class)
 class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<SignedTransaction>() {
 
-    companion object{
+    companion object {
         private val log = loggerFor<ProviderAggregationResponseFlow>()
     }
 
@@ -34,36 +44,53 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val host = hostSession.counterparty
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
 
+        val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
         val providerDbStoreService = serviceHub.cordaService(ProviderDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
 
-        val attestationBytesAndInputSchemaType = hostSession.receive<Pair<ByteArray, String>>().unwrap { it }
-        val attestationBytes = attestationBytesAndInputSchemaType.first
-        val inputSchemaType = attestationBytesAndInputSchemaType.second
+
+        val attestationBytesAndDataType = hostSession.receive<Pair<ByteArray, String>>().unwrap { it }
+        val attestationBytes = attestationBytesAndDataType.first
+        val dataType = attestationBytesAndDataType.second
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
 
-        if (inputSchemaType != enclaveClientService.aggregationInputSchema.toString())
-            throw IllegalArgumentException("Wrong schema provided from host.")
+        //checking weather this node is participant for given coalition or not
+        val coalitionConfiguration = coalitionConfigurationStateService.findCoalitionConfigurationStateForParticipants(listOf(provider))
+
+        if (coalitionConfiguration == null) {
+            throw ConsumerAggregationFlowException("Coalition Configuration is not known to node, host needs to update configuration and include node in participants")
+        } else if (!coalitionConfiguration.state.data.isSupportedDataType(dataType)) {
+            throw ConsumerAggregationFlowException("Unsupported data type requested for aggregation, please use a supported data type configured in the coalition configuration")
+        }
+
+        enclaveClientService.initializeSchema(String(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile))
+
         log.info("inside provider flow, postOffice has been created successfully")
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
+
         //vault query to get attachment for data type - zip file
-        //convert zip to
-        val providerDataPair = Pair(encryptionKey.publicKey.toString(),
-            postOffice.encryptMail(enclaveClientService.createProviderDataRecordForAggregation()!!))
+        val listOfAttachmentHash: List<AttachmentId> = serviceHub.attachments.queryAttachments(AttachmentQueryCriteria.AttachmentsQueryCriteria(uploaderCondition = Builder.equal(dataType)))
+        val attachment = serviceHub.attachments.openAttachment(listOfAttachmentHash.single())
+        val recordList = enclaveClientService.readInputDataFromAttachment(attachment!!.open().readFully())
+
+        val headerLine = recordList.first()
+        recordList.remove(headerLine)
+
+        val providerDataPair = Pair(encryptionKey.publicKey.toString(), postOffice.encryptMail(enclaveClientService
+                .createProviderDataRecordForAggregation(headerLine, recordList)!!))
         //Provider shares public key and encrypted data with host
         hostSession.send(providerDataPair)
 
         //Provider acknowledges rewards schema from host
-        val providerRewardSchema = hostSession.receive<String>().unwrap { it }
+        val rewardCalculationFlag = hostSession.receive<String>().unwrap { it }
         //Provider receives encrypted rewards data from enclave via host
-        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(
-            providerRewardSchema.toByteArray())).unwrap { it }
+        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(enclaveClientService.provenanceOutputSchema.toString().toByteArray())).unwrap { it }
         val decryptedRewardByteArray = postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes
-        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(),
-            decryptedRewardByteArray, "Temp_Data_Type")
-        log.info("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(
-            providerDbStoreService.retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
+        providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), decryptedRewardByteArray,
+                coalitionConfiguration.state.contract)
+        log.debug("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService
+                .retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
 
         val hostRewardsResponseSession = initiateFlow(host)
         val commandData: CommandData = RewardsContract.Commands.Create()
