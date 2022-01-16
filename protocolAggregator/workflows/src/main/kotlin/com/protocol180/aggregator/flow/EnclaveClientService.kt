@@ -14,11 +14,8 @@ import org.apache.avro.generic.GenericDatumWriter
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
+import org.apache.avro.io.EncoderFactory
+import java.io.*
 import java.util.*
 import java.util.function.Consumer
 import java.util.zip.ZipFile
@@ -84,7 +81,7 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     }
 
     fun readGenericRecordsFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ArrayList<GenericRecord?> {
-        val datumReader: DatumReader<GenericRecord> = if (schemaType == "aggregate") GenericDatumReader(aggregationInputSchema) else GenericDatumReader(provenanceOutputSchema)
+        val datumReader: DatumReader<GenericRecord> = if (schemaType == "aggregate") GenericDatumReader(aggregationOutputSchema) else GenericDatumReader(provenanceOutputSchema)
         val input: SeekableInput = SeekableByteArrayInput(outputBytes)
         val dataFileReader = DataFileReader(input, datumReader)
         val genericRecords = ArrayList<GenericRecord?>()
@@ -94,6 +91,27 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             genericRecords.add(dataRecord)
         }
         return genericRecords
+    }
+
+    fun readJsonFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ByteArrayOutputStream {
+        val schema = if (schemaType == "aggregate") aggregationOutputSchema else provenanceOutputSchema
+        val datumReader: DatumReader<GenericRecord> = GenericDatumReader(schema)
+        val input: SeekableInput = SeekableByteArrayInput(outputBytes)
+        val dataFileReader = DataFileReader(input, datumReader)
+        val genericRecords = ArrayList<GenericRecord?>()
+        var dataRecord: GenericRecord?
+        while (dataFileReader.hasNext()) {
+            dataRecord = dataFileReader.next()
+            genericRecords.add(dataRecord)
+        }
+        val outputStream = ByteArrayOutputStream()
+        val encoder = EncoderFactory.get().jsonEncoder(schema, outputStream)
+        val datumWriter: DatumWriter<GenericRecord> = GenericDatumWriter(schema)
+        genericRecords.forEach{
+            datumWriter.write(it, encoder)
+        }
+        encoder.flush()
+        return outputStream
     }
 
     fun readInputDataFromAttachment(zipData: ByteArray): MutableList<String> {

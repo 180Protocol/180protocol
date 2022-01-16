@@ -89,8 +89,6 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val decryptedRewardByteArray = postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes
         providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), decryptedRewardByteArray,
                 coalitionConfiguration.state.contract)
-        log.debug("Provider Rewards: " + enclaveClientService.readGenericRecordsFromOutputBytesAndSchema(providerDbStoreService
-                .retrieveRewardResponseWithFlowId(this.runId.uuid.toString())!!, "provenance"))
 
         val hostRewardsResponseSession = initiateFlow(host)
         val commandData: CommandData = RewardsContract.Commands.Create()
