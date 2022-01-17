@@ -159,8 +159,8 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         cordapps.clear()
     }
     node {
-        name "O=PartyA,L=London,C=GB"
-        p2pAddress "partya-node:10004"
+        name "O=Host,L=London,C=GB"
+        p2pAddress "host-node:10004"
         rpcSettings {
             address("0.0.0.0:10005")
             adminAddress("0.0.0.0:10045")
@@ -174,8 +174,8 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=PartyB,L=New York,C=US"
-        p2pAddress "partyb-node:10006"
+        name "O=ProviderB,L=New York,C=US"
+        p2pAddress "providerb-node:10006"
         rpcSettings {
             address("0.0.0.0:10007")
             adminAddress("0.0.0.0:10047")
@@ -189,9 +189,8 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=PartyC,L=Chicago,C=US"
-        p2pPort 10008
-        p2pAddress "partyc-node:10008"
+        name "O=ConsumerC,L=Chicago,C=US"
+        p2pAddress "consumerc-node:10008"
         rpcSettings {
             address("0.0.0.0:10009")
             adminAddress("0.0.0.0:10049")
