@@ -77,10 +77,10 @@ class ConsumerAggregationFlowTest {
     }
 
     private fun createConfigurationState() {
-        var coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party),
-            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party),
-            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party,
-                provider2.info.chooseIdentityAndCert().party))
+        var coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party.name,
+                provider2.info.chooseIdentityAndCert().party.name))
 
         val dataTypes = listOf(
                 CoalitionDataType("testDataType1", "Test Data Type 1",

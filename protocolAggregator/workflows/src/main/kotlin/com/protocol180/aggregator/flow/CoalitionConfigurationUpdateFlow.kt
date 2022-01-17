@@ -7,6 +7,7 @@ import com.protocol180.aggregator.states.CoalitionDataType
 import com.protocol180.aggregator.states.RoleType
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -24,7 +25,7 @@ import net.corda.core.utilities.loggerFor
 
 @InitiatingFlow
 @StartableByRPC
-class CoalitionConfigurationUpdateFlow(private val coalitionPartyToRole: Map<RoleType, Set<Party>>,
+class CoalitionConfigurationUpdateFlow(private val coalitionRoleToName: Map<RoleType, Set<CordaX500Name>>,
                                        private val supportedCoalitionDataTypes: List<CoalitionDataType>) :
     FlowLogic<SignedTransaction>() {
     companion object{
@@ -49,15 +50,19 @@ class CoalitionConfigurationUpdateFlow(private val coalitionPartyToRole: Map<Rol
         val currentState = coalitionConfigurationStateService.
         findCoalitionConfigurationStateForParticipants(listOf(ourIdentity))
 
+        val coalitionRoleToParty = coalitionRoleToName.mapValues{ entry ->
+            entry.value.map{ serviceHub.networkMapCache.getPeerByLegalName(it)!!}.toSet()
+        }
+
         //build transaction for coalition configuration state and verify with contract
         val builder = TransactionBuilder(notary)
         if (currentState != null) {
             builder.addInputState(currentState)
-            val updatedState = CoalitionConfigurationState(currentState.state.data.linearId, coalitionPartyToRole, supportedCoalitionDataTypes)
+            val updatedState = CoalitionConfigurationState(currentState.state.data.linearId, coalitionRoleToParty, supportedCoalitionDataTypes)
             builder.addOutputState(updatedState, CoalitionConfigurationContract.ID)
             builder.addCommand(CoalitionConfigurationContract.Commands.Update(), updatedState.participants.map{it.owningKey})
         } else {
-            val updatedState = CoalitionConfigurationState(UniqueIdentifier(), coalitionPartyToRole, supportedCoalitionDataTypes)
+            val updatedState = CoalitionConfigurationState(UniqueIdentifier(), coalitionRoleToParty, supportedCoalitionDataTypes)
             builder.addOutputState(updatedState, CoalitionConfigurationContract.ID)
             builder.addCommand(CoalitionConfigurationContract.Commands.Issue(), updatedState.participants.map{it.owningKey})
         }
@@ -66,7 +71,7 @@ class CoalitionConfigurationUpdateFlow(private val coalitionPartyToRole: Map<Rol
         builder.verify(serviceHub)
 
         //initiate sessions with all parties specified in the rolePartyIdentity map except for the host and collect sigs
-        val counterpartySessions : List<FlowSession> = coalitionPartyToRole.filterNot { it.key == RoleType.COALITION_HOST }.
+        val counterpartySessions : List<FlowSession> = coalitionRoleToParty.filterNot { it.key == RoleType.COALITION_HOST }.
         values.fold(listOf<Party>()){
                 acc, e -> acc + e
         }.map { initiateFlow(it) }

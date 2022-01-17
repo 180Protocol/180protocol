@@ -4,6 +4,8 @@ import com.protocol180.aggregator.states.CoalitionConfigurationState
 import com.protocol180.aggregator.states.CoalitionDataType
 import com.protocol180.aggregator.states.RoleType
 import net.corda.core.contracts.StateAndRef
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.internal.readFully
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.queryBy
@@ -60,10 +62,10 @@ class CoalitionConfigurationTest {
 
     @Test
     fun createCoalitionConfigurationStateAndTestUpdate() {
-        var coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party),
-            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party),
-            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party,
-                provider2.info.chooseIdentityAndCert().party))
+        var coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party.name,
+                provider2.info.chooseIdentityAndCert().party.name))
 
         val dataTypes = listOf(CoalitionDataType("testDataType1", "Test Data Type 1",
                 ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully()),
@@ -77,14 +79,16 @@ class CoalitionConfigurationTest {
         assertEquals(1, signedTransaction.tx.outputStates.size)
         val output1 = signedTransaction.tx.getOutput(0) as CoalitionConfigurationState
 
-        assertEquals(coalitionPartyToRole, output1.coalitionPartyToRole)
+        /*assertEquals(coalitionPartyToRole.values, output1.coalitionPartyToRole.mapValues {
+                entry -> entry.value.map{it.name}.toSet() }.values)*/
+        assertEquals(coalitionPartyToRole.values.fold(listOf<CordaX500Name>()){ acc, e -> acc + e }, output1.participants.map{it.nameOrNull()})
         assertEquals(dataTypes, output1.supportedCoalitionDataTypes)
 
         //add new provider node to network
-        coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party),
-            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party),
-            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party,
-                provider2.info.chooseIdentityAndCert().party, provider3.info.chooseIdentityAndCert().party))
+        coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party.name,
+                provider2.info.chooseIdentityAndCert().party.name, provider3.info.chooseIdentityAndCert().party.name))
 
         val flow2 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
         val future2 = host.startFlow(flow2)
@@ -94,7 +98,7 @@ class CoalitionConfigurationTest {
         assertEquals(1, signedTransaction2.tx.outputStates.size)
         val output2 = signedTransaction2.tx.getOutput(0) as CoalitionConfigurationState
 
-        assertEquals(coalitionPartyToRole, output2.coalitionPartyToRole)
+        assertEquals(coalitionPartyToRole.values.fold(listOf<CordaX500Name>()){ acc, e -> acc + e }, output2.participants.map{it.nameOrNull()})
         assertEquals(dataTypes, output2.supportedCoalitionDataTypes)
         assertEquals(output1.linearId, output2.linearId)
 
