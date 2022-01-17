@@ -4,19 +4,19 @@ nodes:
     password: test
     port: 9500
     role: provider
-    name: O=PartyA,L=London,C=GB
+    name: O=Host,L=London,C=GB
   providerB:
     username: providerB
     password: test
-    port: 9600
+    port: 7500
     role: provider
-    name: O=PartyB,L=London,C=GB
+    name: O=ProviderB,L=New York,C=US
   consumerA:
     username: consumerA
     password: test
-    port: 9700
+    port: 6500
     role: consumer
-    name: O=PartyB,L=London,C=GB
+    name: O=ConsumerC,L=Chicago,C=US
 rewards:
   amountProvided: 20
   completeness: 30

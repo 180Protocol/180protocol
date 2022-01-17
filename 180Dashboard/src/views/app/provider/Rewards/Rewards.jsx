@@ -16,10 +16,10 @@ const Rewards = (props) => {
     const [columns,] = useState([
         {name: 'id', title: 'ID'},
         {name: 'date', title: 'Date'},
-        {name: 'amountProvided', title: 'AP'},
+        {name: 'amountProvided', title: 'Amount Provided'},
         {name: 'completeness', title: 'Completeness'},
         {name: 'uniqueness', title: 'Uniqueness'},
-        {name: 'updateFrequency', title: 'UF'},
+        {name: 'updateFrequency', title: 'Update Frequency'},
         {name: 'qualityScore', title: 'Quality Score'},
         {name: 'rewards', title: 'Rewards'}
     ]);
@@ -43,20 +43,16 @@ const Rewards = (props) => {
 
         fetchData().then(async (response) => {
             if (response && response.states && response.states.length > 0) {
-                let rewardsData = response.states.map((item) => {
-                    return item.ref
-                });
-
                 let params = {
                     "options": {
-                        "trackProgress": "true"
+                        "trackProgress": true
                     },
-                    "rewardsData": rewardsData
+                    "flowId": response.states[0].state.data.flowTopic
                 }
 
                 let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
-                setRows(decryptedRewardsData.result.value);
-                let lastWeekRewards = decryptedRewardsData.result.value.filter((item) => {
+                setRows(decryptedRewardsData);
+                let lastWeekRewards = decryptedRewardsData.filter((item) => {
                     return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));
                 });
 
@@ -66,48 +62,48 @@ const Rewards = (props) => {
                     amountProvided: [
                         {
                             "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData.result.value, "amountProvided")),
+                            "value": 10 - parseFloat(average(decryptedRewardsData, "amountProvided")),
                             "color": "hsl(0, 100%, 100%)"
                         },
                         {
                             "id": "Amount Provided",
-                            "value": parseFloat(average(decryptedRewardsData.result.value, "amountProvided")),
+                            "value": parseFloat(average(decryptedRewardsData, "amountProvided")),
                             "color": "hsl(96, 51%, 68%)"
                         }
                     ],
                     completeness: [
                         {
                             "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData.result.value, "completeness")),
+                            "value": 10 - parseFloat(average(decryptedRewardsData, "completeness")),
                             "color": "hsl(0, 100%, 100%)"
                         },
                         {
                             "id": "Completeness",
-                            "value": parseFloat(average(decryptedRewardsData.result.value, "completeness")),
+                            "value": parseFloat(average(decryptedRewardsData, "completeness")),
                             "color": "hsl(0, 100%, 88%)"
                         }
                     ],
                     uniqueness: [
                         {
                             "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData.result.value, "uniqueness")),
+                            "value": 10 - parseFloat(average(decryptedRewardsData, "uniqueness")),
                             "color": "hsl(0, 100%, 100%)"
                         },
                         {
                             "id": "Uniqueness",
-                            "value": parseFloat(average(decryptedRewardsData.result.value, "uniqueness")),
+                            "value": parseFloat(average(decryptedRewardsData, "uniqueness")),
                             "color": "hsl(55, 47%, 63%)"
                         }
                     ],
                     updateFrequency: [
                         {
                             "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData.result.value, "updateFrequency")),
+                            "value": 10 - parseFloat(average(decryptedRewardsData, "updateFrequency")),
                             "color": "hsl(0, 100%, 100%)"
                         },
                         {
                             "id": "Update Frequency",
-                            "value": parseFloat(average(decryptedRewardsData.result.value, "updateFrequency")),
+                            "value": parseFloat(average(decryptedRewardsData, "updateFrequency")),
                             "color": "hsl(96, 51%, 68%)"
                         }
                     ]

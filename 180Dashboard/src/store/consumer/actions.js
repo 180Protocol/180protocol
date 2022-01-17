@@ -7,7 +7,7 @@ export async function createAggregationRequest(dispatch, apiUrl, payload) {
         body: JSON.stringify(payload)
     };
     try {
-        let response = await fetch(`${apiUrl}/180 Protocol Broker Flows/ConsumerAggregationProposeFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerAggregationFlow`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -34,7 +34,7 @@ export async function fetchEncryptedDataOutput(dispatch, apiUrl, payload) {
     let userInfo = JSON.parse(localStorage.getItem('user'));
 
     try {
-        let response = await fetch(`${apiUrl}/180Protocol Broker Contracts/DataOutputState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180Protocol Broker Contracts/DataOutputState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_SUCCESS', payload: data});
@@ -59,12 +59,13 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/180 Protocol Broker Flows/DataOutputDecryptFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow?wait=3`, requestOptions);
         let data = await response.json();
+        let value = data.result.value;
 
         if (data) {
-            dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', payload: data});
-            return data;
+            dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', payload: value});
+            return value;
         }
 
         dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_ERROR', error: 'Error'});

@@ -1,11 +1,11 @@
-import React, {useState, useCallback, useEffect} from "react";
+import React, {useState, useCallback, useEffect, useRef} from "react";
 import Select from 'react-select';
 import Grid from "../../../../components/Grid";
 import {useDropzone} from "react-dropzone";
 import Menu from "../../../../containers/navs/Menu";
 import {useAuthDispatch, useAuthState} from "../../../../store/context";
 import {fetchDecryptedRewardsData, fetchEncryptedRewardsData, upload} from "../../../../store/provider/actions";
-
+import AlertBox from "../../../../components/AlertBox";
 // Styles
 import styles from './Data.module.scss';
 
@@ -16,6 +16,7 @@ import moment from "moment";
 const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
     const userDetails = useAuthState();
+    const alertRef = useRef();
 
     const [columns,] = useState([
         {name: 'coApplication', title: 'CoApp'},
@@ -41,23 +42,16 @@ const Dashboard = (props) => {
 
         fetchData().then(async (response) => {
             if (response && response.states && response.states.length > 0) {
-                let rewardsData = response.states.map((item) => {
-                    return {
-                        "rewards": item.rewards,
-                        "flowTopic": item.flowTopic
-                    }
-                });
-
                 let params = {
                     "options": {
-                        "trackProgress": "true"
+                        "trackProgress": true
                     },
-                    "rewardsData": rewardsData
+                    "flowId": response.states[0].state.data.flowTopic
                 }
 
                 let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
-                setRows(decryptedRewardsData.result.value);
-                let sortedRewardsData = decryptedRewardsData.result.value.sort(function (a, b) {
+                setRows(decryptedRewardsData);
+                let sortedRewardsData = decryptedRewardsData.sort(function (a, b) {
                     return new Date(b.date) - new Date(a.date)
                 })
 
@@ -83,7 +77,10 @@ const Dashboard = (props) => {
         formData.append("uploader", userDetails.user.username);
         formData.append("filename", selectedFiles[0].name);
 
-        await upload(dispatch, formData);
+        let response = await upload(dispatch, props.apiUrl, formData);
+        if (response) {
+            alertRef.current.showAlert('success', 'Data uploaded successfully.')
+        }
     }
 
     return (
@@ -176,6 +173,7 @@ const Dashboard = (props) => {
                     </div>
                 </div>
             </section>
+            <AlertBox ref={alertRef}/>
         </>
     )
 }
