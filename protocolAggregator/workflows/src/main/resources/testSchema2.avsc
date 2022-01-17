@@ -1,7 +1,7 @@
 {
   "namespace": "com.180protocol",
   "type": "record",
-  "name": "Envelope",
+  "name": "testSchema2",
   "fields": [
     {
         "name": "aggregateInput",
@@ -32,10 +32,10 @@
                 }
     },
     {
-        "name": "provenanceOutput",
+        "name": "rewardsOutput",
         "type": {
                     "type" : "record",
-                    "name" : "Provenance",
+                    "name" : "Rewards",
                     "fields": [
                         {"name": "client", "type": "string"},
                         {"name": "allocation", "type": "int"}

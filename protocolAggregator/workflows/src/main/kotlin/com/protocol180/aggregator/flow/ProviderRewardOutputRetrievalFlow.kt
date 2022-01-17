@@ -22,6 +22,6 @@ class ProviderRewardOutputRetrievalFlow(private val flowId: String) : FlowLogic<
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val provider = ourIdentity
 
-        return enclaveClientService.readJsonFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(flowId)!!, "provenance").toString()
+        return enclaveClientService.readJsonFromOutputBytesAndSchema(providerDbStoreService.retrieveRewardResponseWithFlowId(flowId)!!, "rewards").toString()
     }
 }

@@ -6,7 +6,7 @@ public enum MailType {
     TYPE_IDENTITIES("identities"),
     TYPE_CONSUMER("consumer"),
     TYPE_PROVIDER("provider"),
-    TYPE_PROVENANCE("provenance");
+    TYPE_REWARDS("rewards");
 
     public final String type;
 

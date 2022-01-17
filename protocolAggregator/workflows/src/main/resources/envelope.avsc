@@ -32,10 +32,10 @@
                 }
     },
     {
-        "name": "provenanceOutput",
+        "name": "rewardsOutput",
         "type": {
                     "type" : "record",
-                    "name" : "Provenance",
+                    "name" : "Rewards",
                     "fields": [
                         {"name": "client", "type": "string"},
                         {"name": "allocation", "type": "int"}

@@ -28,9 +28,11 @@ import java.util.zip.ZipInputStream
 @CordaService
 class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsToken() {
 
+
+    var envelopeSchema: Schema? = null
     var aggregationInputSchema: Schema? = null
     var aggregationOutputSchema: Schema? = null
-    var provenanceOutputSchema: Schema? = null
+    var rewardsOutputSchema: Schema? = null
 
     fun initializeSchema(envelopeSchema: String) {
         val envelopeSchema = try {
@@ -40,7 +42,7 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
         }
         aggregationInputSchema = envelopeSchema!!.getField("aggregateInput").schema()
         aggregationOutputSchema = envelopeSchema!!.getField("aggregateOutput").schema()
-        provenanceOutputSchema = envelopeSchema!!.getField("provenanceOutput").schema()
+        rewardsOutputSchema = envelopeSchema!!.getField("rewardsOutput").schema()
     }
 
 
@@ -81,7 +83,7 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     }
 
     fun readGenericRecordsFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ArrayList<GenericRecord?> {
-        val datumReader: DatumReader<GenericRecord> = if (schemaType == "aggregate") GenericDatumReader(aggregationOutputSchema) else GenericDatumReader(provenanceOutputSchema)
+        val datumReader: DatumReader<GenericRecord> = if (schemaType == "aggregate") GenericDatumReader(aggregationOutputSchema) else GenericDatumReader(rewardsOutputSchema)
         val input: SeekableInput = SeekableByteArrayInput(outputBytes)
         val dataFileReader = DataFileReader(input, datumReader)
         val genericRecords = ArrayList<GenericRecord?>()
@@ -94,7 +96,7 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     }
 
     fun readJsonFromOutputBytesAndSchema(outputBytes: ByteArray, schemaType: String): ByteArrayOutputStream {
-        val schema = if (schemaType == "aggregate") aggregationOutputSchema else provenanceOutputSchema
+        val schema = if (schemaType == "aggregate") aggregationOutputSchema else rewardsOutputSchema
         val datumReader: DatumReader<GenericRecord> = GenericDatumReader(schema)
         val input: SeekableInput = SeekableByteArrayInput(outputBytes)
         val dataFileReader = DataFileReader(input, datumReader)

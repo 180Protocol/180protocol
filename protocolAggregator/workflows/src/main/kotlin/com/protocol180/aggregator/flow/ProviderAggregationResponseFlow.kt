@@ -85,7 +85,7 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         //Provider acknowledges rewards schema from host
         val rewardCalculationFlag = hostSession.receive<String>().unwrap { it }
         //Provider receives encrypted rewards data from enclave via host
-        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(enclaveClientService.provenanceOutputSchema.toString().toByteArray())).unwrap { it }
+        val encryptedRewardByteArray = hostSession.sendAndReceive<ByteArray>(postOffice.encryptMail(enclaveClientService.rewardsOutputSchema.toString().toByteArray())).unwrap { it }
         val decryptedRewardByteArray = postOffice.decryptMail(encryptedRewardByteArray).bodyAsBytes
         providerDbStoreService.addRewardResponseWithFlowId(this.runId.uuid.toString(), decryptedRewardByteArray,
                 coalitionConfiguration.state.contract)
