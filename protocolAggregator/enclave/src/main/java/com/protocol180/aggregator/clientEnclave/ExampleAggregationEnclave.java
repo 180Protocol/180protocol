@@ -10,17 +10,15 @@ import org.apache.avro.io.DatumWriter;
 import java.io.File;
 import java.io.IOException;
 import java.security.PublicKey;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Random;
 
 public class ExampleAggregationEnclave extends AggregationEnclave {
 
     final String TEST_SCHEMA_1 = "testSchema1";
     final String TEST_SCHEMA_2 = "testSchema2";
+
+    Random random = new Random();
 
     protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
 
@@ -33,14 +31,29 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
 
+        int generalMinLimit = 1;
+        int generalMaxLimit = 10;
+        int finalRewardMinLimit = 1;
+        int finalRewardMaxLimit = 100;
+
         switch (envelopeSchema.getName()) {
             case TEST_SCHEMA_1:
-                rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-                rewardRecord.put("allocation", calculateRewardsForSchema1(clientToRawDataMap.get(providerKey)));
+                rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
+                rewardRecord.put("dataType", TEST_SCHEMA_1);
                 break;
             case TEST_SCHEMA_2:
-                rewardRecord.put("client", Base64.getEncoder().encodeToString(providerKey.getEncoded()));
-                rewardRecord.put("allocation", calculateRewardsForSchema2(clientToRawDataMap.get(providerKey)));
+                rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
+                rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
+                rewardRecord.put("dataType", TEST_SCHEMA_2);
                 break;
             default:
         }
@@ -54,77 +67,6 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         return outputFile;
     }
 
-    private Object calculateRewardsForSchema2(ArrayList<GenericRecord> records) {
-        //calculations for rewards allocation on fixed income demand data
-        ArrayList<Integer> allocationScores = new ArrayList<>();
-        Map<String, Integer> creditRatings = Stream.of(
-                new AbstractMap.SimpleEntry<>("A", 1),
-                new AbstractMap.SimpleEntry<>("AA", 2),
-                new AbstractMap.SimpleEntry<>("AAA", 3),
-                new AbstractMap.SimpleEntry<>("B", 1),
-                new AbstractMap.SimpleEntry<>("C", 0)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> sectors = Stream.of(
-                new AbstractMap.SimpleEntry<>("FINANCIALS", 1),
-                new AbstractMap.SimpleEntry<>("INDUSTRIALS", 2),
-                new AbstractMap.SimpleEntry<>("IT", 3),
-                new AbstractMap.SimpleEntry<>("INFRASTRUCTURE", 1),
-                new AbstractMap.SimpleEntry<>("ENERGY", 5)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> assetTypes = Stream.of(
-                new AbstractMap.SimpleEntry<>("B", 3),
-                new AbstractMap.SimpleEntry<>("PP", 2),
-                new AbstractMap.SimpleEntry<>("L", 1)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> durations = Stream.of(
-                new AbstractMap.SimpleEntry<>("1", 1),
-                new AbstractMap.SimpleEntry<>("2", 2),
-                new AbstractMap.SimpleEntry<>("3", 3),
-                new AbstractMap.SimpleEntry<>("4", 4),
-                new AbstractMap.SimpleEntry<>("5", 5)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        records.forEach(record -> {
-            Integer amount = (Integer) record.get("amount");
-            allocationScores.add((creditRatings.get(record.get("creditRating").toString()) + sectors.get(record.get("sector").toString()) +
-                    assetTypes.get(record.get("assetType").toString()) + durations.get(record.get("duration").toString())) + amount / 1000000);
-        });
-        return allocationScores.stream().mapToInt(a -> a).sum();
-
-    }
-
-    private Object calculateRewardsForSchema1(ArrayList<GenericRecord> records) {
-        //calculations for rewards allocation on fixed income demand data
-        ArrayList<Integer> allocationScores = new ArrayList<>();
-        Map<Integer, Integer> riskScore = Stream.of(
-                new AbstractMap.SimpleEntry<>(50, 2),
-                new AbstractMap.SimpleEntry<>(100, 3),
-                new AbstractMap.SimpleEntry<>(30, 1),
-                new AbstractMap.SimpleEntry<>(80, 3),
-                new AbstractMap.SimpleEntry<>(60, 2)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> company = Stream.of(
-                new AbstractMap.SimpleEntry<>("FINANCIALS", 1),
-                new AbstractMap.SimpleEntry<>("INDUSTRIALS", 2),
-                new AbstractMap.SimpleEntry<>("IT", 3),
-                new AbstractMap.SimpleEntry<>("INFRASTRUCTURE", 1),
-                new AbstractMap.SimpleEntry<>("ENERGY", 5)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Integer> region = Stream.of(
-                new AbstractMap.SimpleEntry<>("EUROPE", 3),
-                new AbstractMap.SimpleEntry<>("AMERICA", 3),
-                new AbstractMap.SimpleEntry<>("CHINA", 1),
-                new AbstractMap.SimpleEntry<>("ASIA", 2)
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
-        records.forEach(record -> {
-            allocationScores.add((riskScore.get((Integer) record.get("riskScore")) + company.get(record.get("company").toString()) +
-                    region.get(record.get("region").toString())));
-        });
-        return allocationScores.stream().mapToInt(a -> a).sum();
-
-    }
 
     @Override
     protected File createAggregateDataOutput() throws IOException {
@@ -167,6 +109,10 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         dataFileWriter.close();
         return outputFile;
+    }
+
+    private float getRandomNumber(int minLimit, int maxLimit, int decimalPlace) {
+        return (minLimit + random.nextInt() * (minLimit - maxLimit)) / decimalPlace;
     }
 
 }

@@ -35,8 +35,13 @@
                     "type" : "record",
                     "name" : "Rewards",
                     "fields": [
-                        {"name": "client", "type": "string"},
-                        {"name": "allocation", "type": "int"}
+                        {"name": "amountProvided", "type": "float"},
+                        {"name": "completeness", "type": "float"},
+                        {"name": "uniqueness", "type": "float"},
+                        {"name": "updateFrequency", "type": "float"},
+                        {"name": "qualityScore", "type": "float"},
+                        {"name": "rewards", "type": "float"},
+                        {"name": "dataType", "type": "string"}
                     ]
                 }
     },

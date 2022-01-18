@@ -5,6 +5,7 @@ import java.io.Serializable
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
+import javax.persistence.Lob
 import javax.persistence.Table
 
 
@@ -18,6 +19,7 @@ object ProviderRewardSchemaV1 : MappedSchema(schemaFamily = ProviderRewardSchema
     class ProviderReward(@Id
                          @Column(name = "flow_id", nullable = false, unique = true)
                          var flowId: String,
+                         @Lob
                          @Column(name = "reward_generic_record_bytes", nullable = false)
                          val rewardGenericRecordBytes: ByteArray,
                          @Column(name = "reward_output_data_type", nullable = false)
