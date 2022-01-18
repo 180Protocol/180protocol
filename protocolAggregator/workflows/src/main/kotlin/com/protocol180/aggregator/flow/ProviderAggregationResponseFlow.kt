@@ -18,7 +18,9 @@ import net.corda.core.flows.SignTransactionFlow
 import net.corda.core.internal.readFully
 import net.corda.core.node.services.AttachmentId
 import net.corda.core.node.services.vault.AttachmentQueryCriteria
+import net.corda.core.node.services.vault.AttachmentSort
 import net.corda.core.node.services.vault.Builder
+import net.corda.core.node.services.vault.Sort
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.loggerFor
@@ -70,8 +72,10 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
         //vault query to get attachment for data type - zip file
-        val listOfAttachmentHash: List<AttachmentId> = serviceHub.attachments.queryAttachments(AttachmentQueryCriteria.AttachmentsQueryCriteria(uploaderCondition = Builder.equal(dataType)))
-        val attachment = serviceHub.attachments.openAttachment(listOfAttachmentHash.single())
+        val listOfAttachmentHash: List<AttachmentId> = serviceHub.attachments.queryAttachments(
+            AttachmentQueryCriteria.AttachmentsQueryCriteria(uploaderCondition = Builder.equal(dataType)),
+            AttachmentSort(listOf(AttachmentSort.AttachmentSortColumn(AttachmentSort.AttachmentSortAttribute.INSERTION_DATE, Sort.Direction.DESC))))
+        val attachment = serviceHub.attachments.openAttachment(listOfAttachmentHash.first())
         val recordList = enclaveClientService.readInputDataFromAttachment(attachment!!.open().readFully())
 
         val headerLine = recordList.first()
