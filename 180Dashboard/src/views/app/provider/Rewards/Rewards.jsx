@@ -14,7 +14,7 @@ const Rewards = (props) => {
     const dispatch = useAuthDispatch();
 
     const [columns,] = useState([
-        {name: 'id', title: 'ID'},
+        {name: 'flowId', title: 'ID'},
         {name: 'date', title: 'Date'},
         {name: 'amountProvided', title: 'Amount Provided'},
         {name: 'completeness', title: 'Completeness'},
@@ -50,7 +50,7 @@ const Rewards = (props) => {
                     "flowId": response.states[0].state.data.flowTopic
                 }
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
+                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, response.states[0].state.data.dateCreated)
                 setRows(decryptedRewardsData);
                 let lastWeekRewards = decryptedRewardsData.filter((item) => {
                     return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));

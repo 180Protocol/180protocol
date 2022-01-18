@@ -59,13 +59,26 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow?wait=3`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow?wait=1`, requestOptions);
         let data = await response.json();
-        let value = data.result.value;
+        let value = data.result.value ? data.result.value.split("\n") : [];
+        let result = [];
+        for (let i = 0; i < value.length; i++) {
+            let parsedData = JSON.parse(value[i]);
+            for (const [key, value] of Object.entries(parsedData)) {
+                if (value instanceof Object) {
+                    parsedData[key] = typeof Object.values(value)[0] === "number" ? Intl.NumberFormat().format(Object.values(value)[0]) : Object.values(value)[0];
+                } else {
+                    parsedData[key] = typeof value === "number" ? Intl.NumberFormat().format(value) : value;
+                }
+            }
 
-        if (data) {
-            dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', payload: value});
-            return value;
+            result.push(parsedData);
+        }
+
+        if (result) {
+            dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', payload: result});
+            return result;
         }
 
         dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_ERROR', error: 'Error'});

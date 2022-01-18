@@ -69,7 +69,8 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "dataType": values.dataType.value
+            "dataType": values.dataType.value,
+            "description": values.description
         };
 
         let response = await createAggregationRequest(dispatch, props.apiUrl, params);
@@ -81,8 +82,8 @@ const Dashboard = (props) => {
         }
     }
 
-    const refresh = () => {
-        let response = fetchEncryptedDataOutput(dispatch, props.apiUrl, {})
+    const refresh = async () => {
+        let response = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {})
         getDecryptedData(response);
     }
 
@@ -109,7 +110,6 @@ const Dashboard = (props) => {
         }
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
-        console.log("response>>>>>>>>>>", decryptedDataOutput);
         let columns = [];
         for (let i = 0; i < decryptedDataOutput.length; i++) {
             for (let property in decryptedDataOutput[i]) {

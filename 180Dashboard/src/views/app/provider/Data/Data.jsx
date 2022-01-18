@@ -19,10 +19,10 @@ const Dashboard = (props) => {
     const alertRef = useRef();
 
     const [columns,] = useState([
-        {name: 'coApplication', title: 'CoApp'},
-        {name: 'id', title: 'ID'},
+        {name: 'coApp', title: 'CoApp'},
+        {name: 'flowId', title: 'ID'},
         {name: 'qualityScore', title: 'Quality Score'},
-        {name: 'date', title: 'Time'},
+        {name: 'date', title: 'Date'},
         {name: 'rewards', title: 'Rewards'},
         {name: 'rewardsBalance', title: 'Rewards Balance'}
     ]);
@@ -49,7 +49,7 @@ const Dashboard = (props) => {
                     "flowId": response.states[0].state.data.flowTopic
                 }
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params)
+                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, response.states[0].state.data.dateCreated)
                 setRows(decryptedRewardsData);
                 let sortedRewardsData = decryptedRewardsData.sort(function (a, b) {
                     return new Date(b.date) - new Date(a.date)

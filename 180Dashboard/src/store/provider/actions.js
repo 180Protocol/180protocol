@@ -47,7 +47,7 @@ export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
     }
 }
 
-export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload) {
+export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload, dateCreated) {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -57,18 +57,27 @@ export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ProviderRewardOutputRetrievalFlow?wait=3`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ProviderRewardOutputRetrievalFlow?wait=1`, requestOptions);
         let data = await response.json();
-        let value = JSON.parse(data.result.value);
-        let sum = 0;
+        let value = data.result.value ? data.result.value.split("\n") : [];
+        let result = [];
         for (let i = 0; i < value.length; i++) {
-            sum += parseFloat(value[i].rewards);
-            value[i].rewardsBalance = sum;
+            let parsedData = JSON.parse(value[i]);
+            parsedData.flowId = data.flowRunId;
+            parsedData.coApp = 'DMS';
+            parsedData.date = dateCreated;
+            result.push(parsedData);
         }
 
-        if (data) {
-            dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_SUCCESS', payload: value});
-            return data;
+        let sum = 0;
+        for (let i = 0; i < result.length; i++) {
+            sum += parseFloat(result[i].rewards);
+            result[i].rewardsBalance = sum;
+        }
+
+        if (result) {
+            dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_SUCCESS', payload: result});
+            return result;
         }
 
         dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_ERROR', error: 'Error'});

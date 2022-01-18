@@ -23,9 +23,8 @@ export const sum = (arr, field) => {
 }
 
 export const ucWords = (str) => {
-    return str.replace(/_/g, ' ').toLowerCase().replace(/\b[a-z]/g, function (letter) {
-        return letter.toUpperCase();
-    });
+    const result = str.replace(/([A-Z])/g, " $1");
+    return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 export const getYamlInfo = async () => {
