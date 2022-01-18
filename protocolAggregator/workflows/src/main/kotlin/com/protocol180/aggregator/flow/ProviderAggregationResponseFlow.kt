@@ -29,7 +29,14 @@ import java.time.Instant
 
 
 /**
- * This is the flow which signs Aggregation Propose Transaction.
+ * This flow is triggered by the [ConsumerAggregationFlowResponder] when a consumer data aggregation is requested.
+ * The enclave is initiated and then the host gathers data from each of the providers in the network by kicking the
+ * [ProviderAggregationResponseFlow]. The host sends providers the enclave attestation and the requested data type.
+ * Providers then send back encrypted data to the host. Providers store sensitive data in CSV format as Corda
+ * attachments for each supported Coalition Data Type. This data is serialised according to the relevant
+ * Avro 'aggregateInput' sub-schema from the 'envelopeSchema', encrypted and sent to the host for aggregation. Providers
+ * then receive their rewards as calculated by the enclave from the host. Providers create a [RewardsState] transaction and
+ * sign with the host as a proof and receipt of the aggregation event.
  * The signing is handled by the [SignTransactionFlow].
  */
 @InitiatingFlow
@@ -110,6 +117,9 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
     }
 }
 
+/**
+ * Counter flow for [ProviderAggregationResponseFlow]. [RewardsState] is received and validated by the host
+ * **/
 @InitiatedBy(ProviderAggregationResponseFlow::class)
 @InitiatingFlow
 class ProviderAggregationResponseFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {

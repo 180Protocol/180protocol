@@ -14,16 +14,18 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.loggerFor
 import net.corda.core.utilities.unwrap
-import org.apache.avro.Schema
 import java.security.PublicKey
 import java.time.Instant
 
 /**
- * ConsumerAggregationFlow allows consumers in coalitions to initiate a data aggregation request. The flow accepts
+ * One of 180Protocol's supported Broker Flows. There will be more flow types in the future which are provider initiated instead
+ * of consumer initiated. ConsumerAggregationFlow allows consumers in coalitions to initiate a data aggregation request. The flow accepts
  * a supported dataType as an argument and initiates a request to the coalition host to perform an aggregation by
  * requesting data from providers in the network. The flow queries and checks the CoalitionConfigurationState to
- * determine whether the requested dataType is valid and supported by the coalition.
- * The flow returns the [SignedTransaction] that was committed to the ledger.
+ * determine whether the requested dataType is valid and supported by the coalition.* Consumer receives an enclave attestation
+ * from the host to verify the enclaves validity and utilize the same for decrypting enclave generated encrypted data outputs.
+ * Consumer then creates a [DataOutputState], transacting and signing with the host to store on their respective ledgers
+ * as a proof of data aggregation. The flow returns the [SignedTransaction] that was committed to the ledger.
  */
 @InitiatingFlow
 @StartableByRPC
@@ -74,7 +76,7 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
         consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, dataType)
 
         //optional reading of records - needed for the front end read flow
-        val commandData: CommandData = DataOutputContract.Commands.Create()
+        val commandData: CommandData = DataOutputContract.Commands.Issue()
         val dataOutputState = DataOutputState(consumer, host, Instant.now(), attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
@@ -88,7 +90,15 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
 }
 
 /**
- * This is the flow which signs Aggregation Propose Transaction.
+ * Counter flow for [ConsumerAggregationFlow]. Host handles this flow and receives the aggregation request from the
+ * consumer, including a supported coalition data type to aggregate. Host confirms the validity of the data type by querying
+ * and checking against the [com.protocol180.aggregator.states.CoalitionConfigurationState]. Once the data type validity
+ * is confirmed the host initiates the enclave using [AggregationEnclaveService]. The host passes the data type from the
+ * consumer to the enclave and initiates using the data types associated Avro schema (envelope schema). The enclave is
+ * initiated and then the host gathers data from each of the providers in the network by kicking the [ProviderAggregationResponseFlow]
+ * The host sends providers the enclave attestation and the requested data type. Providers then send back encrypted data
+ * to the host. Host sends this data to the enclave and requests the output. The encrypted Data Output from the enclave is sent back
+ * to the consumer who creates a [DataOutputState] transaction using this data.
  * The signing is handled by the [SignTransactionFlow].
  */
 @InitiatedBy(ConsumerAggregationFlow::class)

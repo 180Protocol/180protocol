@@ -18,8 +18,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
 class CoalitionConfigurationStateService(private val hub: AppServiceHub) : SingletonSerializeAsToken() {
 
     /**
-     * Returns an up to date (unconsumed) state representing the debt agreement for a given reference.
-     * Returns null if no state is found or if the current node is not a participant in the agreement.
+     * Returns the coalition configuration state for a specific linear id
      */
     fun findCoalitionConfigurationStateForId(id: UniqueIdentifier) : StateAndRef<CoalitionConfigurationState>? =
         hub.vaultService.queryBy<CoalitionConfigurationState>(
@@ -28,6 +27,9 @@ class CoalitionConfigurationStateService(private val hub: AppServiceHub) : Singl
                 status = Vault.StateStatus.UNCONSUMED,
                 relevancyStatus = Vault.RelevancyStatus.ALL)).states.singleOrNull()
 
+    /**
+     * Returns the coalition configuration state for a list of participants
+     */
     fun findCoalitionConfigurationStateForParticipants(participants: List<AbstractParty>) : StateAndRef<CoalitionConfigurationState>? =
         hub.vaultService.queryBy<CoalitionConfigurationState>(
             QueryCriteria.VaultQueryCriteria(

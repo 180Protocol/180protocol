@@ -4,7 +4,10 @@ import net.corda.core.schemas.MappedSchema
 import java.io.Serializable
 import javax.persistence.*
 
-
+/**
+ * Schema for storing Provider Data Inputs to be used during event based rewards
+ * @see com.protocol180.aggregator.flow.ConsumerAggregationFlow
+ */
 object ProviderInputSchema
 
 object ProviderInputSchemaV1 : MappedSchema(schemaFamily = ProviderInputSchema.javaClass,

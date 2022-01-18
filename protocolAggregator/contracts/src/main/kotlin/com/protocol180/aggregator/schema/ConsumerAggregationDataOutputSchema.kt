@@ -8,7 +8,10 @@ import javax.persistence.Id
 import javax.persistence.Lob
 import javax.persistence.Table
 
-
+/**
+ * Schema for storing Consumer Data Outputs generated from
+ * @see com.protocol180.aggregator.flow.ConsumerDataOutputRetrievalFlow
+ */
 object ConsumerAggregationDataOutputSchema
 
 object ConsumerAggregationDataOutputSchemaV1 : MappedSchema(schemaFamily = ConsumerAggregationDataOutputSchema.javaClass,

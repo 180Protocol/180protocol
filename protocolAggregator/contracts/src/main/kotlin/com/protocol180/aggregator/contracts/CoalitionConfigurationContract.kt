@@ -11,7 +11,9 @@ class CoalitionConfigurationContract : Contract {
     }
 
     /**
-     * Contract to verify Data Output States
+     * Contract to verify
+     * @see com.protocol180.aggregator.states.CoalitionConfigurationState produced during the
+     * @see com.protocol180.aggregator.flow.CoalitionConfigurationUpdateFlow
      */
     override fun verify(tx: LedgerTransaction) {
         val command = tx.commands.requireSingleCommand<Commands>()
@@ -34,7 +36,8 @@ class CoalitionConfigurationContract : Contract {
 
     /**
      * Add any commands required for this contract as classes within this interface.
-     * It is useful to encapsulate your commands inside an interface, so you can use the [requireSingleCommand]
+     * Commands.Issue - Issues the given state
+     * Commands.Update - Updates the given state
      * function to check for a number of commands which implement this interface.
      */
     interface Commands : CommandData {

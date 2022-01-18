@@ -13,14 +13,29 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * The below enclave provides an example of how to write 180Protocol Broker Flow compatible Enclaves.
+ * Example enclaves must handle data output and rewards calculations for coalition supported data types. These data
+ * types and their associated schemas must be indicated as an Enum inside the Enclave.
+ * The 'createRewardsDataOutput' and 'createAggregateDataOutput' methods must be designed to handle computations for each
+ * of the supported data types (and their corresponding schemas).
+ * **/
 public class ExampleAggregationEnclave extends AggregationEnclave {
 
-    final String TEST_SCHEMA_1 = "testSchema1";
-    final String TEST_SCHEMA_2 = "testSchema2";
+    enum SupportedDataTypes {
+        testSchema1,
+        testSchema2
+    }
 
     Random random = new Random();
 
-    protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
+    /**
+     * method defined on AggregationEnclave interface that is overridden in the child enclave.
+     * Used to calculate rewards for a specific provider.
+     * Accepts the key of the provider for which the Rewards computation is done. Future implementations will support
+     * calling a Rewards engine that calculates rewards factors automatically and based on regression.
+     * **/
+    protected File createRewardsDataOutput(PublicKey providerKey) throws IOException, UnsupportedDataTypeException {
 
         //populate rewards output file here based on raw client data
         File outputFile = new File("rewardsOutput.avro");
@@ -36,26 +51,26 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         int finalRewardMinLimit = 1;
         int finalRewardMaxLimit = 1000;
 
-        switch (envelopeSchema.getName()) {
-            case TEST_SCHEMA_1:
+        switch (SupportedDataTypes.valueOf(envelopeSchema.getName())) {
+            case testSchema1:
                 rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
-                rewardRecord.put("dataType", TEST_SCHEMA_1);
+                rewardRecord.put("dataType", envelopeSchema.getName());
                 break;
-            case TEST_SCHEMA_2:
+            case testSchema2:
                 rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
                 rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
-                rewardRecord.put("dataType", TEST_SCHEMA_2);
+                rewardRecord.put("dataType", envelopeSchema.getName());
                 break;
-            default:
+            default: throw new UnsupportedDataTypeException("Envelope Schema contains unsupported data type: " + envelopeSchema.getName());
         }
         try {
             dataFileWriter.append(rewardRecord);
@@ -67,9 +82,12 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         return outputFile;
     }
 
-
+    /**
+     * method defined on AggregationEnclave interface that is overridden in the child enclave.
+     * Used to calculate data output for a specific consumer.
+     * **/
     @Override
-    protected File createAggregateDataOutput() throws IOException {
+    protected File createAggregateDataOutput() throws IOException, UnsupportedDataTypeException {
         //populate aggregate logic here based on raw client data and return output file
         convertEncryptedClientDataToRawData();
 
@@ -85,8 +103,8 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         //simple aggregation of records into one file
         //other possibilities include creating a output with a specified schema
 
-        switch (envelopeSchema.getName()) {
-            case TEST_SCHEMA_1:
+        switch (SupportedDataTypes.valueOf(envelopeSchema.getName())) {
+            case testSchema1:
                 allRecords.forEach(genericRecord -> {
                     try {
                         dataFileWriter.append(genericRecord);
@@ -95,7 +113,7 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                     }
                 });
                 break;
-            case TEST_SCHEMA_2:
+            case testSchema2:
                 allRecords.forEach(genericRecord -> {
                     try {
                         dataFileWriter.append(genericRecord);
@@ -104,6 +122,7 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                     }
                 });
                 break;
+            default: throw new UnsupportedDataTypeException("Envelope Schema contains unsupported data type: " + envelopeSchema.getName());
         }
 
 
@@ -113,6 +132,12 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
     private float getRandomNumber(int minLimit, int maxLimit, double decimalPlace) {
         return (float) (Math.round(((minLimit + random.nextFloat() * (maxLimit - minLimit)) * decimalPlace)) / decimalPlace);
+    }
+
+    public class UnsupportedDataTypeException extends Exception {
+        public UnsupportedDataTypeException(String errorMessage) {
+            super(errorMessage);
+        }
     }
 
 }

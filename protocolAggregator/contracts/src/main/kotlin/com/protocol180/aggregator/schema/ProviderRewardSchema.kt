@@ -8,7 +8,10 @@ import javax.persistence.Id
 import javax.persistence.Lob
 import javax.persistence.Table
 
-
+/**
+ * Schema for storing Provider Reward Output generated during
+ * @see com.protocol180.aggregator.flow.ProviderRewardOutputRetrievalFlow
+ */
 object ProviderRewardSchema
 
 object ProviderRewardSchemaV1 : MappedSchema(schemaFamily = ProviderRewardSchema.javaClass,

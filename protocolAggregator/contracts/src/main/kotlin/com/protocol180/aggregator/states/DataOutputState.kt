@@ -7,6 +7,13 @@ import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import java.time.Instant
 
+/**
+ * State acting as receipt of Data Output compute by host on behalf of client
+ * @see consumer - consumer for Data Output
+ * @see host - host running enclave that computes the Data Output
+ * @see enclaveAttestation - Enclave attestation bytes for verification
+ * @see flowTopic - Flow topic that resulted in creation of state
+ */
 @BelongsToContract(DataOutputContract::class)
 data class DataOutputState(val consumer: Party,
                            val host: Party,

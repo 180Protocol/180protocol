@@ -11,7 +11,9 @@ class RewardsContract: Contract {
     }
 
     /**
-     * Contract to verify Rewards States
+     * Contract to verify
+     * @see com.protocol180.aggregator.states.RewardsState produced during the
+     * @see com.protocol180.aggregator.flow.ConsumerAggregationFlow
      */
     override fun verify(tx: LedgerTransaction) {
         val command = tx.commands.requireSingleCommand<Commands>()
@@ -36,7 +38,7 @@ class RewardsContract: Contract {
 
     /**
      * Add any commands required for this contract as classes within this interface.
-     * It is useful to encapsulate your commands inside an interface, so you can use the [requireSingleCommand]
+     * Commands.Issue - Issues the given state
      * function to check for a number of commands which implement this interface.
      */
     interface Commands : CommandData {

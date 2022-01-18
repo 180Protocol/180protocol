@@ -7,8 +7,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
 import net.corda.core.utilities.loggerFor
 
 /**
- * Abstracts away the details of accessing the context and configuration of the IAN node
- * to be used inside the flows when such input is required
+ * A simple service used to retrieve the node's role based on its identity. Role is configured on the node CordApp configuration
  */
 @CordaService
 class NetworkParticipantService(private val hub: AppServiceHub) : SingletonSerializeAsToken() {

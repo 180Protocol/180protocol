@@ -11,13 +11,15 @@ class DataOutputContract : Contract {
     }
 
     /**
-     * Contract to verify Data Output States
+     * Contract to verify
+     * @see com.protocol180.aggregator.states.DataOutputState produced during the
+     * @see com.protocol180.aggregator.flow.ConsumerAggregationFlow
      */
     override fun verify(tx: LedgerTransaction) {
         val command = tx.commands.requireSingleCommand<Commands>()
 
         when (command.value) {
-            is Commands.Create -> requireThat {
+            is Commands.Issue -> requireThat {
                 "No inputs should be consumed when issuing a data output state." using (tx.inputs.isEmpty())
                 "Only one output state should be created when issuing a data output state." using (tx.outputs.size == 1)
                 val dataOutputState = tx.outputsOfType<DataOutputState>().single()
@@ -36,11 +38,11 @@ class DataOutputContract : Contract {
 
     /**
      * Add any commands required for this contract as classes within this interface.
-     * It is useful to encapsulate your commands inside an interface, so you can use the [requireSingleCommand]
+     * Commands.Issue - Issues the given state
      * function to check for a number of commands which implement this interface.
      */
     interface Commands : CommandData {
 
-        class Create : TypeOnlyCommandData(), Commands
+        class Issue : TypeOnlyCommandData(), Commands
     }
 }
