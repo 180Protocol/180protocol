@@ -111,8 +111,8 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         return outputFile;
     }
 
-    private float getRandomNumber(int minLimit, int maxLimit, int decimalPlace) {
-        return (minLimit + random.nextInt() * (minLimit - maxLimit)) / decimalPlace;
+    private float getRandomNumber(int minLimit, int maxLimit, double decimalPlace) {
+        return (float) (Math.round(((minLimit + random.nextFloat() * (maxLimit - minLimit)) * decimalPlace)) / decimalPlace);
     }
 
 }
