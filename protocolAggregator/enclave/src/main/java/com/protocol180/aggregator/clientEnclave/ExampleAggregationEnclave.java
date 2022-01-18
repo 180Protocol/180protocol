@@ -34,7 +34,7 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         int generalMinLimit = 1;
         int generalMaxLimit = 10;
         int finalRewardMinLimit = 1;
-        int finalRewardMaxLimit = 100;
+        int finalRewardMaxLimit = 1000;
 
         switch (envelopeSchema.getName()) {
             case TEST_SCHEMA_1:
