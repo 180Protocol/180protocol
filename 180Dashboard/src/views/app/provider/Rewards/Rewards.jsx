@@ -43,74 +43,87 @@ const Rewards = (props) => {
 
         fetchData().then(async (response) => {
             if (response && response.states && response.states.length > 0) {
-                let params = {
-                    "options": {
-                        "trackProgress": true
-                    },
-                    "flowId": response.states[0].state.data.flowTopic
-                }
+                const promises = getDecryptedData(response.states);
+                let decryptedRewardsData = [];
+                Promise.all(promises).then(values => {
+                    for (let i = 0, len = values.length; i < len; i++) {
+                        decryptedRewardsData.push(Object.assign({}, values[i][0]));
+                    }
+                    setRows(decryptedRewardsData);
+                    let lastWeekRewards = decryptedRewardsData.filter((item) => {
+                        return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));
+                    });
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, response.states[0].state.data.dateCreated)
-                setRows(decryptedRewardsData);
-                let lastWeekRewards = decryptedRewardsData.filter((item) => {
-                    return moment(item.date).isBetween(moment().subtract(7, 'd'), moment().add(1, 'd'));
-                });
+                    setChangeThisWeek(sum(lastWeekRewards, 'rewards'));
 
-                setChangeThisWeek(sum(lastWeekRewards, 'rewards'));
-
-                setOptions({
-                    amountProvided: [
-                        {
-                            "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData, "amountProvided")),
-                            "color": "hsl(0, 100%, 100%)"
-                        },
-                        {
-                            "id": "Amount Provided",
-                            "value": parseFloat(average(decryptedRewardsData, "amountProvided")),
-                            "color": "hsl(96, 51%, 68%)"
-                        }
-                    ],
-                    completeness: [
-                        {
-                            "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData, "completeness")),
-                            "color": "hsl(0, 100%, 100%)"
-                        },
-                        {
-                            "id": "Completeness",
-                            "value": parseFloat(average(decryptedRewardsData, "completeness")),
-                            "color": "hsl(0, 100%, 88%)"
-                        }
-                    ],
-                    uniqueness: [
-                        {
-                            "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData, "uniqueness")),
-                            "color": "hsl(0, 100%, 100%)"
-                        },
-                        {
-                            "id": "Uniqueness",
-                            "value": parseFloat(average(decryptedRewardsData, "uniqueness")),
-                            "color": "hsl(55, 47%, 63%)"
-                        }
-                    ],
-                    updateFrequency: [
-                        {
-                            "id": "",
-                            "value": 10 - parseFloat(average(decryptedRewardsData, "updateFrequency")),
-                            "color": "hsl(0, 100%, 100%)"
-                        },
-                        {
-                            "id": "Update Frequency",
-                            "value": parseFloat(average(decryptedRewardsData, "updateFrequency")),
-                            "color": "hsl(96, 51%, 68%)"
-                        }
-                    ]
+                    setOptions({
+                        amountProvided: [
+                            {
+                                "id": "",
+                                "value": 10 - parseFloat(average(decryptedRewardsData, "amountProvided")),
+                                "color": "hsl(0, 100%, 100%)"
+                            },
+                            {
+                                "id": "Amount Provided",
+                                "value": parseFloat(average(decryptedRewardsData, "amountProvided")),
+                                "color": "hsl(96, 51%, 68%)"
+                            }
+                        ],
+                        completeness: [
+                            {
+                                "id": "",
+                                "value": 10 - parseFloat(average(decryptedRewardsData, "completeness")),
+                                "color": "hsl(0, 100%, 100%)"
+                            },
+                            {
+                                "id": "Completeness",
+                                "value": parseFloat(average(decryptedRewardsData, "completeness")),
+                                "color": "hsl(0, 100%, 88%)"
+                            }
+                        ],
+                        uniqueness: [
+                            {
+                                "id": "",
+                                "value": 10 - parseFloat(average(decryptedRewardsData, "uniqueness")),
+                                "color": "hsl(0, 100%, 100%)"
+                            },
+                            {
+                                "id": "Uniqueness",
+                                "value": parseFloat(average(decryptedRewardsData, "uniqueness")),
+                                "color": "hsl(55, 47%, 63%)"
+                            }
+                        ],
+                        updateFrequency: [
+                            {
+                                "id": "",
+                                "value": 10 - parseFloat(average(decryptedRewardsData, "updateFrequency")),
+                                "color": "hsl(0, 100%, 100%)"
+                            },
+                            {
+                                "id": "Update Frequency",
+                                "value": parseFloat(average(decryptedRewardsData, "updateFrequency")),
+                                "color": "hsl(96, 51%, 68%)"
+                            }
+                        ]
+                    });
                 });
             }
         });
     }, [dispatch]);
+
+    const getDecryptedData = (states) => {
+        return states.map(async (option) => {
+            let params = {
+                "options": {
+                    "trackProgress": true
+                },
+                "flowId": option.state.data.flowTopic
+            }
+
+            let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, option.state.data.dateCreated)
+            return decryptedRewardsData;
+        });
+    }
 
     return (
         <>
