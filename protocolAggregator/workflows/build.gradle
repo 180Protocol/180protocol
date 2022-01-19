@@ -8,7 +8,7 @@ cordapp {
     workflow {
         name "180 Protocol Broker Flows"
         vendor "180Protocol Pte Ltd"
-        licence "Apache License, Version 2.0"
+        licence "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0"
         versionId 1
     }
     signing {
