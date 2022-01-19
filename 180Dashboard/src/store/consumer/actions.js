@@ -1,9 +1,6 @@
 export async function createAggregationRequest(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         body: JSON.stringify(payload)
     };
     try {
@@ -25,10 +22,7 @@ export async function createAggregationRequest(dispatch, apiUrl, payload) {
 
 export async function fetchEncryptedDataOutput(dispatch, apiUrl, payload) {
     const requestOptions = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        method: 'GET'
     };
 
     let userInfo = JSON.parse(localStorage.getItem('user'));
@@ -52,9 +46,6 @@ export async function fetchEncryptedDataOutput(dispatch, apiUrl, payload) {
 export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     const requestOptions = {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         body: JSON.stringify(payload)
     };
 

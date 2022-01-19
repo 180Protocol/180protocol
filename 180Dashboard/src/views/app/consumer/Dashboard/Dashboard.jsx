@@ -54,7 +54,7 @@ const Dashboard = (props) => {
 
     const getDecryptedData = (response) => {
         setEncryptedDataOutput(response);
-        if (response.states && response.states.length > 0) {
+        if (response && response.states && response.states.length > 0) {
             let sortedDataOutput = response.states.sort(function (a, b) {
                 return new Date(b.state.data.dateCreated) - new Date(a.state.data.dateCreated)
             })
@@ -70,7 +70,7 @@ const Dashboard = (props) => {
                 "trackProgress": true
             },
             "dataType": values.dataType.value,
-            "description": values.description
+//             "description": values.description
         };
 
         let response = await createAggregationRequest(dispatch, props.apiUrl, params);
