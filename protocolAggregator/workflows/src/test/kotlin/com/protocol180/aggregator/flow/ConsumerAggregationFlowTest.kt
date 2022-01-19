@@ -100,10 +100,11 @@ class ConsumerAggregationFlowTest {
     @Test
     fun consumerAggregationFlowStateCreationTest() {
         val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.csv.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
 
-        val flow = ConsumerAggregationFlow(dataType)
+        val flow = ConsumerAggregationFlow(dataType, description)
         val future = consumer.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -191,10 +192,11 @@ class ConsumerAggregationFlowTest {
     @Test
     fun consumerOutputQueryTestAfterAggregation() {
         val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.csv.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
 
-        val flow = ConsumerAggregationFlow("testDataType2")
+        val flow = ConsumerAggregationFlow("testDataType2", description)
         val future = consumer.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -237,14 +239,14 @@ class ConsumerAggregationFlowTest {
     @Test
     fun consumerAggregationFlowFailTest() {
         //check unsupported data type
-        val flow = ConsumerAggregationFlow("testDataType3")
+        val flow = ConsumerAggregationFlow("testDataType3","sample Data type description")
         val future = consumer.startFlow(flow)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future.getOrThrow() }
 
         //check new consumer added to coalition without updating coalition configuration
         var consumer2: StartedMockNode = prepareNodeForRole(RoleType.DATA_CONSUMER)
-        val flow2 = ConsumerAggregationFlow("testDataType2")
+        val flow2 = ConsumerAggregationFlow("testDataType2", "sample Data type description")
         val future2 = consumer2.startFlow(flow2)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future2.getOrThrow() }
