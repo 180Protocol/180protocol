@@ -42,23 +42,43 @@ const Dashboard = (props) => {
 
         fetchData().then(async (response) => {
             if (response && response.states && response.states.length > 0) {
-                let params = {
-                    "options": {
-                        "trackProgress": true
-                    },
-                    "flowId": response.states[0].state.data.flowTopic
-                }
+                const promises = getDecryptedData(response.states);
+                let decryptedRewardsData = [];
+                Promise.all(promises).then(values => {
+                    for (let i = 0, len = values.length; i < len; i++) {
+                        decryptedRewardsData.push(Object.assign({}, values[i][0]));
+                    }
 
-                let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, response.states[0].state.data.dateCreated)
-                setRows(decryptedRewardsData);
-                let sortedRewardsData = decryptedRewardsData.sort(function (a, b) {
-                    return new Date(b.date) - new Date(a.date)
-                })
+                    let sum = 0;
+                    for (let i = 0; i < decryptedRewardsData.length; i++) {
+                        sum += parseFloat(decryptedRewardsData[i].rewards);
+                        decryptedRewardsData[i].rewardsBalance = sum;
+                    }
 
-                setLastUpdated(moment.utc(sortedRewardsData[0].date).format("MMM DD, YYYY hh:mm:ss A"));
+                    setRows(decryptedRewardsData);
+                    let sortedRewardsData = decryptedRewardsData.sort(function (a, b) {
+                        return new Date(b.date) - new Date(a.date)
+                    })
+
+                    setLastUpdated(moment.utc(sortedRewardsData[0].date).format("MMM DD, YYYY hh:mm:ss A"));
+                });
             }
         });
     }, [dispatch]);
+
+    const getDecryptedData = (states) => {
+        return states.map(async (option) => {
+            let params = {
+                "options": {
+                    "trackProgress": true
+                },
+                "flowId": option.state.data.flowTopic
+            }
+
+            let decryptedRewardsData = await fetchDecryptedRewardsData(dispatch, props.apiUrl, params, option.state.data.dateCreated)
+            return decryptedRewardsData;
+        });
+    }
 
     const onDrop = useCallback((acceptedFiles) => {
         setSelectedFiles(acceptedFiles);
