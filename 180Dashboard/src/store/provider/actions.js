@@ -5,7 +5,7 @@ export async function upload(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/uploadNodeAttachment`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/uploadNodeAttachment`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -32,7 +32,7 @@ export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
     let userInfo = JSON.parse(localStorage.getItem('user'));
 
     try {
-        let response = await fetch(`${apiUrl}/180Protocol Broker Contracts/RewardsState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180Protocol Broker Contracts/RewardsState/query?participant=${encodeURIComponent(userInfo.name)}`, requestOptions);
         let data = await response.json();
         if (data) {
             dispatch({type: 'FETCH_ENCRYPTED_REWARDS_DATA_SUCCESS', payload: data});
@@ -47,7 +47,7 @@ export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
     }
 }
 
-export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload) {
+export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload, dateCreated) {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -57,17 +57,27 @@ export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/180 Protocol Broker Flows/RewardsDecryptFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ProviderRewardOutputRetrievalFlow?wait=1`, requestOptions);
         let data = await response.json();
-        let sum = 0;
-        for (let i = 0; i < data.result.value.length; i++) {
-            sum += parseFloat(data.result.value[i].rewards);
-            data.result.value[i].rewardsBalance = sum;
+        let value = data.result.value ? data.result.value.split("\n") : [];
+        let result = [];
+        for (let i = 0; i < value.length; i++) {
+            let parsedData = JSON.parse(value[i]);
+            parsedData.flowId = data.flowRunId;
+            parsedData.coApp = 'DMS';
+            parsedData.date = dateCreated;
+            result.push(parsedData);
         }
 
-        if (data) {
-            dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_SUCCESS', payload: data});
-            return data;
+        let sum = 0;
+        for (let i = 0; i < result.length; i++) {
+            sum += parseFloat(result[i].rewards);
+            result[i].rewardsBalance = sum;
+        }
+
+        if (result) {
+            dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_SUCCESS', payload: result});
+            return result;
         }
 
         dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_ERROR', error: 'Error'});

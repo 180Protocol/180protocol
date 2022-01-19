@@ -35,6 +35,26 @@ export default (props) => {
     const DecimalsFormatter = ({value}) => value ? value.toFixed(1) : '';
     const DateFormatter = ({value}) => value ? moment.utc(value).format("YYYY-MM-DD HH:mm:ss") : '';
 
+    const FlowIDCell = ({value, style, ...restProps}) => {
+        return <Table.Cell
+            {...restProps}
+        >
+            <div>
+                 <span title={value}>
+                    {value}
+                </span>
+            </div>
+        </Table.Cell>
+    };
+
+    const Cell = (props) => {
+        const {column} = props;
+        if (column.name === 'flowId' && !props.row.matches) {
+            return <FlowIDCell  {...props} />;
+        }
+        return <Table.Cell {...props} />;
+    };
+
     return (
         <div className="card">
             <Grid rows={rows} columns={columns}>
@@ -66,7 +86,7 @@ export default (props) => {
                     onPageSizeChange={setPageSize}
                 />
                 <IntegratedPaging/>
-                <Table/>
+                <Table cellComponent={Cell}/>
                 <TableHeaderRow showSortingControls/>
                 <PagingPanel
                     pageSizes={pageSizes}

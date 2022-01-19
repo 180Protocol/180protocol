@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Grid from "../../../../components/Grid";
 import {Field, Form, Formik} from "formik";
 import {FormikReactSelect} from "../../../../containers/FormikFields";
@@ -10,6 +10,7 @@ import {
 import {useAuthDispatch} from "../../../../store/context";
 import {ucWords} from "../../../../utils/helpers";
 import moment from "moment";
+import AlertBox from "../../../../components/AlertBox";
 
 // Styles
 import styles from './Dashboard.module.scss';
@@ -37,6 +38,7 @@ const Dashboard = (props) => {
 
     const [rows, setRows] = useState([]);
     const [lastRequestDate, setLastRequestDate] = useState(null);
+    const alertRef = useRef();
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
 
@@ -46,29 +48,43 @@ const Dashboard = (props) => {
         }
 
         fetchData().then((response) => {
-            setEncryptedDataOutput(response);
+            getDecryptedData(response);
+        });
+    }, [dispatch]);
+
+    const getDecryptedData = (response) => {
+        setEncryptedDataOutput(response);
+        if (response.states && response.states.length > 0) {
             let sortedDataOutput = response.states.sort(function (a, b) {
                 return new Date(b.state.data.dateCreated) - new Date(a.state.data.dateCreated)
             })
             setLastRequestDate(moment.utc(sortedDataOutput[0].state.data.dateCreated).format("MMM DD, YYYY hh:mm:ss A"));
 
-            getDecryptedDataOutput(response.states[0].ref)
-        });
-    }, [dispatch]);
+            getDecryptedDataOutput(response.states[0].state.data.flowTopic)
+        }
+    }
 
-    const save = async (values) => {
-        values.dataType = values.dataType.value;
+    const save = async (values, {resetForm}) => {
         let params = {
             "options": {
-                "trackProgress": "true"
+                "trackProgress": true
             },
-            "consumerAggregationRequest": values
+            "dataType": values.dataType.value,
+            "description": values.description
         };
 
         let response = await createAggregationRequest(dispatch, props.apiUrl, params);
         if (response) {
-            alert("Request submitted successfully");
+            resetForm({values: ''})
+            alertRef.current.showAlert('success', 'Request submitted successfully.')
+            let res = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
+            getDecryptedData(res);
         }
+    }
+
+    const refresh = async () => {
+        let response = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {})
+        getDecryptedData(response);
     }
 
     const validate = (values) => {
@@ -85,28 +101,26 @@ const Dashboard = (props) => {
         return errors;
     }
 
-    const getDecryptedDataOutput = async (data) => {
+    const getDecryptedDataOutput = async (flowTopic) => {
         let params = {
             "options": {
-                "trackProgress": "true"
+                "trackProgress": true
             },
-            "dataOutputData": [
-                data
-            ]
+            "flowId": flowTopic
         }
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
         let columns = [];
-        for (let i = 0; i < decryptedDataOutput.result.value[0].data.length; i++) {
-            for (let property in decryptedDataOutput.result.value[0].data[i]) {
-                if (columns.length < Object.keys(decryptedDataOutput.result.value[0].data[i]).length) {
+        for (let i = 0; i < decryptedDataOutput.length; i++) {
+            for (let property in decryptedDataOutput[i]) {
+                if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
                     columns.push({name: property, title: ucWords(property)});
                 }
             }
         }
 
         setColumns(columns);
-        setRows(decryptedDataOutput.result.value[0].data);
+        setRows(decryptedDataOutput);
     }
 
     const exportAsCSV = () => {
@@ -143,7 +157,7 @@ const Dashboard = (props) => {
                             <div className="col-sm-12 col-md-6">
                                 <div className="innerCol">
                                     <p>Last Request</p>
-                                    <p className='bigText mb-0'>{lastRequestDate}</p>
+                                    <p className='bigText mb-0'>{lastRequestDate || '-'}</p>
                                 </div>
                             </div>
                         </div>
@@ -227,7 +241,7 @@ const Dashboard = (props) => {
                                 <div className={styles.refreshContainer}>
                                     <p>Use refresh button to load latest results</p>
                                     <button type="button" name="Refresh"
-                                            onClick={() => fetchEncryptedDataOutput(dispatch, props.apiUrl, {})}>REFRESH <img
+                                            onClick={refresh}>REFRESH <img
                                         src={refreshIcon} alt="refresh"/>
                                     </button>
                                 </div>
@@ -241,7 +255,7 @@ const Dashboard = (props) => {
                                                     encryptedDataOutput.states.map((output, index) => {
                                                         return (
                                                             <div key={index}
-                                                                 onClick={() => getDecryptedDataOutput(output.ref)}
+                                                                 onClick={() => getDecryptedDataOutput(output.state.data.flowTopic)}
                                                                  className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
                                                                 <div className={styles.downloadRequestBox}>
                                                                     <img src={downloadIcon} alt="download"/>
@@ -261,7 +275,7 @@ const Dashboard = (props) => {
                         </div>
                     </div>
                     {
-                        encryptedDataOutput && encryptedDataOutput.states && encryptedDataOutput.states.length > 0 ?
+                        rows && rows.length > 0 ?
                             <div className={`container mb-5 ${styles.exportDataContainer}`}>
                                 <div className="card">
                                     <div className={`card-header ${styles.exportCardHeader}`}>
@@ -281,6 +295,7 @@ const Dashboard = (props) => {
                     }
                 </div>
             </section>
+            <AlertBox ref={alertRef}/>
         </>
     )
 }
