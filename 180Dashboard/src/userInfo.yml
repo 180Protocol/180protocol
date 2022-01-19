@@ -23,9 +23,9 @@ rewards:
   uniqueness: 20
   updateFrequency: 30
 dataTypes:
-  - value: fixedIncomeDemandData
+  - value: testSchema2
     label: Fixed Income Demand Data
-  - value: riskMetricsData
+  - value: testSchema1
     label: Risk Metrics Data
   - value: esgData
     label: ESG Data

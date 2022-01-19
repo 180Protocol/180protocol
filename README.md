@@ -1,91 +1,164 @@
-# 180Protocol POC
+# 180Protocol
 
-180Protocol is a next generation collaborative computing framework that helps unlock value in private data. Businesses 
-can utilize 180Protocol to create coalitions - private networks on R3 Corda - to share their private structured data assets.
-Coalitions are composed of corda nodes that can act as Data Providers and Data Consumers, and a coalition host.
+### Introduction
+180Protocol is an open-source software toolkit for data sharing. 180Protocol represents the next evolution of data
+sharing infrastructure, an infrastructure that ensures a secure, rewarding, and efficient data sharing experience.
+
+180Protocol targets enterprise use cases and is uniquely positioned to improve the value and mobility of sensitive and
+confidential business data. The software introduces distributed network design to the problem of enterprise data sharing,
+solving for the legacy barriers that have limited data mobility and value. We make data available where it needs to be,
+without moving it and transforming it along they way.
+
+Enterprises/Developers can utilize 180Protocol to create coalitions - private networks on R3 Corda - to share their
+private structured data assets. Coalitions are composed of corda nodes that can act as Data Providers and Data Consumers,
+and a coalition host.
 
 * Data Providers - nodes that have pre-approved structured private data assets that they want to share and be rewarded for
-* Data Consumer - nodes that have a need to consume data outputs
+* Data Consumer - nodes that have a need to consume unique and commercially valuable data outputs
 * Coalition Host - node that runs the trusted enclave and arbitrates communication between providers and consumers
 
 180Protocol comprises the following components:
 
-1. **Protocol broker** - a set of corda flows that manage communication between data consumers and data providers 
-in a 180protocol coalition. The broker connects with the enclave based aggregator to enable consumers and providers to 
-share data and be rewarded for it.
+1. **Aggregator SDK** - an enclave based data transformation interface that can take flexible data input, data output, 
+and provenance definitions. Furthermore, a data transformation algorithm can be configured to map inputs to an output. 
+In future releases, the Aggregator will include a proprietary rewards engine that can be configured to reward data providers 
+in a coalition for their private data inputs. Since the aggregator runs inside a trusted enclave, with a pre verified attestation, 
+providers data inputs are rewarded unbiasedly. Furthermore, consumers get data outputs based on a known transformation algorithm.  
 
-2. **Protocol aggregator** - a enclave based data transformation interface that can take flexible data input, data output, 
-and provenance definitions. Furthermore, a data transformation algorithm can be configured to map inputs to outputs. 
-The Aggregator includes a proprietary rewards engine that can be configured to reward data providers in a coalition for 
-their private data inputs. Since the aggregator runs inside a trusted enclave, with a pre verified attestation, providers
-data inputs are rewarded unbiasedly. Furthermore, consumers get data outputs based on a known transformation algorithm.  
-
-4. **180Dashboard** - a React based front end application that allows Data Providers and Data Consumers to keep track of 
+2. **180Dashboard** - a React based front end application that allows Data Providers and Data Consumers to keep track of 
 shared data, view data aggregation history and keep track of rewards for each data aggregation.
+
+3. **Codaptor** - a middleware that connects to the Corda RPC and generates OpenAPI bindings automatically for any CordApp
 
 The above components can be used by application developers to create decentralized applications that enable private 
 structured data to be shared, transformed and rewarded for in a secure way.
 
-The 180ProtocolPoc is representative application built on the 180Protocol framework and can be utilized by developers
+This repository contains a representative application built on the 180Protocol framework and can be utilized by developers
 as a blueprint to start building more complex applications. We encourage application developers and businesses to build 
-on 180Protocol and provide feedback so we can introduce better features over time. 
+on 180Protocol and provide feedback so we can introduce better features over time.
 
-**Contact: [management@180protocol.com](mailto:management@180protocol.com)**
+Please read more detailed design and API specifications on our [Wiki](https://180protocol.gitbook.io/product-docs/)
+
+### Roadmap
+This is the alpha release of 180Protocol and is experimental in nature. 
+There are improvements we plan to release in the coming weeks including -
+
+1. We have tested the enclave based computations in the Enclave 'Mock' mode. We are testing deployment using an [MS Azure](https://azure.microsoft.com/en-gb/solutions/confidential-compute/) 
+cloud enclave
+2. Introducing a regression based rewards engine that can be utilized within the Aggregator SDK
+3. The Aggregator SDK workflows are consumer driven only. All providers in the network are required to share data when 
+requested by the consumer. We intend to introduce further variations of the Aggregation Flows that account for varied 
+commercial use cases
+4. Supporting multiple enclave communication frameworks beyond R3 Conclave. We are currently testing compatibility with
+[EGO](https://www.ego.dev/)
+5. Introducing a variety of example use cases across industry verticals
+6. Integrating the Aggregator SDK with a public blockchain to enable data providers to monetize their rewards using a token
+economy
+
+
+**Contact:** 
+* Commercial queries: [management@180protocol.com](mailto:management@180protocol.com)
+* Developer Discord: [180Protocol Discord](https://discord.com/invite/vvA8sRbs)
+* Community channels: [www.180protocol.com](https://www.180protocol.com/)
 
 ### How to run the 180Protocol POC
 
 The protocol poc comprises the 180Dashboard and pocCordApp modules. The 180 Dashboard is the React based front end and the
-pocCordApp is the sample backend.
+protocolAggregator is the sample backend.
 
-To build pocCordApp:
+To build protocolAggregator:
 
-1.  Run the `./gradlew build` command from within the pocCordApp folder
-2.  Run `./gradlew deployNodes` command to generate nodes folder inside build folder.
+1. Run the `./gradlew build` command from within the protocolAggregator folder
+2. Run `./gradlew deployNodes` command to generate nodes folder inside build folder.
+3. Modify the `/protocolAggregator/build/nodes/runnodes` file generated by the `deployNodes` and replace the run commands 
+to include the `run-migration-scripts` and `--allow-hibernate-to-manage-app-schema` flags. Please read [here](https://docs.r3.com/en/platform/corda/4.7/open-source/tutorial-cordapp.html#deploying-the-cordapp-locally) 
+
+Read the `protocolAggregator/README.md` for details around extension.
+
+Change    
+
+   `if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
+     /usr/libexec/java_home --exec java -jar runnodes.jar "$@"
+   else
+     "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar runnodes.jar "$@"
+   fi`
+
+to   
+
+   `if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
+     /usr/libexec/java_home --exec java -jar corda.jar run-migration-scripts --core-schemas "$@"
+     /usr/libexec/java_home --exec java -jar corda.jar --allow-hibernate-to-manage-app-schema "$@"
+   else
+     "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar corda.jar run-migration-scripts --core-schemas "$@"
+     "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar corda.jar --allow-hibernate-to-manage-app-schema "$@"
+   fi`
+
 
 To run the sample 180ProtocolPOC Coalition network using Docker:
 
-1. Run below command from the project root path to start 180Dashboard service & pocCordApp
+1. Each data provider and consumer data can be viewed on the dashboard using their login credentials (corda node hostname as user and
+      port number as the password). Modify the file `180Dashboard/src/userInfo.yml` -
+      Ex, for provider A use
+      `nodes:
+      providerA:
+      username: providerA
+      password: test
+      port: 9500
+      role: provider
+      name: O=Host,L=London,C=GB`
+
+2. Run below command from the project root path to start 180Dashboard service & protocolAggregator
    service using docker compose
 
    `docker-compose -f ./compose-corda-network.yml -f ./compose-codaptor.yml up`
 
-2. The 180Dashboard can be accessed at `http://localhost:3000` on a browser 
-3. Each data provider data can be viewed on the dashboard using their login credentials (corda node hostname as user and
-port number as the password) -
-Ex, for provider A use 
-`username: partya-node 
-password: 9500`
+3. The 180Dashboard can be accessed at `http://localhost:3000` on a browser 
 
-#### Configuring 180Protocol Dashboard users info and rewards weights
+And there you go!
+
+#### System requirements
+The docker based network configuration is composed of several services (corda nodes, codaptor and react) and 
+thus requires significant memory and processing power. Hence, we recommend at least 16 GB RAM to support smooth running
+of the entire coalition network on docker for end to end testing. Alternatively, for testing the back end, the react front end
+can be not utilized.
+
+#### Configuring 180Protocol Dashboard
 
 We provide a yaml file to configure the number of nodes in the coalition - providers or consumers - who have access to 
 the 180Dashboard. Users can be configured in `userInfo.yml` provided under the `180Dashboard/src` directory. These 
-users must be in accordance with the Corda network setup configured under the `pocCordApp/build.gradle`. 
+users must be in accordance with the Corda network setup configured under the `protocolAggregator/build.gradle`. 
 The corda network gradle config allows specifying the party name for each Corda node. This party name must also be 
 specified under the userInfo.yml file. The node role (provider or consumer) can also be specified in the userInfo.yml.
 
 Further, the port number under userInfo.yml must be the same as that specified `compose-codaptor.yml` file. This
 is to ensure that the dashboard can query the correct OpenAPI endpoint for the said node. 
 
-Finally, the rewards weights used by the Rewards Engine must be configured for the dashboard to display correctly.
+Finally, the rewards weights used by the Rewards Engine must be configured for the dashboard to display correctly (These
+are representative for now and don't affect the back end)
 
 #### Adding a new node to the 180Protocol network
 
 To add a new node for the 180Protocol POC, configurations need to be added to the 180Dashboard, the Codaptor OpenAPI and
 the corda network configurations -
 
-1. Corda Network: add the new node config under the `deployNodes` task of the `pocCordApp/build.gradle` file, e.x. -
+1. Corda Network: add the new node config under the `deployNodes` task of the `protocolAggregator/build.gradle` file, e.x. -
 
    ```
    node {
-     name "O=PartyB,L=New York,C=US"
-     p2pAddress "partyb-node:10008"
-     rpcSettings {
-       address("0.0.0.0:10009")
-       adminAddress("0.0.0.0:10049")
-     }
-     rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-   }
+        name "O=Host,L=London,C=GB"
+        p2pAddress "host-node:10004"
+        rpcSettings {
+            address("0.0.0.0:10005")
+            adminAddress("0.0.0.0:10045")
+        }
+        cordapp (project(':workflows')) {
+            config '''\
+                participantRole = COALITION_HOST
+            '''.stripIndent()
+        }
+        runSchemaMigration = true
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
    ```
 
    In the above, the name corresponds to the node name under the `180Dashboard/src/userInfo.yml`. Run the `deployNodes` 
@@ -112,4 +185,15 @@ For further details around Codaptor configurations see: [Codaptor](https://githu
    ```
    Here the `username`, `password` are arbitrary but `port` and `role` need to follow the dependencies described in the steps above
 
-   
+### Licenses
+
+Please take note of the license obligations you are bound under by downloading the source code. The repository contains
+two folders, under different licenses -
+
+1. 180Dashboard - released under the Apache2.0 License 
+2. protocolAggregator - released under the GNU AGPL3.0 license 
+
+Additionally, protocolAggregator has a dependency on R3 Conclave, which requires developers to download the Conclave API.
+Please take a look at the R3 Conclave license considerations for further information.
+
+We have tried to emulate MongoDB's philosophy in this regard. Please [read further](https://www.mongodb.com/blog/post/the-agpl) 

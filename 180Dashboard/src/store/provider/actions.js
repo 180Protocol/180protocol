@@ -23,10 +23,7 @@ export async function upload(dispatch, apiUrl, payload) {
 
 export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
     const requestOptions = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        method: 'GET'
     };
 
     let userInfo = JSON.parse(localStorage.getItem('user'));
@@ -50,9 +47,6 @@ export async function fetchEncryptedRewardsData(dispatch, apiUrl, payload) {
 export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload, dateCreated) {
     const requestOptions = {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         body: JSON.stringify(payload)
     };
 
