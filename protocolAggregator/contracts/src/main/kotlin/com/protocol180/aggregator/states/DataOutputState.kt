@@ -17,6 +17,8 @@ import java.time.Instant
 @BelongsToContract(DataOutputContract::class)
 data class DataOutputState(val consumer: Party,
                            val host: Party,
+                           val dataType: String,
+                           val description: String,
                            val dateCreated: Instant,
                            val enclaveAttestation: ByteArray,
                            val flowTopic: String
@@ -35,6 +37,8 @@ data class DataOutputState(val consumer: Party,
 
         if (consumer != other.consumer) return false
         if (host != other.host) return false
+        if (dataType != other.dataType) return false
+        if (description != other.description) return false
         if (dateCreated != other.dateCreated) return false
         if (enclaveAttestation != other.enclaveAttestation) return false
         if (flowTopic != other.flowTopic) return false

@@ -29,7 +29,7 @@ import java.time.Instant
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationFlow(private val dataType: String, private val description: String) : FlowLogic<SignedTransaction>() {
 
     companion object{
         private val log = loggerFor<ConsumerAggregationFlow>()
@@ -77,7 +77,7 @@ class ConsumerAggregationFlow(private val dataType: String) : FlowLogic<SignedTr
 
         //optional reading of records - needed for the front end read flow
         val commandData: CommandData = DataOutputContract.Commands.Issue()
-        val dataOutputState = DataOutputState(consumer, host, Instant.now(), attestationBytes, flowTopic)
+        val dataOutputState = DataOutputState(consumer, host, dataType, description, Instant.now(), attestationBytes, flowTopic)
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(dataOutputState, DataOutputContract.ID)
