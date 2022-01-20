@@ -12,6 +12,8 @@ import java.time.Instant
  * @see consumer - consumer for Data Output
  * @see host - host running enclave that computes the Data Output
  * @see enclaveAttestation - Enclave attestation bytes for verification
+ * @see dataType - dataType provided by consumer
+ * @see description - description provided by consumer
  * @see flowTopic - Flow topic that resulted in creation of state
  */
 @BelongsToContract(DataOutputContract::class)
