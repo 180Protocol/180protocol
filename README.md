@@ -64,7 +64,8 @@ economy
 ### How to run 180Protocol
 
 The protocol comprises the 180Dashboard and protocolAggregator modules. The 180Dashboard is the React based front end and the
-protocolAggregator is the sample backend.
+protocolAggregator is the sample backend. Please check [system requirements and license considerations](https://180protocol.gitbook.io/docs/develop/tutorials/system-requirements-and-license-considerations) 
+before running the network
 
 **To build protocolAggregator:**
 
