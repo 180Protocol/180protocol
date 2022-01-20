@@ -69,8 +69,8 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "dataType": values.dataType.value
-            //"description": values.description
+            "dataType": values.dataType.value,
+            "description": values.description
         };
 
         let response = await createAggregationRequest(dispatch, props.apiUrl, params);
