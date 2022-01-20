@@ -63,7 +63,7 @@ economy
 
 ### How to run 180Protocol
 
-The protocol poc comprises the 180Dashboard and pocCordApp modules. The 180 Dashboard is the React based front end and the
+The protocol comprises the 180Dashboard and protocolAggregator modules. The 180Dashboard is the React based front end and the
 protocolAggregator is the sample backend.
 
 To build protocolAggregator:
@@ -93,7 +93,7 @@ to
 
    Read the `protocolAggregator/README.md` for details around extension.
 
-To run the sample 180ProtocolPOC Coalition network using Docker:
+To run the 180Protocol Coalition network using Docker:
 
 1. Each data provider and consumer data can be viewed on the dashboard using their login credentials (corda node hostname as user and
       port number as the password). Modify the file `180Dashboard/src/userInfo.yml` -
