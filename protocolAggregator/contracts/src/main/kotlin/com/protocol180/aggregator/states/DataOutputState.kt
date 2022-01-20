@@ -12,11 +12,15 @@ import java.time.Instant
  * @see consumer - consumer for Data Output
  * @see host - host running enclave that computes the Data Output
  * @see enclaveAttestation - Enclave attestation bytes for verification
+ * @see dataType - dataType provided by consumer
+ * @see description - description provided by consumer
  * @see flowTopic - Flow topic that resulted in creation of state
  */
 @BelongsToContract(DataOutputContract::class)
 data class DataOutputState(val consumer: Party,
                            val host: Party,
+                           val dataType: String,
+                           val description: String,
                            val dateCreated: Instant,
                            val enclaveAttestation: ByteArray,
                            val flowTopic: String
@@ -35,6 +39,8 @@ data class DataOutputState(val consumer: Party,
 
         if (consumer != other.consumer) return false
         if (host != other.host) return false
+        if (dataType != other.dataType) return false
+        if (description != other.description) return false
         if (dateCreated != other.dateCreated) return false
         if (enclaveAttestation != other.enclaveAttestation) return false
         if (flowTopic != other.flowTopic) return false
