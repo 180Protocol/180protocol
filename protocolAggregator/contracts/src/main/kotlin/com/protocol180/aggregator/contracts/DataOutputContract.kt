@@ -27,6 +27,10 @@ class DataOutputContract : Contract {
                         (dataOutputState.consumer != null && dataOutputState.host != null)
                 "The enclave attestation used to create the data output must not be null" using
                         (dataOutputState.enclaveAttestation != null)
+                "The data type requested to create the data output must not be null" using
+                        (dataOutputState.dataType != null)
+                "The description provided to create the data output must not be null" using
+                        (dataOutputState.description != null)
                 "The flow topic used to create the data output must not be null" using
                         (dataOutputState.flowTopic != null)
                 "Only the consumer and host may sign the Data Output State Transaction" using
