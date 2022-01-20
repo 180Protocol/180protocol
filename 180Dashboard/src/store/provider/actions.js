@@ -63,12 +63,6 @@ export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload, dateC
             result.push(parsedData);
         }
 
-        let sum = 0;
-        for (let i = 0; i < result.length; i++) {
-            sum += parseFloat(result[i].rewards);
-            result[i].rewardsBalance = sum;
-        }
-
         if (result) {
             dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_SUCCESS', payload: result});
             return result;
