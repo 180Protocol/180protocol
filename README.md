@@ -105,13 +105,15 @@ Please read [here for documentation on deploying Corda](https://docs.r3.com/en/p
 2. Each data provider and consumer data can be viewed on the dashboard using their login credentials (corda node hostname as user and
       port number as the password). Modify the file `180Dashboard/src/userInfo.yml` -
       Ex, for provider A use
-      `nodes:
+      ```yaml
+   nodes:
       providerA:
       username: providerA
       password: test
       port: 9500
       role: provider
       name: O=Host,L=London,C=GB`
+    ```
 
 3. Run below command from the project root path to start 180Dashboard service & protocolAggregator
    service using docker compose
