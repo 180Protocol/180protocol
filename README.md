@@ -9,13 +9,13 @@ confidential business data. The software introduces distributed network design t
 solving for the legacy barriers that have limited data mobility and value. We make data available where it needs to be,
 without moving it and transforming it along they way.
 
-Enterprises/Developers can utilize 180Protocol to create coalitions - private networks on R3 Corda - to share their
-private structured data assets. Coalitions are composed of corda nodes that can act as Data Providers and Data Consumers,
+Enterprises/Developers can utilize 180Protocol to create coalitions - private networks on [R3 Corda](https://docs.r3.com/) 
+to share their private structured data assets. Coalitions are composed of corda nodes that can act as Data Providers and Data Consumers,
 and a coalition host.
 
 * Data Providers - nodes that have pre-approved structured private data assets that they want to share and be rewarded for
 * Data Consumer - nodes that have a need to consume unique and commercially valuable data outputs
-* Coalition Host - node that runs the trusted enclave and arbitrates communication between providers and consumers
+* Coalition Host - node that runs the trusted enclave (via [R3 Conclave](https://docs.conclave.net/)) and arbitrates communication between providers and consumers
 
 180Protocol comprises the following components:
 
@@ -77,27 +77,32 @@ Please read [here for documentation on deploying Corda](https://docs.r3.com/en/p
 
     Change the below in the `/protocolAggregator/build/nodes/runnodes` files
 
-   `if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
+   ```shell
+   if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
      /usr/libexec/java_home --exec java -jar runnodes.jar "$@"
    else
      "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar runnodes.jar "$@"
-   fi`
+   fi
+   ```
 
     to   
 
-   `if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
+   ```shell
+   if [ -z "$JAVA_HOME" ] && which osascript >/dev/null; then
      /usr/libexec/java_home --exec java -jar corda.jar run-migration-scripts --core-schemas "$@"
      /usr/libexec/java_home --exec java -jar corda.jar --allow-hibernate-to-manage-app-schema "$@"
    else
      "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar corda.jar run-migration-scripts --core-schemas "$@"
      "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar corda.jar --allow-hibernate-to-manage-app-schema "$@"
-   fi`
+   fi
+   ```
 
    Read the `protocolAggregator/README.md` for details around extension.
 
 **To run the 180Protocol Coalition network using Docker:**
 
-1. Each data provider and consumer data can be viewed on the dashboard using their login credentials (corda node hostname as user and
+1. Build the protocolAggregator using the above steps to generate the build
+2. Each data provider and consumer data can be viewed on the dashboard using their login credentials (corda node hostname as user and
       port number as the password). Modify the file `180Dashboard/src/userInfo.yml` -
       Ex, for provider A use
       `nodes:
@@ -108,13 +113,13 @@ Please read [here for documentation on deploying Corda](https://docs.r3.com/en/p
       role: provider
       name: O=Host,L=London,C=GB`
 
-2. Run below command from the project root path to start 180Dashboard service & protocolAggregator
+3. Run below command from the project root path to start 180Dashboard service & protocolAggregator
    service using docker compose
 
    `docker-compose -f ./compose-corda-network.yml -f ./compose-codaptor.yml up`
 
-3. The 180Dashboard can be accessed at `http://localhost:3000` on a browser 
-4. Following this all API's can be accessed via swagger for each node
+4. The 180Dashboard can be accessed at `http://localhost:3000` on a browser 
+5. Following this all API's can be accessed via swagger for each node
 
 
 Please read [detailed documentation](https://docs.180protocol.com/develop/tutorials) on how to configure and set up the coalition and request data aggregations
