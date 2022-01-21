@@ -37,7 +37,7 @@ This repository contains a representative application built on the 180Protocol f
 as a blueprint to start building more complex applications. We encourage application developers and businesses to build 
 on 180Protocol and provide feedback so we can introduce better features over time.
 
-Please read more detailed design and API specifications on our [Wiki](https://180protocol.gitbook.io/product-docs/)
+Please read more detailed design and API specifications on our [Wiki](https://docs.180protocol.com/)
 
 ### Roadmap
 This is the alpha release of 180Protocol and is experimental in nature. 
@@ -64,7 +64,7 @@ economy
 ### How to run 180Protocol
 
 The protocol comprises the 180Dashboard and protocolAggregator modules. The 180Dashboard is the React based front end and the
-protocolAggregator is the sample backend. Please check [system requirements and license considerations](https://180protocol.gitbook.io/docs/develop/tutorials/system-requirements-and-license-considerations) 
+protocolAggregator is the sample backend. Please check [system requirements and license considerations](https://docs.180protocol.com/develop/tutorials/system-requirements-and-license-considerations) 
 before running the network
 
 **To build protocolAggregator:**
@@ -117,7 +117,7 @@ Please read [here for documentation on deploying Corda](https://docs.r3.com/en/p
 4. Following this all API's can be accessed via swagger for each node
 
 
-Please read [detailed documentation](https://180protocol.gitbook.io/product-docs/develop/tutorials/) on how to configure and set up the coalition and request data aggregations
+Please read [detailed documentation](https://docs.180protocol.com/develop/tutorials) on how to configure and set up the coalition and request data aggregations
 
 
 ### Licenses
