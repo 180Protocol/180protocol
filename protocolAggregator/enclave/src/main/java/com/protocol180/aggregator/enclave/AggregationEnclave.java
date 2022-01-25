@@ -52,6 +52,9 @@ public abstract class AggregationEnclave extends Enclave {
         rewardsOutputSchema = envelopeSchema.getField("rewardsOutput").schema();
         identitySchema = envelopeSchema.getField("identity").schema();
 
+        clientToEncryptedDataMap=null;
+        clientToRawDataMap=null;
+
         return "Schema Initialized".getBytes();
     }
 
