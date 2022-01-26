@@ -1,5 +1,4 @@
-# 180Protocol
-<img src=".github/180protocol-logo.svg" alt="180Protocol Logo" width="40%"/>
+<img src=".github/180protocol-logo-dark.png" alt="180Protocol Logo" width="40%"/>
 
 ### Introduction
 180Protocol is an open-source software toolkit for data sharing. 180Protocol represents the next evolution of data
