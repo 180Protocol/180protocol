@@ -44,13 +44,19 @@ plugins {
     // This makes test output more useful and in particular avoids the need to copy files out of the execution container
     // when testing with sim enclaves on macOS, if tests fail.
     id 'com.adarshr.test-logger' version '2.1.1' apply false
+    id 'maven-publish'
+    id 'signing'
 }
+
+def moduleProjects = allprojects.findAll { gradle.ext.moduleProjects.contains(it.name) }
 
 allprojects {
     apply plugin: 'java'
     apply plugin: 'kotlin'
     apply plugin: 'idea'
     apply plugin: 'com.adarshr.test-logger'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
     // Make sure the javadoc artifacts for Conclave are downloaded by IDEs.
     idea {
@@ -97,6 +103,9 @@ allprojects {
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         maven { url 'https://plugins.gradle.org/m2/' }
         maven { url 'https://jitpack.io' }
+
+        // Protocol Aggregator snapshots are published here
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
     }
 
     jar {
@@ -104,6 +113,8 @@ allprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+        archivesBaseName = "protocol-aggregator-${project.name}"
     }
 }
 
@@ -116,6 +127,79 @@ sourceSets {
         resources {
             srcDir rootProject.file("config/dev")
         }
+    }
+}
+
+// applying common configuration to modules that produce artifacts
+// which we publish to Maven Central
+configure(moduleProjects){
+    group = 'com.protocol180'
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from "${rootProject.projectDir}/etc/no-javadocs.txt"
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifactId = "protocol-aggregator-${project.name}"
+
+                from components.java
+
+                artifact sourcesJar
+                artifact javadocJar
+
+                pom {
+                    name = 'Protocol Aggregator API'
+                    description = 'This Cordapp is the complete implementation of data aggregation protocol with conclave(enclave) environment.'
+                    url = "https://github.com/180protocol/180protocol"
+                    licenses {
+                        license {
+                            name = "GNU Affero General Public License v3.0 or later"
+                            url = "https://spdx.org/licenses/AGPL-3.0-or-later"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "180Protocol"
+                            name = "Bond180 Limited"
+                            email = "devops@180protocol.com"
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git://github.com/180protocol/180protocol.git"
+                        developerConnection = "scm:git:ssh://github.com:180protocol/180protocol.git"
+                        url = "https://github.com/180protocol/180protocol"
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                credentials {
+                    username project.sonatypeOssUsername
+                    password project.sonatypeOssPassword
+                }
+
+                name = "central"
+
+                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            }
+        }
+    }
+
+    signing {
+        required { !version.endsWith('SNAPSHOT') }
+        sign publishing.publications.maven
     }
 }
 

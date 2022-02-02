@@ -26,8 +26,14 @@ pluginManagement {
     }
 }
 
+gradle.ext.moduleProjects=[]
 include 'aggregator-commons'
 include 'enclave'
-include 'workflows'
-include 'contracts'
+includeModule 'workflows'
+includeModule 'contracts'
 
+// projects added with this function produce artifacts that are published to Maven Central
+def includeModule(name) {
+    gradle.ext.moduleProjects.add(name)
+    include ":$name"
+}
