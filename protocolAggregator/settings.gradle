@@ -27,10 +27,12 @@ pluginManagement {
 }
 
 gradle.ext.moduleProjects=[]
-include 'sampleEnclave'
 includeModule 'enclave'
 includeModule 'workflows'
 includeModule 'contracts'
+includeModule 'estuaryStorage'
+include 'sampleEnclave'
+include "estuaryStorage:shadowJar"
 
 // projects added with this function produce artifacts that are published to Maven Central
 def includeModule(name) {
