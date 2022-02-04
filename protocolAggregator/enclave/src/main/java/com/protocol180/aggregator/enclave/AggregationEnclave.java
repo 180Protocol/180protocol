@@ -193,5 +193,12 @@ public abstract class AggregationEnclave extends Enclave {
         return null;
     }
 
+    public class UnsupportedDataTypeException extends Exception {
+        public UnsupportedDataTypeException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+
 
 }

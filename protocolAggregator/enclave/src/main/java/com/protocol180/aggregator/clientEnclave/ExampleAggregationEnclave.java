@@ -134,10 +134,5 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         return (float) (Math.round(((minLimit + random.nextFloat() * (maxLimit - minLimit)) * decimalPlace)) / decimalPlace);
     }
 
-    public class UnsupportedDataTypeException extends Exception {
-        public UnsupportedDataTypeException(String errorMessage) {
-            super(errorMessage);
-        }
-    }
 
 }
