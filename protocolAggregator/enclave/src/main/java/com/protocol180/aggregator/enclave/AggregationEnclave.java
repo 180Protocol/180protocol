@@ -92,7 +92,7 @@ public abstract class AggregationEnclave extends Enclave {
      * The GenericRecord must follow the sub-schema defined as 'rewardOutput' under the 'envelopeSchema'
      * @see org.apache.avro.generic.GenericRecord
      **/
-    protected abstract File createRewardsDataOutput(PublicKey providerKey) throws IOException, ExampleAggregationEnclave.UnsupportedDataTypeException;
+    protected abstract File createRewardsDataOutput(PublicKey providerKey) throws IOException, UnsupportedDataTypeException;
 
     /**
      * createAggregateDataOutput - calculates a data output for the data consumer(s). Currently, the same data output is
@@ -102,7 +102,7 @@ public abstract class AggregationEnclave extends Enclave {
      * The GenericRecord must follow the sub-schema defined as 'aggregateOutput' under the 'envelopeSchema'
      * @see org.apache.avro.generic.GenericRecord
      **/
-    protected abstract File createAggregateDataOutput() throws IOException, ExampleAggregationEnclave.UnsupportedDataTypeException;
+    protected abstract File createAggregateDataOutput() throws IOException, UnsupportedDataTypeException;
 
     void initializeLocalStore() {
         clientToEncryptedDataMap = new HashMap();
