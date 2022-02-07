@@ -1,0 +1,109 @@
+# use docker-compose up -d to start the network
+# version 3 does not support setting memory limits for docker-compose
+version: '2'
+services:
+  notary-node:
+    image: corda/corda-zulu-java1.8-4.7:latest
+    # hostnames need to be the same as in build.gradle, because they are baked into nodeInfo files
+    hostname: notary-node
+    mem_limit: 1g
+    expose:
+      - 10002 # p2p port
+      - 10003 # Corda RPC port, map to a host port using ports directive if Corda shell access is required
+    volumes:
+      - ./build/nodes/Notary/certificates:/opt/corda/certificates
+      - ./build/nodes/Notary/cordapps:/opt/corda/cordapps
+      - ./build/nodes/Notary/etc:/etc/corda
+      - ./build/nodes/Notary/network-parameters:/opt/corda/network-parameters
+      - ./build/nodes/Notary/logs:/opt/corda/logs
+      - ./build/nodes/Notary/drivers:/opt/corda/drivers
+      - ./build/nodes/Notary/persistence:/opt/corda/persistence
+      - ./build/nodes/Notary/additional-node-infos:/opt/corda/additional-node-infos
+      # the following makes deployNode dir layout compatible with the expectations of the docker image
+      - ./build/nodes/Notary/persistence.mv.db:/opt/corda/persistence/persistence.mv.db
+      - ./build/nodes/Notary/persistence.trace.db:/opt/corda/persistence/persistence.trace.db
+      - ./build/nodes/Notary/node.conf:/etc/corda/node.conf
+  host-node:
+    image: corda/corda-zulu-java1.8-4.7:latest
+    # hostnames need to be the same as in build.gradle, because they are baked into nodeInfo files
+    hostname: host-node
+    mem_limit: 1g
+    expose:
+      - 10004 # p2p port
+      - 10005 # Corda RPC port, map to a host port using ports directive if Corda shell access is required
+    volumes:
+      - ./build/nodes/Host/certificates:/opt/corda/certificates
+      - ./build/nodes/Host/cordapps:/opt/corda/cordapps
+      - ./build/nodes/Host/etc:/etc/corda
+      - ./build/nodes/Host/network-parameters:/opt/corda/network-parameters
+      - ./build/nodes/Host/logs:/opt/corda/logs
+      - ./build/nodes/Host/drivers:/opt/corda/drivers
+      - ./build/nodes/Host/persistence:/opt/corda/persistence
+      - ./build/nodes/Host/additional-node-infos:/opt/corda/additional-node-infos
+      # the following makes deployNode dir layout compatible with the expectations of the docker image
+      - ./build/nodes/Host/persistence.mv.db:/opt/corda/persistence/persistence.mv.db
+      - ./build/nodes/Host/persistence.trace.db:/opt/corda/persistence/persistence.trace.db
+      - ./build/nodes/Host/node.conf:/etc/corda/node.conf
+  providerb-node:
+    image: corda/corda-zulu-java1.8-4.7:latest
+    # hostnames need to be the same as in build.gradle, because they are baked into nodeInfo files
+    hostname: providerb-node
+    mem_limit: 1g
+    expose:
+      - 10006 # p2p port
+      - 10007 # Corda RPC port, map to a host port using ports directive if Corda shell access is required
+    volumes:
+      - ./build/nodes/ProviderB/certificates:/opt/corda/certificates
+      - ./build/nodes/ProviderB/cordapps:/opt/corda/cordapps
+      - ./build/nodes/ProviderB/etc:/etc/corda
+      - ./build/nodes/ProviderB/network-parameters:/opt/corda/network-parameters
+      - ./build/nodes/ProviderB/logs:/opt/corda/logs
+      - ./build/nodes/ProviderB/drivers:/opt/corda/drivers
+      - ./build/nodes/ProviderB/persistence:/opt/corda/persistence
+      - ./build/nodes/ProviderB/additional-node-infos:/opt/corda/additional-node-infos
+      # the following makes deployNode dir layout compatible with the expectations of the docker image
+      - ./build/nodes/ProviderB/persistence.mv.db:/opt/corda/persistence/persistence.mv.db
+      - ./build/nodes/ProviderB/persistence.trace.db:/opt/corda/persistence/persistence.trace.db
+      - ./build/nodes/ProviderB/node.conf:/etc/corda/node.conf
+  consumerc-node:
+    image: corda/corda-zulu-java1.8-4.7:latest
+    # hostnames need to be the same as in build.gradle, because they are baked into nodeInfo files
+    hostname: consumerc-node
+    mem_limit: 1g
+    expose:
+      - 10008 # p2p port
+      - 10009 # Corda RPC port, map to a host port using ports directive if Corda shell access is required
+    volumes:
+      - ./build/nodes/ConsumerC/certificates:/opt/corda/certificates
+      - ./build/nodes/ConsumerC/cordapps:/opt/corda/cordapps
+      - ./build/nodes/ConsumerC/etc:/etc/corda
+      - ./build/nodes/ConsumerC/network-parameters:/opt/corda/network-parameters
+      - ./build/nodes/ConsumerC/logs:/opt/corda/logs
+      - ./build/nodes/ConsumerC/drivers:/opt/corda/drivers
+      - ./build/nodes/ConsumerC/persistence:/opt/corda/persistence
+      - ./build/nodes/ConsumerC/additional-node-infos:/opt/corda/additional-node-infos
+      # the following makes deployNode dir layout compatible with the expectations of the docker image
+      - ./build/nodes/ConsumerC/persistence.mv.db:/opt/corda/persistence/persistence.mv.db
+      - ./build/nodes/ConsumerC/persistence.trace.db:/opt/corda/persistence/persistence.trace.db
+      - ./build/nodes/ConsumerC/node.conf:/etc/corda/node.conf
+  consumerd-node:
+    image: corda/corda-zulu-java1.8-4.7:latest
+    # hostnames need to be the same as in build.gradle, because they are baked into nodeInfo files
+    hostname: consumerd-node
+    mem_limit: 1g
+    expose:
+      - 10011 # p2p port
+      - 10012 # Corda RPC port, map to a host port using ports directive if Corda shell access is required
+    volumes:
+      - ./build/nodes/ConsumerD/certificates:/opt/corda/certificates
+      - ./build/nodes/ConsumerD/cordapps:/opt/corda/cordapps
+      - ./build/nodes/ConsumerD/etc:/etc/corda
+      - ./build/nodes/ConsumerD/network-parameters:/opt/corda/network-parameters
+      - ./build/nodes/ConsumerD/logs:/opt/corda/logs
+      - ./build/nodes/ConsumerD/drivers:/opt/corda/drivers
+      - ./build/nodes/ConsumerD/persistence:/opt/corda/persistence
+      - ./build/nodes/ConsumerD/additional-node-infos:/opt/corda/additional-node-infos
+      # the following makes deployNode dir layout compatible with the expectations of the docker image
+      - ./build/nodes/ConsumerD/persistence.mv.db:/opt/corda/persistence/persistence.mv.db
+      - ./build/nodes/ConsumerD/persistence.trace.db:/opt/corda/persistence/persistence.trace.db
+      - ./build/nodes/ConsumerD/node.conf:/etc/corda/node.conf
