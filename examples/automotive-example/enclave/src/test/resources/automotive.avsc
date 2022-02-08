@@ -124,14 +124,6 @@
               "type": "float"
             },
             {
-              "name": "qualityScore",
-              "type": "float"
-            },
-            {
-              "name": "rewards",
-              "type": "float"
-            },
-            {
               "name": "dataType",
               "type": "string"
             }
