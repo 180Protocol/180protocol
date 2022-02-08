@@ -97,10 +97,6 @@
             {
               "name": "evMarketShare",
               "type": "float"
-            },
-            {
-              "name": "monthlyInflation",
-              "type": "float"
             }
           ]
         }
@@ -125,14 +121,6 @@
             },
             {
               "name": "updateFrequency",
-              "type": "float"
-            },
-            {
-              "name": "qualityScore",
-              "type": "float"
-            },
-            {
-              "name": "rewards",
               "type": "float"
             },
             {
