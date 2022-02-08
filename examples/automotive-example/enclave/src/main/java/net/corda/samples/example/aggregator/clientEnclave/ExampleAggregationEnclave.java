@@ -10,9 +10,9 @@ import org.apache.avro.io.DatumWriter;
 import java.io.File;
 import java.io.IOException;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The below enclave provides an example of how to write 180Protocol Broker Flow compatible Enclaves.
@@ -29,6 +29,15 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
     Random random = new Random();
 
+    ArrayList<String> pivot = new ArrayList<String>() {
+        {
+            add("month");
+            add("brand");
+            add("type");
+            add("model");
+        }
+    };
+
     /**
      * method defined on AggregationEnclave interface that is overridden in the child enclave.
      * Used to calculate rewards for a specific provider.
@@ -36,6 +45,9 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
      * calling a Rewards engine that calculates rewards factors automatically and based on regression.
      **/
     protected File createRewardsDataOutput(PublicKey providerKey) throws IOException {
+        ArrayList<GenericRecord> clientRecords = clientToRawDataMap.get(providerKey);
+        ArrayList<GenericRecord> allRecords = new ArrayList<>();
+        clientToRawDataMap.values().forEach(genericRecords -> allRecords.addAll(genericRecords));
 
         //populate rewards output file here based on raw client data
         File outputFile = new File("rewardsOutput.avro");
@@ -46,19 +58,12 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
 
-        int generalMinLimit = 1;
-        int generalMaxLimit = 10;
-        int finalRewardMinLimit = 1;
-        int finalRewardMaxLimit = 1000;
-
         switch (SupportedDataTypes.valueOf(envelopeSchema.getName())) {
             case testSchema1:
-                rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
+                rewardRecord.put("amountProvided", clientRecords.size() / allRecords.size());
+                rewardRecord.put("completeness", groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country"));
+                rewardRecord.put("uniqueness", groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2)));
+                rewardRecord.put("updateFrequency", groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date"));
                 rewardRecord.put("dataType", envelopeSchema.getName());
                 break;
             default:
@@ -94,42 +99,26 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
 
         //simple aggregation of records into one file
         //other possibilities include creating a output with a specified schema
-
         switch (SupportedDataTypes.valueOf(envelopeSchema.getName())) {
             case testSchema1:
                 GenericRecord demandRecord = new GenericData.Record(aggregateOutputSchema);
                 GenericRecord averagePriceRecord = new GenericData.Record(aggregateOutputSchema.getField("averagePrice").schema());
                 GenericRecord unitsSoldRecord = new GenericData.Record(aggregateOutputSchema.getField("unitsSold").schema());
                 GenericRecord totalSalesRecord = new GenericData.Record(aggregateOutputSchema.getField("totalSales").schema());
-                averagePriceRecord.put("pivotId", "month");
-                averagePriceRecord.put("data", new HashMap<String, Double>() {{
-                    put("jan", 75326.09941226066);
-                    put("feb", 74653.40074696894);
-                }});
-                unitsSoldRecord.put("pivotId", "month");
-                unitsSoldRecord.put("data", new HashMap<String, Integer>() {{
-                    put("jan", 54);
-                    put("feb", 78);
-                }});
-                totalSalesRecord.put("pivotId", "month");
-                totalSalesRecord.put("data", new HashMap<String, Integer>() {{
-                    put("jan", 100);
-                    put("feb", 175);
-                }});
+                averagePriceRecord.put("pivotId", pivot.get(3));
+                averagePriceRecord.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "average_price"));
+                unitsSoldRecord.put("pivotId", pivot.get(3));
+                unitsSoldRecord.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "units"));
+                totalSalesRecord.put("pivotId", pivot.get(3));
+                totalSalesRecord.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "total_sales"));
                 demandRecord.put("averagePrice", averagePriceRecord);
-                demandRecord.put("unitsSold", averagePriceRecord);
-                demandRecord.put("totalSales", averagePriceRecord);
-                demandRecord.put("evPremium", 3697904.9954223493);
-                demandRecord.put("evMarketShare", 11265504.026596159);
-                demandRecord.put("monthlyInflation", 44707198.54525924);
+                demandRecord.put("unitsSold", unitsSoldRecord);
+                demandRecord.put("totalSales", totalSalesRecord);
+                HashMap<String, Double> evAveragePriceRecords = groupByAndCalculateAverage(allRecords, "ev", "average_price");
+                HashMap<String, Double> evTotalSalesRecords = groupByAndCalculateAverage(allRecords, "ev", "average_price");
+                demandRecord.put("evPremium", (evAveragePriceRecords.get("\"EV\"") / evAveragePriceRecords.get("\"\"")) - 1);
+                demandRecord.put("evMarketShare", evTotalSalesRecords.get("\"EV\"") / (evTotalSalesRecords.get("\"EV\"") + evTotalSalesRecords.get("\"\"")));
                 dataFileWriter.append(demandRecord);
-//                allRecords.forEach(genericRecord -> {
-//                    try {
-//                        dataFileWriter.append(genericRecord);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                });
                 break;
             default:
                 throw new IOException("Envelope Schema contains unsupported data type: " + envelopeSchema.getName());
@@ -160,9 +149,65 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         return (float) (Math.round(((minLimit + random.nextFloat() * (maxLimit - minLimit)) * decimalPlace)) / decimalPlace);
     }
 
-    public class UnsupportedDataTypeException extends Exception {
-        public UnsupportedDataTypeException(String errorMessage) {
-            super(errorMessage);
+    public HashMap<String, Double> groupByAndCalculateAverage(ArrayList<GenericRecord> allRecords, String groupByField, String field) {
+        HashMap<String, Double> data = new HashMap<>();
+        allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(groupByField),
+                        Collectors.summarizingDouble(genericRecord -> Objects.equals(field, "units") ? (int) genericRecord.get(field) : (float) genericRecord.get(field))
+                )).forEach((k, v) -> {
+                    data.put(k.toString(), Objects.equals(field, "average_price") ? v.getSum() / v.getCount() : v.getSum());
+                });
+
+        return data;
+    }
+
+    public int groupByAndCalculateCount(ArrayList<GenericRecord> allRecords, String groupByField) {
+        Map<Object, Long> counted = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(groupByField),
+                        Collectors.counting()
+                ));
+
+        return counted.size();
+    }
+
+    public int groupByModelCountryAndCalculateCount(ArrayList<GenericRecord> allRecords, String model, String country) {
+        Map<Object, Map<Object, Long>> groupedRecords = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(model),
+                        Collectors.groupingBy(
+                                genericRecord -> genericRecord.get(country),
+                                Collectors.counting())
+                ));
+
+        int count = 0;
+        for (Map.Entry<Object, Map<Object, Long>> entry : groupedRecords.entrySet()) {
+            Object key = entry.getKey();
+            Map<Object, Long> value = entry.getValue();
+            count += value.size();
         }
+
+        return count;
+    }
+
+    public int groupByDateAndCalculateCount(ArrayList<GenericRecord> allRecords, String date) {
+        Map<Object, Long> groupByDateRecords = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(date),
+                        Collectors.counting()
+                ));
+
+        LocalDate currentDate = LocalDate.now().minusMonths(3);
+        long total = 0;
+        for (Map.Entry<Object, Long> entry : groupByDateRecords.entrySet()) {
+            Object k = entry.getKey();
+            Long v = entry.getValue();
+            if (LocalDate.parse(k.toString().substring(1, k.toString().length() - 1)).isAfter(currentDate)) {
+                total += v;
+            }
+        }
+
+        return (int) total;
     }
 }

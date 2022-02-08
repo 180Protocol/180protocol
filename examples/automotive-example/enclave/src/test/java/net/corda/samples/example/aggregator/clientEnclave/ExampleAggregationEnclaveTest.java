@@ -60,7 +60,8 @@ public class ExampleAggregationEnclaveTest {
         File dataOutputFile = enclave.createAggregateDataOutput();
         File RewardOutputFile = enclave.createRewardsDataOutput(providerPrivateKey.getPublicKey());
 
-        assertEquals(new File("aggregateOutput.avro"), enclave.createAggregateDataOutput());
+        assertEquals(new File("aggregateOutput.avro"), dataOutputFile);
+        assertEquals(new File("rewardsOutput.avro"), RewardOutputFile);
     }
 
     private byte[] createEncryptedClientMailForSampleCSV(EnclaveInstanceInfo attestation, File csvFile, Schema aggregateInputSchema, Curve25519PrivateKey providerPrivateKey) throws IOException {
