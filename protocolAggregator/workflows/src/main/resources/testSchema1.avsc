@@ -44,17 +44,6 @@
           {"name": "dataType", "type": "string"}
         ]
       }
-    },
-    {
-      "name": "identity",
-      "type": {
-        "type" : "record",
-        "name" : "Identity",
-        "fields": [
-          {"name": "publicKey", "type": "string"},
-          {"name": "clientType", "type": "string"}
-        ]
-      }
     }
   ]
 }

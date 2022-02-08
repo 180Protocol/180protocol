@@ -17,6 +17,7 @@ buildscript {
         corda_core_release_version = constants.getProperty("cordaCoreVersion")
         corda_gradle_plugins_version = constants.getProperty("gradlePluginsVersion")
         kotlin_version = constants.getProperty("kotlinVersion")
+        dokka_version = constants.getProperty("dokkaVersion")
         log4j_version = constants.getProperty("log4jVersion")
         slf4j_version = constants.getProperty("slf4jVersion")
         corda_platform_version = constants.getProperty("platformVersion").toInteger()
@@ -37,6 +38,7 @@ buildscript {
         classpath "net.corda.plugins:cordformation:$corda_gradle_plugins_version"
         classpath "net.corda.plugins:quasar-utils:$corda_gradle_plugins_version"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_gradle_plugin_version"
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}")
     }
 }
 

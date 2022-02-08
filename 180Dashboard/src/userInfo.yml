@@ -11,8 +11,8 @@ nodes:
     port: 7500
     role: provider
     name: O=ProviderB,L=New York,C=US
-  consumerA:
-    username: consumerA
+  consumerC:
+    username: consumerC
     password: test
     port: 6500
     role: consumer
