@@ -47,11 +47,13 @@ Please follow the documentation on our [Wiki](https://docs.180protocol.com/devel
 * [Managing a 180Protocol coalition network](https://docs.180protocol.com/develop/tutorials/managing-a-180protocol-coalition-network)
 * [Aggregator SDK API's](https://docs.180protocol.com/develop/aggregator-sdk-apis)
 
-### System architecture and design
+### Features and design
 
-Read about our architecture and workflow designs in detail -
+Read about our features and design details -
 
-* [System architecture and design](https://docs.180protocol.com/develop/system-architecure-and-design)
+* [Features](https://docs.180protocol.com/learn/features)
+* [Network Architecture](https://docs.180protocol.com/learn/features/network-architecture)
+* [Enclave Workflows](https://docs.180protocol.com/learn/features/enclave-workflows)
 
 ### Roadmap
 This is the alpha release of 180Protocol and is experimental in nature. 
