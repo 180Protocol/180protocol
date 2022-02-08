@@ -1,5 +1,6 @@
 plugins {
     id 'com.r3.conclave.enclave'
+    id 'org.jetbrains.dokka'
 }
 
 dependencies {
@@ -16,6 +17,11 @@ dependencies {
     compile group: 'org.tukaani', name: 'xz', version: '1.9'
     compile group: 'org.brotli', name: 'dec', version: '0.1.2'
     compile group: 'org.osgi', name: 'org.osgi.framework', version: '1.10.0'
+}
+
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$rootDir/github-docs"
 }
 
 conclave {

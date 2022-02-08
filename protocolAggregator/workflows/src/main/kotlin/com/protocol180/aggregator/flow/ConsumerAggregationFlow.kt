@@ -133,10 +133,10 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
         enclaveService.initializeAvroSchema(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile)
 
         // Initiate Provider flows and acquire encrypted payload according to given schema
-        val providers = serviceHub.networkMapCache.allNodes.map { it.legalIdentities[0] } - ourIdentity - notary - flowSession.counterparty
+        val providers = coalitionConfiguration.state.data.coalitionPartyToRole[RoleType.DATA_PROVIDER]
         val clientKeyMapWithRandomKeyGenerated = mutableMapOf<PublicKey, Pair<String, ByteArray>>()
 
-        val providerSessions = providers.map { initiateFlow(it) }
+        val providerSessions = providers!!.map { initiateFlow(it) }
         providerSessions.forEach { providerSession ->
             //receive provider data pair - provider public key -> encrypted input data payload
             val providerDataPair = providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, dataType)).unwrap { it }

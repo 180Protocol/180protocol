@@ -38,7 +38,6 @@ public abstract class AggregationEnclave extends Enclave {
     protected Schema aggregateInputSchema;
     protected Schema aggregateOutputSchema;
     protected Schema rewardsOutputSchema;
-    Schema identitySchema;
 
     String clientTypeForCurrRequest = null;
 
@@ -50,7 +49,6 @@ public abstract class AggregationEnclave extends Enclave {
         aggregateInputSchema = envelopeSchema.getField("aggregateInput").schema();
         aggregateOutputSchema = envelopeSchema.getField("aggregateOutput").schema();
         rewardsOutputSchema = envelopeSchema.getField("rewardsOutput").schema();
-        identitySchema = envelopeSchema.getField("identity").schema();
 
         clientToEncryptedDataMap=null;
         clientToRawDataMap=null;

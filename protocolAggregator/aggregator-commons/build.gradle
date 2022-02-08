@@ -1,4 +1,10 @@
 apply plugin: 'kotlin'
+apply plugin: 'org.jetbrains.dokka'
+
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$rootDir/github-docs"
+}
 
 dependencies {
     implementation "com.r3.conclave:conclave-common:$conclaveVersion"

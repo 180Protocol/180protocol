@@ -1,6 +1,7 @@
 apply plugin: 'net.corda.plugins.cordapp'
 apply plugin: 'net.corda.plugins.cordformation'
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply plugin: 'org.jetbrains.dokka'
 
 cordapp {
     targetPlatformVersion corda_platform_version
@@ -28,6 +29,10 @@ sourceSets {
     }
 }
 
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$rootDir/github-docs"
+}
 
 dependencies {
     implementation project(':aggregator-commons')

@@ -79,7 +79,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
      * Delivers the bytes of an encrypted message to the enclave without waiting for any response. This method will
      * return once the enclave has finished processing the mail, and the enclave may not respond.
      *
-     * @param encryptedMail The bytes of an encrypted message as created via {@link com.r3.conclave.mail.PostOffice}.
+     * @param encryptedMail The bytes of an encrypted message as created via Conclave PostOffice API}.
      */
     public void deliverMail(byte[] encryptedMail) throws MailDecryptionException {
         enclave.deliverMail(encryptedMail, null);
@@ -92,7 +92,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
     /**
      * Delivers a mail to the enclave and returns an operation that can be used to suspend a flow until the enclave
      * chooses to send a reply. This may not happen immediately. This is equivalent to calling
-     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link # deliverMail(byte[])}, then returning the result of
+     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link #deliverMail(byte[])}, then returning the result of
      * the receiveMail call.
      *
      * @param flow The flow from which the mail is being received.

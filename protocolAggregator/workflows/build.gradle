@@ -1,6 +1,7 @@
 apply plugin: 'net.corda.plugins.cordapp'
 apply plugin: 'net.corda.plugins.cordformation'
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply plugin: 'org.jetbrains.dokka'
 
 cordapp {
     targetPlatformVersion corda_platform_version
@@ -10,9 +11,6 @@ cordapp {
         vendor "180Protocol Pte Ltd"
         licence "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0"
         versionId 1
-    }
-    signing {
-        enabled false
     }
 }
 
@@ -27,6 +25,11 @@ sourceSets {
             srcDirs rootProject.file("config/test"), "src/test/resources"
         }
     }
+}
+
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$rootDir/github-docs"
 }
 
 // Override the default (simulation) with -PenclaveMode=
