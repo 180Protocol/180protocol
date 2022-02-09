@@ -35,7 +35,8 @@ import kotlin.test.assertTrue
  */
 class ConsumerAggregationFlowTest {
     lateinit var network: MockNetwork
-    lateinit var consumer: StartedMockNode
+    lateinit var consumer1: StartedMockNode
+    lateinit var consumer2: StartedMockNode
     lateinit var host: StartedMockNode
     lateinit var provider1: StartedMockNode
     lateinit var provider2: StartedMockNode
@@ -51,7 +52,8 @@ class ConsumerAggregationFlowTest {
                         )
                 )
         )
-        consumer = prepareNodeForRole(RoleType.DATA_CONSUMER)
+        consumer1 = prepareNodeForRole(RoleType.DATA_CONSUMER)
+        consumer2 = prepareNodeForRole(RoleType.DATA_CONSUMER)
         host = prepareNodeForRole(RoleType.COALITION_HOST)
         provider1 = prepareNodeForRole(RoleType.DATA_PROVIDER)
         provider2 = prepareNodeForRole(RoleType.DATA_PROVIDER)
@@ -78,7 +80,7 @@ class ConsumerAggregationFlowTest {
 
     private fun createConfigurationState() {
         var coalitionPartyToRole = mapOf(RoleType.COALITION_HOST to setOf(host.info.chooseIdentityAndCert().party.name),
-            RoleType.DATA_CONSUMER to setOf(consumer.info.chooseIdentityAndCert().party.name),
+            RoleType.DATA_CONSUMER to setOf(consumer1.info.chooseIdentityAndCert().party.name,consumer2.info.chooseIdentityAndCert().party.name),
             RoleType.DATA_PROVIDER to setOf(provider1.info.chooseIdentityAndCert().party.name,
                 provider2.info.chooseIdentityAndCert().party.name))
 
@@ -105,13 +107,13 @@ class ConsumerAggregationFlowTest {
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
 
         val flow = ConsumerAggregationFlow(dataType, description)
-        val future = consumer.startFlow(flow)
+        val future = consumer1.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
         assertEquals(1, signedTransaction.tx.outputStates.size)
         val output = signedTransaction.tx.getOutput(0) as DataOutputState
         assertEquals(host.info.legalIdentities[0], output.host)
-        assertEquals(consumer.info.legalIdentities.first(), output.consumer)
+        assertEquals(consumer1.info.legalIdentities.first(), output.consumer)
 
         //check data output and rewards transaction for host
         host.transaction {
@@ -122,10 +124,10 @@ class ConsumerAggregationFlowTest {
 
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
-            assertEquals(consumer.info.legalIdentities.first(), dataOutputState.consumer)
+            assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
                 dataOutputState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], consumer.info.legalIdentities.first()))
+                        listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
             }
 
             val rewardsState1 = rewardsStates[0].state.data
@@ -147,16 +149,16 @@ class ConsumerAggregationFlowTest {
         }
 
         //check data output transaction for consumer
-        consumer.transaction {
+        consumer1.transaction {
             val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
                     VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
-            assertEquals(consumer.info.legalIdentities.first(), dataOutputState.consumer)
+            assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
                 dataOutputState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], consumer.info.legalIdentities.first()))
+                        listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
             }
         }
 
@@ -188,6 +190,71 @@ class ConsumerAggregationFlowTest {
 
     }
 
+    @Test
+    fun multipleConcurrentConsumerAggregationFlowTest() {
+        val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
+        uploadAttachmentToNode(provider1.services, dataType, "Provider1InputData.csv.zip")
+        uploadAttachmentToNode(provider2.services, dataType, "Provider2InputData.csv.zip")
+
+        val flow = ConsumerAggregationFlow(dataType, description)
+        val future = consumer1.startFlow(flow)
+
+
+        val flow1 = ConsumerAggregationFlow(dataType, "test schema for sencond aggregation cycle")
+        val future1 = consumer2.startFlow(flow1)
+
+        // launching receive call for consumer1 aggregation request
+        host.pumpReceive()
+
+        // launching receive call for consumer2 aggregation request
+        host.pumpReceive()
+
+        // after both aggregation flow launched above in parallel, executing remaining flow calls for both aggregation request.
+        network.runNetwork()
+
+        val signedTransaction = future.get()
+        assertEquals(1, signedTransaction.tx.outputStates.size)
+        val output = signedTransaction.tx.getOutput(0) as DataOutputState
+        assertEquals(host.info.legalIdentities[0], output.host)
+        assertEquals(consumer1.info.legalIdentities.first(), output.consumer)
+
+
+        val signedTransaction1 = future1.get()
+        assertEquals(1, signedTransaction1.tx.outputStates.size)
+        val output1 = signedTransaction1.tx.getOutput(0) as DataOutputState
+        assertEquals(host.info.legalIdentities[0], output1.host)
+        assertEquals(consumer2.info.legalIdentities.first(), output1.consumer)
+
+        //check data output transaction for consumer1
+        consumer1.transaction {
+            val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+
+            assertEquals(output.flowTopic, dataOutputState.flowTopic)
+            assertEquals(host.info.legalIdentities[0], dataOutputState.host)
+            assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
+            assertTrue {
+                dataOutputState.participants.containsAll(
+                    listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
+            }
+        }
+
+        //check data output transaction for consumer2
+        consumer2.transaction {
+            val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+
+            assertEquals(output.flowTopic, dataOutputState.flowTopic)
+            assertEquals(host.info.legalIdentities[0], dataOutputState.host)
+            assertEquals(consumer2.info.legalIdentities.first(), dataOutputState.consumer)
+            assertTrue {
+                dataOutputState.participants.containsAll(
+                    listOf(host.info.legalIdentities[0], consumer2.info.legalIdentities.first()))
+            }
+        }
+    }
+
 
     @Test
     fun consumerOutputQueryTestAfterAggregation() {
@@ -197,17 +264,17 @@ class ConsumerAggregationFlowTest {
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
 
         val flow = ConsumerAggregationFlow("testDataType2", description)
-        val future = consumer.startFlow(flow)
+        val future = consumer1.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
         assertEquals(1, signedTransaction.tx.outputStates.size)
         val output = signedTransaction.tx.getOutput(0) as DataOutputState
         assertEquals(host.info.legalIdentities[0], output.host)
-        assertEquals(consumer.info.legalIdentities.first(), output.consumer)
+        assertEquals(consumer1.info.legalIdentities.first(), output.consumer)
 
         //Check data output from consumer node
         val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(output.flowTopic)
-        val dataOutputFuture = consumer.startFlow(consumerDataOutputRetrievalFlow)
+        val dataOutputFuture = consumer1.startFlow(consumerDataOutputRetrievalFlow)
         val dataOutputRecords = dataOutputFuture.get()
         assertNotNull(dataOutputRecords)
         println("Data Output : $dataOutputRecords")
@@ -240,7 +307,7 @@ class ConsumerAggregationFlowTest {
     fun consumerAggregationFlowFailTest() {
         //check unsupported data type
         val flow = ConsumerAggregationFlow("testDataType3","sample Data type description")
-        val future = consumer.startFlow(flow)
+        val future = consumer1.startFlow(flow)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future.getOrThrow() }
 
