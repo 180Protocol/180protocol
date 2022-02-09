@@ -1,6 +1,5 @@
 package com.protocol180.aggregator.enclave;
 
-import com.protocol180.aggregator.clientEnclave.ExampleAggregationEnclave;
 import com.protocol180.commons.MailType;
 import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
@@ -50,8 +49,7 @@ public abstract class AggregationEnclave extends Enclave {
         aggregateOutputSchema = envelopeSchema.getField("aggregateOutput").schema();
         rewardsOutputSchema = envelopeSchema.getField("rewardsOutput").schema();
 
-        clientToEncryptedDataMap=null;
-        clientToRawDataMap=null;
+        clearLocalStore();
 
         return "Schema Initialized".getBytes();
     }
@@ -71,14 +69,12 @@ public abstract class AggregationEnclave extends Enclave {
                             dataRecord = dataFileReader.next(dataRecord);
                             recordsForClient.add(dataRecord);
                         }
-                        System.out.println("Raw Records for client: " + recordsForClient);
                         clientToRawDataMap.put(entry.getKey(), recordsForClient);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
         );
-        System.out.println("Raw Client Data to Process: " + clientToRawDataMap.toString());
     }
 
     /**
@@ -134,16 +130,12 @@ public abstract class AggregationEnclave extends Enclave {
 
 
         MailType mailType = getMailType(new String(unencryptedMail));
-        System.out.println("Type of mail for current request is:" + mailType);
-
-        String senderEncodedPublicKey = Base64.getEncoder().encodeToString(mail.getAuthenticatedSender().getEncoded());
-        System.out.println("Clients randomly generated public key is: " + senderEncodedPublicKey);
 
         try {
             if (mailType.equals(MailType.TYPE_PROVIDER)) {
                 clientTypeForCurrRequest = MailType.TYPE_PROVIDER.type;
                 //store mail contents for aggregation
-                System.out.println("Ack Mail for provider");
+                System.out.println("Provider mail received.");
                 if (clientToEncryptedDataMap == null && clientToRawDataMap == null) {
                     initializeLocalStore();
                 }
@@ -156,17 +148,16 @@ public abstract class AggregationEnclave extends Enclave {
             } else if (mailType.equals(MailType.TYPE_CONSUMER)) {
                 clientTypeForCurrRequest = MailType.TYPE_CONSUMER.type;
                 //send aggregation output to consumer
-                System.out.println("Aggregate Data request Mail from consumer");
+                System.out.println("Consumer mail received.");
                 //create aggregate output
                 File aggregateOutput = createAggregateDataOutput();
-                System.out.println(new String(Files.readAllBytes(aggregateOutput.toPath())));
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(aggregateOutput.toPath()));
                 postMail(responseBytes, routingHint);
 
             } else if (mailType.equals(MailType.TYPE_REWARDS)) {
                 clientTypeForCurrRequest = MailType.TYPE_REWARDS.type;
                 //send rewards result to party aka provider
-                System.out.println("Rewards Mail");
+                System.out.println("Rewards Mail received");
                 //create rewards output
                 File rewardsOutput = createRewardsDataOutput(mail.getAuthenticatedSender());
                 final byte[] responseBytes = postOffice(mail).encryptMail(Files.readAllBytes(rewardsOutput.toPath()));
