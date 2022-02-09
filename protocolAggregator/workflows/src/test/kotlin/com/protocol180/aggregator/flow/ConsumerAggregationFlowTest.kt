@@ -103,8 +103,8 @@ class ConsumerAggregationFlowTest {
     fun consumerAggregationFlowStateCreationTest() {
         val dataType = "testDataType2"
         val description = "test schema for DataType2 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.csv.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
+        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
+        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
         val flow = ConsumerAggregationFlow(dataType, description)
         val future = consumer1.startFlow(flow)
@@ -260,8 +260,8 @@ class ConsumerAggregationFlowTest {
     fun consumerOutputQueryTestAfterAggregation() {
         val dataType = "testDataType2"
         val description = "test schema for DataType2 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.csv.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.csv.zip")
+        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
+        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
         val flow = ConsumerAggregationFlow("testDataType2", description)
         val future = consumer1.startFlow(flow)

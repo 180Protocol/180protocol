@@ -54,11 +54,21 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             val demandRecord: GenericRecord = GenericData.Record(aggregationInputSchema)
             val dataValues = it.split(",")
             headers.forEachIndexed {
-
                 index, value ->
-                if (!dataValues[index].contains("\"")) demandRecord.put(value, dataValues[index].trim().toInt())
-                else demandRecord.put(value, dataValues[index].replace("\"", "").trim())
-
+                if (!dataValues[index].contains("\"")) {
+                    try {
+                        demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toInt())
+                    } catch (e: NumberFormatException) {
+                        //not int
+                    }
+                    try {
+                        demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toFloat())
+                    } catch (e: NumberFormatException) {
+                        //not float
+                    }
+                } else {
+                    demandRecord.put(value, dataValues[index].trim { it <= ' ' })
+                }
             }
             genericRecords.add(demandRecord)
         }
