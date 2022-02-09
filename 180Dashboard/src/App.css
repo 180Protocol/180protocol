@@ -345,6 +345,10 @@ body {
     border-bottom: 5px solid #ffffff !important;
 }
 
+.dx-g-bs4-table .dx-g-bs4-table-cell {
+    white-space: unset !important;
+}
+
 .dx-g-bs4-table tr:first-child td {
     border-top: 10px solid #ffffff !important;
 }
