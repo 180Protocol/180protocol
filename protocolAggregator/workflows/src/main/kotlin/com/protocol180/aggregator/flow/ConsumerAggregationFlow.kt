@@ -129,8 +129,14 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
 
         // initiate & configure enclave service to be used for aggregation
         val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
-        val attestationBytes = enclaveService.attestationBytes
-        enclaveService.initializeAvroSchema(coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile)
+
+        var flowId= this.runId.uuid.toString()
+
+        // Load enclave specific to current flow only
+        enclaveService.loadEnclaveForAggregation(flowId)
+        val attestationBytes = enclaveService.getAttestationBytes(flowId)
+        enclaveService.initializeAvroSchema(flowId,
+                                            coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile)
 
         // Initiate Provider flows and acquire encrypted payload according to given schema
         val providers = coalitionConfiguration.state.data.coalitionPartyToRole[RoleType.DATA_PROVIDER]
@@ -161,6 +167,8 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
             log.info(String(encryptedRewardResponseByteFromEnclave))
             providerSession.send(encryptedRewardResponseByteFromEnclave)
         }
+
+        enclaveService.removeEnclave(flowId)
 
         //finalise data output state creation
         val signedTransactionFlow = object : SignTransactionFlow(flowSession) {
