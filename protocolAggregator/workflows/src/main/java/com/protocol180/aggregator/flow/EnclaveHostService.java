@@ -26,18 +26,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * class name of the enclave, and then use it from flows.
  */
 public abstract class EnclaveHostService extends SingletonSerializeAsToken {
-    private final EnclaveHost enclave;
-    private final byte[] attestationBytes;
+    private String enclaveClassName;
+
+    // A map to store & track enclave loaded for each aggregation cycle launched from consumer node
+    private Map<String, EnclaveHost> enclaveHostCollection;
 
     // A map of flow (state machine) IDs to futures that become complete when the enclave tries to deliver mail to them.
     private final Map<UUID, CompletableFuture<byte[]>> mailFutures = Collections.synchronizedMap(new HashMap<>());
 
     protected EnclaveHostService(String enclaveClassName) {
+        this.enclaveClassName = enclaveClassName;
+        enclaveHostCollection = new HashMap<>();
+    }
+
+    protected void loadEnclaveForAggregation(@NotNull String flowId) {
         try {
-            enclave = EnclaveHost.load(enclaveClassName);
+            EnclaveHost enclaveHost = EnclaveHost.load(enclaveClassName);
             // If you want to use pre-DCAP hardware via the older EPID protocol, you'll need to get the relevant API
             // keys from Intel and replace AttestationParameters.DCAP with AttestationParameters.EPID.
-            enclave.start(new AttestationParameters.DCAP(), null, null, (commands) -> {
+            enclaveHost.start(new AttestationParameters.DCAP(), null, null, (commands) -> {
                 // The enclave is requesting that we deliver messages transactionally. In Corda there's no way to
                 // do an all-or-nothing message delivery to multiple peers at once: for that you need a genuine
                 // ledger transaction which is more complex and slower. So for now we'll just deliver messages
@@ -50,8 +57,7 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
                 }
             });
 
-            // The attestation data must be provided to the client of the enclave, via whatever mechanism you like.
-            attestationBytes = enclave.getEnclaveInstanceInfo().serialize();
+            enclaveHostCollection.put(flowId,enclaveHost);
         } catch (EnclaveLoadException e) {
             throw new RuntimeException(e);   // Propagate and let the node abort startup, as this shouldn't happen.
         }
@@ -73,29 +79,30 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         }
     }
 
-    private final AtomicInteger counter = new AtomicInteger();
-
-    /**
-     * Delivers the bytes of an encrypted message to the enclave without waiting for any response. This method will
-     * return once the enclave has finished processing the mail, and the enclave may not respond.
-     *
-     * @param encryptedMail The bytes of an encrypted message as created via Conclave PostOffice API}.
-     */
-    public void deliverMail(byte[] encryptedMail) throws MailDecryptionException {
-        enclave.deliverMail(encryptedMail, null);
+    public void initializeAvroSchema(String flowId, byte[] schemaBytes) {
+        enclaveHostCollection.get(flowId).callEnclave(schemaBytes);
     }
 
-    public void initializeAvroSchema(byte[] schemaBytes) {
-        enclave.callEnclave(schemaBytes);
+    public void removeEnclave(String flowId){
+        enclaveHostCollection.remove(flowId);
+    }
+
+
+    /**
+     * Returns serialised {@link com.r3.conclave.common.EnclaveInstanceInfo} object that represents the identity of the
+     * loaded enclave.
+     */
+    public byte[] getAttestationBytes(String flowId){
+        return enclaveHostCollection.get(flowId).getEnclaveInstanceInfo().serialize();
     }
 
     /**
      * Delivers a mail to the enclave and returns an operation that can be used to suspend a flow until the enclave
      * chooses to send a reply. This may not happen immediately. This is equivalent to calling
-     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link #deliverMail(byte[])}, then returning the result of
+     * {@link #pickUpMail(FlowLogic)} on the flow, then {@link # deliverMail(byte[])}, then returning the result of
      * the receiveMail call.
      *
-     * @param flow The flow from which the mail is being received.
+     * @param flow          The flow from which the mail is being received.
      * @param encryptedMail The contents of the mail.
      * @return An operation that can be passed to {@link FlowLogic#await(FlowExternalOperation)} to suspend the flow until
      * the enclave provides a mail to send.
@@ -105,19 +112,12 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
         // before we enter the enclave, as the enclave may immediately call back to request we deliver a response
         // and that will happen on the same call stack.
         FlowExternalOperation<byte[]> operation = pickUpMail(flow);
-        enclave.deliverMail(encryptedMail, flow.getRunId().getUuid().toString());
+        enclaveHostCollection.get(flow.getRunId().getUuid().toString()).deliverMail(encryptedMail, flow.getRunId().getUuid().toString());
         // The operation might be completed already, but if not, the flow can sleep until the enclave decides to
         // reply (e.g. due to some other mail from some other flow) by calling await on this operation.
         return operation;
     }
 
-    /**
-     * The serialised {@link com.r3.conclave.common.EnclaveInstanceInfo} object that represents the identity of the
-     * loaded enclave.
-     */
-    public byte[] getAttestationBytes() {
-        return attestationBytes;
-    }
 
     /**
      * Returns an operation that can be passed to {@link FlowLogic#await(FlowExternalOperation)} which will suspend
