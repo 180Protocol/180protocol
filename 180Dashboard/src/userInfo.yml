@@ -24,7 +24,7 @@ rewards:
   updateFrequency: 30
 dataTypes:
   - value: testSchema2
-    label: Fixed Income Demand Data
+    label: Automotive Data
   - value: testSchema1
     label: Risk Metrics Data
   - value: esgData
