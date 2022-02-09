@@ -58,7 +58,11 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
             let parsedData = JSON.parse(value[i]);
             for (const [key, value] of Object.entries(parsedData)) {
                 if (value instanceof Object) {
-                    parsedData[key] = typeof Object.values(value)[0] === "number" ? Intl.NumberFormat().format(Object.values(value)[0]) : Object.values(value)[0];
+                    let data = [];
+                    for (const [k, v] of Object.entries(value.data)) {
+                        data.push(k + ":" + v);
+                    }
+                    parsedData[key] = data.join(",");
                 } else {
                     parsedData[key] = typeof value === "number" ? Intl.NumberFormat().format(value) : value;
                 }
