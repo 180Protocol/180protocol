@@ -213,25 +213,25 @@ class ConsumerAggregationFlowTest {
         // after both aggregation flow launched above in parallel, executing remaining flow calls for both aggregation request.
         network.runNetwork()
 
-        val signedTransaction = future.get()
-        assertEquals(1, signedTransaction.tx.outputStates.size)
-        val output = signedTransaction.tx.getOutput(0) as DataOutputState
-        assertEquals(host.info.legalIdentities[0], output.host)
-        assertEquals(consumer1.info.legalIdentities.first(), output.consumer)
-
-
-        val signedTransaction1 = future1.get()
+        val signedTransaction1 = future.get()
         assertEquals(1, signedTransaction1.tx.outputStates.size)
         val output1 = signedTransaction1.tx.getOutput(0) as DataOutputState
         assertEquals(host.info.legalIdentities[0], output1.host)
-        assertEquals(consumer2.info.legalIdentities.first(), output1.consumer)
+        assertEquals(consumer1.info.legalIdentities.first(), output1.consumer)
+
+
+        val signedTransaction2 = future1.get()
+        assertEquals(1, signedTransaction2.tx.outputStates.size)
+        val output2 = signedTransaction2.tx.getOutput(0) as DataOutputState
+        assertEquals(host.info.legalIdentities[0], output2.host)
+        assertEquals(consumer2.info.legalIdentities.first(), output2.consumer)
 
         //check data output transaction for consumer1
         consumer1.transaction {
             val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
                 VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
-            assertEquals(output.flowTopic, dataOutputState.flowTopic)
+            assertEquals(output1.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
@@ -245,7 +245,7 @@ class ConsumerAggregationFlowTest {
             val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
                 VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
-            assertEquals(output.flowTopic, dataOutputState.flowTopic)
+            assertEquals(output2.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer2.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
