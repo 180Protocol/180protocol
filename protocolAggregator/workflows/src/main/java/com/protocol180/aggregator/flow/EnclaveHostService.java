@@ -7,6 +7,7 @@ import com.r3.conclave.host.MailCommand;
 import com.r3.conclave.mail.MailDecryptionException;
 import net.corda.core.flows.FlowExternalOperation;
 import net.corda.core.flows.FlowLogic;
+import net.corda.core.node.AppServiceHub;
 import net.corda.core.node.services.CordaService;
 import net.corda.core.serialization.SingletonSerializeAsToken;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +22,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Sub-class this helper class and make the sub-class a {@link CordaService} in order to load an enclave into the node.
- * Add a public constructor that calls the {@link #EnclaveHostService(String)} constructor with the
- * class name of the enclave, and then use it from flows.
+ * This corda service provides functionality to load an enclave into the node.
+ * Call the {@link #loadEnclaveForAggregation(String, String)} method with the
+ * flow Id & class name of the enclave, and then use it from flows.
  */
-public abstract class EnclaveHostService extends SingletonSerializeAsToken {
-    private String enclaveClassName;
+@CordaService
+public class EnclaveHostService extends SingletonSerializeAsToken {
 
     // A map to store & track enclave loaded for each aggregation cycle launched from consumer node
     private Map<String, EnclaveHost> enclaveHostCollection;
@@ -34,12 +35,11 @@ public abstract class EnclaveHostService extends SingletonSerializeAsToken {
     // A map of flow (state machine) IDs to futures that become complete when the enclave tries to deliver mail to them.
     private final Map<UUID, CompletableFuture<byte[]>> mailFutures = Collections.synchronizedMap(new HashMap<>());
 
-    protected EnclaveHostService(String enclaveClassName) {
-        this.enclaveClassName = enclaveClassName;
+    public EnclaveHostService(@NotNull AppServiceHub serviceHub) {
         enclaveHostCollection = new HashMap<>();
     }
 
-    protected void loadEnclaveForAggregation(@NotNull String flowId) {
+    protected void loadEnclaveForAggregation(@NotNull String flowId, @NotNull String enclaveClassName) {
         try {
             EnclaveHost enclaveHost = EnclaveHost.load(enclaveClassName);
             // If you want to use pre-DCAP hardware via the older EPID protocol, you'll need to get the relevant API

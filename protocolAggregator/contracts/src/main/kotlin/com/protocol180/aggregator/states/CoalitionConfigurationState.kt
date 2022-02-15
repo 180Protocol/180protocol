@@ -50,7 +50,8 @@ data class CoalitionConfigurationState(
 data class CoalitionDataType(
     val dataTypeCode: String,
     val dataTypeDisplay: String,
-    val schemaFile: ByteArray
+    val schemaFile: ByteArray,
+    val enclaveName: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -61,6 +62,7 @@ data class CoalitionDataType(
         if (dataTypeCode != other.dataTypeCode) return false
         if (dataTypeDisplay != other.dataTypeDisplay) return false
         if (!schemaFile.contentEquals(other.schemaFile)) return false
+        if (!enclaveName.contentEquals(other.enclaveName)) return false
 
         return true
     }
@@ -69,6 +71,7 @@ data class CoalitionDataType(
         var result = dataTypeCode.hashCode()
         result = 31 * result + dataTypeDisplay.hashCode()
         result = 31 * result + schemaFile.contentHashCode()
+        result = 31 * result + enclaveName.hashCode()
         return result
     }
 }
