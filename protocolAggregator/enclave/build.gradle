@@ -43,3 +43,7 @@ conclave {
         signingKey = file("sample_private_key.pem")
     }
 }
+
+test {
+    useJUnitPlatform()
+}
