@@ -24,6 +24,11 @@ dokka {
     outputDirectory = "$rootDir/github-docs"
 }
 
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 conclave {
     productID = 1
     revocationLevel = 0
