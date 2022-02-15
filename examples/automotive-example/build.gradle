@@ -1,0 +1,203 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
+buildscript { //properties that you need to build the project
+
+    Properties constants = new Properties()
+    file("$projectDir/./constants.properties").withInputStream { constants.load(it) }
+
+    ext {
+        corda_release_group = constants.getProperty("cordaReleaseGroup")
+        corda_core_release_group =  constants.getProperty("cordaCoreReleaseGroup")
+        corda_release_version = constants.getProperty("cordaVersion")
+        corda_core_release_version = constants.getProperty("cordaCoreVersion")
+        corda_gradle_plugins_version = constants.getProperty("gradlePluginsVersion")
+        kotlin_version = constants.getProperty("kotlinVersion")
+        junit_version = constants.getProperty("junitVersion")
+        quasar_version = constants.getProperty("quasarVersion")
+        log4j_version = constants.getProperty("log4jVersion")
+        slf4j_version = constants.getProperty("slf4jVersion")
+        corda_platform_version = constants.getProperty("platformVersion").toInteger()
+        //springboot
+        spring_boot_version = '2.0.2.RELEASE'
+        spring_boot_gradle_plugin_version = '2.0.2.RELEASE'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url 'https://software.r3.com/artifactory/corda-releases' }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "net.corda.plugins:cordapp:$corda_gradle_plugins_version"
+        classpath "net.corda.plugins:cordformation:$corda_gradle_plugins_version"
+        classpath "net.corda.plugins:quasar-utils:$corda_gradle_plugins_version"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_gradle_plugin_version"
+    }
+}
+
+allprojects { //Properties that you need to compile your project (The application)
+    apply from: "${rootProject.projectDir}/repositories.gradle"
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    apply plugin: 'idea'
+
+    repositories {
+        // Add the Conclave repository to every project.
+        maven {
+            def path = Paths.get(rootDir.absolutePath).resolve(conclaveRepo).toAbsolutePath().normalize()
+            if (!Files.isDirectory(path.resolve("com"))) {
+                if (Files.isDirectory(Paths.get("/repo/com"))) {
+                    path = Paths.get("/repo")
+                } else {
+                    throw new Exception("Neither $path nor /repo seem to exist, or they aren't Maven repositories; it should be the SDK 'repo' subdirectory. " +
+                            "If on macOS, try using the container-gradle script to execute run the tests. See the Conclave CorDapp tutorial on https://docs.conclave.net/writing-cordapps.html")
+                }
+            }
+            url = path.toFile()
+        }
+
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+        maven { url 'https://software.r3.com/artifactory/corda' }
+        maven { url 'https://jitpack.io' }
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+        kotlinOptions {
+            languageVersion = "1.2"
+            apiVersion = "1.2"
+            jvmTarget = "1.8"
+            javaParameters = true   // Useful for reflection.
+        }
+    }
+
+    jar {
+        // This makes the JAR's SHA-256 hash repeatable.
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
+
+apply plugin: 'net.corda.plugins.cordapp'
+apply plugin: 'net.corda.plugins.cordformation'
+apply plugin: 'net.corda.plugins.quasar-utils'
+
+sourceSets {
+    main {
+        resources {
+            srcDir rootProject.file("config/dev")
+        }
+    }
+}
+
+//Module dependencis
+dependencies {
+    // Corda dependencies.
+    cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
+    cordaRuntime "$corda_release_group:corda-node-api:$corda_release_version"
+    cordaRuntime "$corda_release_group:corda:$corda_release_version"
+
+    // CorDapp dependencies.
+    cordapp project(":workflows")
+
+    cordapp 'com.protocol180:protocol-aggregator-contracts:0.0.1'
+    cordapp 'com.protocol180:protocol-aggregator-workflows:0.0.1'
+
+    cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
+    cordaCompile "org.apache.logging.log4j:log4j-web:${log4j_version}"
+    cordaCompile "org.slf4j:jul-to-slf4j:$slf4j_version"
+}
+
+//Task to build the jar for ganache.
+task ganache {
+    subprojects {
+        if (it.project.name != "clients") {
+            dependsOn jar
+            doLast {
+                copy {
+                    from "${buildDir}/libs"
+                    into "${rootDir}/build/libs"
+                }
+            }
+        }
+    }
+}
+
+//Task to deploy the nodes in order to bootstrap a network
+task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
+
+    /* This property will load the CorDapps to each of the node by default, including the Notary. You can find them
+     * in the cordapps folder of the node at build/nodes/Notary/cordapps. However, the notary doesn't really understand
+     * the notion of cordapps. In production, Notary does not need cordapps as well. This is just a short cut to load
+     * the Corda network bootstrapper.
+     */
+    nodeDefaults {
+        projectCordapp {
+            deploy = false
+        }
+        cordapp 'com.protocol180:protocol-aggregator-contracts:0.0.1'
+    }
+    node {
+        name "O=Notary,L=London,C=GB"
+        notary = [validating : false]
+        p2pAddress "notary-node:10002"
+        rpcSettings {
+            address("0.0.0.0:10003")
+            adminAddress("0.0.0.0:10043")
+        }
+        cordapps.clear()
+    }
+    node {
+        name "O=Host,L=London,C=GB"
+        p2pAddress "host-node:10004"
+        rpcSettings {
+            address("0.0.0.0:10005")
+            adminAddress("0.0.0.0:10045")
+        }
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
+            config '''\
+                participantRole = COALITION_HOST
+            '''.stripIndent()
+        }
+        runSchemaMigration = true
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=ProviderB,L=New York,C=US"
+        p2pAddress "providerb-node:10006"
+        rpcSettings {
+            address("0.0.0.0:10007")
+            adminAddress("0.0.0.0:10047")
+        }
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
+            config '''\
+                participantRole = DATA_PROVIDER
+            '''.stripIndent()
+        }
+        runSchemaMigration = true
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=ConsumerC,L=Chicago,C=US"
+        p2pAddress "consumerc-node:10008"
+        rpcSettings {
+            address("0.0.0.0:10009")
+            adminAddress("0.0.0.0:10049")
+        }
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
+            config '''\
+                participantRole = DATA_CONSUMER
+            '''.stripIndent()
+        }
+        runSchemaMigration = true
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+}
