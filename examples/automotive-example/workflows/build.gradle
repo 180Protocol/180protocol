@@ -23,18 +23,6 @@ sourceSets {
             srcDir rootProject.file("config/test")
         }
     }
-    integrationTest {
-        kotlin {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integrationTest/kotlin')
-        }
-    }
-}
-
-configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
 }
 
 dependencies {
@@ -47,14 +35,6 @@ dependencies {
     cordaRuntime "$corda_release_group:corda:$corda_release_version"
     testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
 
-    compile 'com.protocol180:protocol-aggregator-contracts:0.1.2'
-    compile 'com.protocol180:protocol-aggregator-workflows:0.1.2'
-
-    // CorDapp dependencies.
-    cordapp project(":contracts")
-}
-
-task integrationTest(type: Test, dependsOn: []) {
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
+    cordapp 'com.protocol180:protocol-aggregator-contracts:0.0.1'
+    cordapp 'com.protocol180:protocol-aggregator-workflows:0.0.1'
 }

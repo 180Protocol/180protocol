@@ -27,6 +27,4 @@ pluginManagement {
 }
 
 include 'workflows'
-include 'contracts'
-include 'clients'
 include 'enclave'

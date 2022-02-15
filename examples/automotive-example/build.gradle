@@ -104,10 +104,9 @@ dependencies {
 
     // CorDapp dependencies.
     cordapp project(":workflows")
-    cordapp project(":contracts")
 
-    cordaCompile 'com.protocol180:protocol-aggregator-contracts:0.1.2'
-    cordaCompile 'com.protocol180:protocol-aggregator-workflows:0.1.2'
+    cordapp 'com.protocol180:protocol-aggregator-contracts:0.0.1'
+    cordapp 'com.protocol180:protocol-aggregator-workflows:0.0.1'
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
     cordaCompile "org.apache.logging.log4j:log4j-web:${log4j_version}"
@@ -141,11 +140,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         projectCordapp {
             deploy = false
         }
-        cordapp project(':contracts')
-        cordapp project(':workflows')
-        // runSchemaMigration = true //This configuration is for any CorDapps with custom schema, We will leave this as true to avoid
-        //problems for developers who are not familiar with Corda. If you are not using custom schemas, you can change
-        //it to false for quicker project compiling time.
+        cordapp 'com.protocol180:protocol-aggregator-contracts:0.0.1'
     }
     node {
         name "O=Notary,L=London,C=GB"
@@ -164,7 +159,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("0.0.0.0:10005")
             adminAddress("0.0.0.0:10045")
         }
-        cordapp (project(':workflows')) {
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
             config '''\
                 participantRole = COALITION_HOST
             '''.stripIndent()
@@ -179,7 +175,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("0.0.0.0:10007")
             adminAddress("0.0.0.0:10047")
         }
-        cordapp (project(':workflows')) {
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
             config '''\
                 participantRole = DATA_PROVIDER
             '''.stripIndent()
@@ -194,22 +191,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("0.0.0.0:10009")
             adminAddress("0.0.0.0:10049")
         }
-        cordapp (project(':workflows')) {
-            config '''\
-                participantRole = DATA_CONSUMER
-            '''.stripIndent()
-        }
-        runSchemaMigration = true
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=ConsumerD,L=Alaksa,C=US"
-        p2pAddress "consumerd-node:10011"
-        rpcSettings {
-            address("0.0.0.0:10012")
-            adminAddress("0.0.0.0:10051")
-        }
-        cordapp (project(':workflows')) {
+        cordapp project(':workflows')
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.0.1') {
             config '''\
                 participantRole = DATA_CONSUMER
             '''.stripIndent()
