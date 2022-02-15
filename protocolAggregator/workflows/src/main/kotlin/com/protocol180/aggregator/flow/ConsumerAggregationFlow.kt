@@ -93,7 +93,7 @@ class ConsumerAggregationFlow(private val dataType: String, private val descript
  * Counter flow for [ConsumerAggregationFlow]. Host handles this flow and receives the aggregation request from the
  * consumer, including a supported coalition data type to aggregate. Host confirms the validity of the data type by querying
  * and checking against the [com.protocol180.aggregator.states.CoalitionConfigurationState]. Once the data type validity
- * is confirmed the host initiates the enclave using [AggregationEnclaveService]. The host passes the data type from the
+ * is confirmed the host initiates the enclave using [EnclaveHostService]. The host passes the data type from the
  * consumer to the enclave and initiates using the data types associated Avro schema (envelope schema). The enclave is
  * initiated and then the host gathers data from each of the providers in the network by kicking the [ProviderAggregationResponseFlow]
  * The host sends providers the enclave attestation and the requested data type. Providers then send back encrypted data
@@ -128,12 +128,12 @@ class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : F
         }
 
         // initiate & configure enclave service to be used for aggregation
-        val enclaveService = this.serviceHub.cordaService(AggregationEnclaveService::class.java)
+        val enclaveService = this.serviceHub.cordaService(EnclaveHostService::class.java)
 
-        var flowId= this.runId.uuid.toString()
-
+        val flowId= this.runId.uuid.toString()
+        val enclaveName= coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.enclaveName
         // Load enclave specific to current flow only
-        enclaveService.loadEnclaveForAggregation(flowId)
+        enclaveService.loadEnclaveForAggregation(flowId, enclaveName)
         val attestationBytes = enclaveService.getAttestationBytes(flowId)
         enclaveService.initializeAvroSchema(flowId,
                                             coalitionConfiguration.state.data.getDataTypeForCode(dataType)!!.schemaFile)
