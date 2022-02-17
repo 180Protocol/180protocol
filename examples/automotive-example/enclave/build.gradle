@@ -9,7 +9,6 @@ dependencies {
     testImplementation "com.r3.conclave:conclave-host"
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
 
-    compile 'com.protocol180:protocol-aggregator-contracts:0.0.1'
     compile 'com.protocol180:protocol-aggregator-workflows:0.0.1'
 
     compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'

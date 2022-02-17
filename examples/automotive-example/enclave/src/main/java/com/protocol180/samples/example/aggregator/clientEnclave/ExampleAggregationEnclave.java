@@ -1,4 +1,4 @@
-package net.corda.samples.example.aggregator.clientEnclave;
+package com.protocol180.samples.example.aggregator.clientEnclave;
 
 import com.protocol180.aggregator.enclave.AggregationEnclave;
 import org.apache.avro.file.DataFileWriter;
