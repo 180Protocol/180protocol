@@ -29,6 +29,7 @@ pluginManagement {
 gradle.ext.moduleProjects=[]
 include 'aggregator-commons'
 include 'enclave'
+include 'sampleEnclave'
 includeModule 'workflows'
 includeModule 'contracts'
 

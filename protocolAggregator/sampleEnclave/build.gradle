@@ -1,0 +1,51 @@
+plugins {
+    id 'com.r3.conclave.enclave'
+    id 'org.jetbrains.dokka'
+}
+
+dependencies {
+    implementation project(':aggregator-commons')
+    implementation project(':enclave')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.r3.conclave:conclave-enclave"
+
+    testImplementation "com.r3.conclave:conclave-host"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
+
+    compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'
+    compile group: 'com.github.luben', name: 'zstd-jni', version: '1.4.9-5'
+    compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.8.2'
+    compile group: 'org.tukaani', name: 'xz', version: '1.9'
+    compile group: 'org.brotli', name: 'dec', version: '0.1.2'
+    compile group: 'org.osgi', name: 'org.osgi.framework', version: '1.10.0'
+}
+
+dokka {
+    outputFormat = 'gfm'
+    outputDirectory = "$rootDir/github-docs"
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+conclave {
+    productID = 1
+    revocationLevel = 0
+
+    simulation {
+        signingType = privateKey
+        signingKey = file("sample_private_key.pem")
+    }
+
+    debug {
+        signingType = privateKey
+        signingKey = file("sample_private_key.pem")
+    }
+
+    release {
+        signingType = privateKey
+        signingKey = file("sample_private_key.pem")
+    }
+}
