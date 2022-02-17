@@ -12,9 +12,6 @@ cordapp {
         licence "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0"
         versionId 1
     }
-    signing {
-        enabled false
-    }
 }
 
 sourceSets {
@@ -46,7 +43,7 @@ tasks.register("prepareForSigning") {
 dependencies {
     //only for facilitating testing locally when using protocolAggregator directly using docker compose
     //not included in maven artifact
-    compile project(path: ":sampleEnclave", configuration: mode)
+    testCompile project(path: ":sampleEnclave", configuration: mode)
 
     //external
     compile group: 'org.apache.avro', name: 'avro', version: '1.11.0'
