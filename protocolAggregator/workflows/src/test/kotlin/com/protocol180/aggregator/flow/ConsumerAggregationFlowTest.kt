@@ -86,9 +86,9 @@ class ConsumerAggregationFlowTest {
 
         val dataTypes = listOf(
                 CoalitionDataType("testDataType1", "Test Data Type 1",
-                        ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.aggregator.clientEnclave.ExampleAggregationEnclave"),
+                        ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.aggregator.sample.ExampleAggregationEnclave"),
                 CoalitionDataType("testDataType2", "Test Data Type 2",
-                        ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema2.avsc").readFully(), "com.protocol180.aggregator.clientEnclave.ExampleAggregationEnclave")
+                        ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema2.avsc").readFully(), "com.protocol180.aggregator.sample.ExampleAggregationEnclave")
         )
 
         val flow1 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
