@@ -49,6 +49,7 @@ class ExampleAggregationFlowTest {
             MockNetworkParameters(
                 cordappsForAllNodes = listOf(
                     TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow"),
                     TestCordapp.findCordapp("com.protocol180.samples.example")
                 )
             )
@@ -72,7 +73,7 @@ class ExampleAggregationFlowTest {
         return network.createNode(
             parameters = MockNodeParameters(
                 additionalCordapps = listOf(
-                    TestCordapp.findCordapp("com.protocol180.samples.example")
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow")
                         .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name)))
                 )
             )

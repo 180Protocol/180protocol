@@ -9,7 +9,7 @@ dependencies {
     testImplementation "com.r3.conclave:conclave-host"
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
 
-    compile 'com.protocol180:protocol-aggregator-workflows:0.0.1'
+    compile 'com.protocol180:protocol-aggregator-enclave:0.0.1'
 
     compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'
     compile group: 'com.github.luben', name: 'zstd-jni', version: '1.4.9-5'
