@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class ExampleAggregationEnclaveTest {
     @Test
     void aggregateDataOutputTest() throws IOException, EnclaveLoadException, AggregationEnclave.UnsupportedDataTypeException, MailDecryptionException {
-        EnclaveHost mockHost = EnclaveHost.load("net.corda.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave");
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave");
         mockHost.start(null, null, null, (commands) -> {
         });
 
