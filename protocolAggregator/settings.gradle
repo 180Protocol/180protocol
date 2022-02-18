@@ -26,8 +26,7 @@ pluginManagement {
     }
 }
 
-include 'aggregator-commons'
 include 'enclave'
 include 'workflows'
 include 'contracts'
-
+include 'sampleEnclave'
