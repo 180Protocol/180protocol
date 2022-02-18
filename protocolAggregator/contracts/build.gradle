@@ -9,7 +9,7 @@ cordapp {
     contract {
         name "180Protocol Broker Contracts"
         vendor "180Protocol Pte Ltd"
-        licence "Apache License, Version 2.0"
+        licence "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0"
         versionId 1
     }
 }
@@ -35,7 +35,6 @@ dokka {
 }
 
 dependencies {
-    implementation project(':aggregator-commons')
     compile "com.r3.conclave:conclave-client:$conclaveVersion"
     // Corda dependencies.
     cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"

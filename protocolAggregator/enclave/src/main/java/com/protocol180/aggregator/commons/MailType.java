@@ -1,4 +1,4 @@
-package com.protocol180.commons;
+package com.protocol180.aggregator.commons;
 
 /**
  * Mail Types that can be configured inside a supported coalition Avro schema file
