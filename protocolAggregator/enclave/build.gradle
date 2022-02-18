@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(':aggregator-commons')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "com.r3.conclave:conclave-enclave"
 

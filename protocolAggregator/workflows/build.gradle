@@ -12,6 +12,9 @@ cordapp {
         licence "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.0"
         versionId 1
     }
+    signing {
+        enabled false
+    }
 }
 
 sourceSets {
@@ -42,8 +45,8 @@ tasks.register("prepareForSigning") {
 
 dependencies {
     //internal
-    compile project(":aggregator-commons")
-    compile project(path: ":enclave", configuration: mode)
+    //compile project(":enclave")
+    testCompile project(path: ":sampleEnclave", configuration: mode)
 
     //external
     compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'
