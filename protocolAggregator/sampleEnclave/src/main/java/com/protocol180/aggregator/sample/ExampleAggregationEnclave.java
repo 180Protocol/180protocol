@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.clientEnclave;
+package com.protocol180.aggregator.sample;
 
 import com.protocol180.aggregator.enclave.AggregationEnclave;
 import org.apache.avro.file.DataFileWriter;

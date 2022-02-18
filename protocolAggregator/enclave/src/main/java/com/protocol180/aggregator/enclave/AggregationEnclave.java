@@ -1,6 +1,6 @@
 package com.protocol180.aggregator.enclave;
 
-import com.protocol180.commons.MailType;
+import com.protocol180.aggregator.commons.MailType;
 import com.r3.conclave.enclave.Enclave;
 import com.r3.conclave.mail.EnclaveMail;
 import org.apache.avro.Schema;
@@ -122,7 +122,7 @@ public abstract class AggregationEnclave extends Enclave {
      * 1. Storing data input from all providers
      * 2. Computing Data Outputs for all consumers
      * 3. Computing Rewards for all providers
-     * @see com.protocol180.commons.MailType
+     * @see MailType
      **/
     @Override
     protected final void receiveMail(EnclaveMail mail, String routingHint) {
