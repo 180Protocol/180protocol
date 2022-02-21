@@ -1,5 +1,6 @@
-package com.protocol180.aggregator.flow
+package com.protocol180.samples.example;
 
+import com.protocol180.aggregator.flow.*;
 import com.protocol180.aggregator.states.CoalitionConfigurationState
 import com.protocol180.aggregator.states.CoalitionDataType
 import com.protocol180.aggregator.states.DataOutputState
@@ -33,7 +34,7 @@ import kotlin.test.assertTrue
  * On some machines/configurations you may have to provide a full path to the quasar.jar file.
  * On some machines/configurations you may have to use the "JAR manifest" option for shortening the command line.
  */
-class ConsumerAggregationFlowTest {
+class ExampleAggregationFlowTest {
     lateinit var network: MockNetwork
     lateinit var consumer1: StartedMockNode
     lateinit var consumer2: StartedMockNode
@@ -45,12 +46,12 @@ class ConsumerAggregationFlowTest {
     @Before
     fun setup() {
         network = MockNetwork(
-                MockNetworkParameters(
-                        cordappsForAllNodes = listOf(
-                                TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
-                                TestCordapp.findCordapp("com.protocol180.aggregator.flow")
-                        )
+            MockNetworkParameters(
+                cordappsForAllNodes = listOf(
+                    TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow")
                 )
+            )
         )
         consumer1 = prepareNodeForRole(RoleType.DATA_CONSUMER)
         consumer2 = prepareNodeForRole(RoleType.DATA_CONSUMER)
@@ -69,12 +70,12 @@ class ConsumerAggregationFlowTest {
 
     private fun prepareNodeForRole(role: RoleType): StartedMockNode {
         return network.createNode(
-                parameters = MockNodeParameters(
-                        additionalCordapps = listOf(
-                                TestCordapp.findCordapp("com.protocol180.aggregator.flow")
-                                        .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name)))
-                        )
+            parameters = MockNodeParameters(
+                additionalCordapps = listOf(
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow")
+                        .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name)))
                 )
+            )
         )
     }
 
@@ -85,8 +86,10 @@ class ConsumerAggregationFlowTest {
                 provider2.info.chooseIdentityAndCert().party.name))
 
         val dataTypes = listOf(
-                CoalitionDataType("testDataType1", "Test Data Type 1",
-                        ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.aggregator.sample.ExampleAggregationEnclave")
+            CoalitionDataType("testDataType1", "Test Data Type 1",
+                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave"),
+            CoalitionDataType("testDataType2", "Test Data Type 2",
+                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema2.avsc").readFully(), "com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave")
         )
 
         val flow1 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
@@ -99,8 +102,8 @@ class ConsumerAggregationFlowTest {
 
     @Test
     fun consumerAggregationFlowStateCreationTest() {
-        val dataType = "testDataType1"
-        val description = "test schema for DataType1 code"
+        val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
@@ -116,16 +119,16 @@ class ConsumerAggregationFlowTest {
         //check data output and rewards transaction for host
         host.transaction {
             val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
-                    VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
             val rewardsStates = provider1.services.vaultService.queryBy<RewardsState>(
-                    VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states
 
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
                 dataOutputState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
             }
 
             val rewardsState1 = rewardsStates[0].state.data
@@ -135,54 +138,54 @@ class ConsumerAggregationFlowTest {
             assertEquals(provider1.info.legalIdentities.first(), rewardsState1.provider)
             assertTrue {
                 rewardsState1.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first()))
             }
 
             assertEquals(host.info.legalIdentities[0], rewardsState2.host)
             assertEquals(provider2.info.legalIdentities.first(), rewardsState2.provider)
             assertTrue {
                 rewardsState2.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first()))
             }
         }
 
         //check data output transaction for consumer
         consumer1.transaction {
             val dataOutputState: DataOutputState = host.services.vaultService.queryBy<DataOutputState>(
-                    VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
             assertEquals(output.flowTopic, dataOutputState.flowTopic)
             assertEquals(host.info.legalIdentities[0], dataOutputState.host)
             assertEquals(consumer1.info.legalIdentities.first(), dataOutputState.consumer)
             assertTrue {
                 dataOutputState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
             }
         }
 
         //check rewards transaction for provider
         provider1.transaction {
             val rewardsState: RewardsState = provider1.services.vaultService.queryBy<RewardsState>(
-                    VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
             assertEquals(host.info.legalIdentities[0], rewardsState.host)
             assertEquals(provider1.info.legalIdentities.first(), rewardsState.provider)
             assertTrue {
                 rewardsState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first()))
             }
         }
 
         //check rewards transaction for provider
         provider2.transaction {
             val rewardsState: RewardsState = provider2.services.vaultService.queryBy<RewardsState>(
-                    VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
 
             assertEquals(host.info.legalIdentities[0], rewardsState.host)
             assertEquals(provider2.info.legalIdentities.first(), rewardsState.provider)
             assertTrue {
                 rewardsState.participants.containsAll(
-                        listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first()))
+                    listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first()))
             }
         }
 
@@ -190,8 +193,8 @@ class ConsumerAggregationFlowTest {
 
     @Test
     fun multipleConcurrentConsumerAggregationFlowTest() {
-        val dataType = "testDataType1"
-        val description = "test schema for DataType1 code"
+        val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
         uploadAttachmentToNode(provider1.services, dataType, "Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType, "Provider2InputData.zip")
 
@@ -256,12 +259,12 @@ class ConsumerAggregationFlowTest {
 
     @Test
     fun consumerOutputQueryTestAfterAggregation() {
-        val dataType = "testDataType1"
-        val description = "test schema for DataType1 code"
+        val dataType = "testDataType2"
+        val description = "test schema for DataType2 code"
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
-        val flow = ConsumerAggregationFlow("testDataType1", description)
+        val flow = ConsumerAggregationFlow("testDataType2", description)
         val future = consumer1.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -281,7 +284,7 @@ class ConsumerAggregationFlowTest {
 
         //Check reward output for each providers node
         val provider1RewardsState: RewardsState = provider1.services.vaultService.queryBy<RewardsState>(
-                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+            VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
         var providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider1RewardsState.flowTopic)
         val rewardOutputFuture1 = provider1.startFlow(providerRewardOutputRetrievalFlow)
         val provider1RewardOutput = rewardOutputFuture1.get()
@@ -291,7 +294,7 @@ class ConsumerAggregationFlowTest {
         network.runNetwork()
 
         val provider2RewardsState: RewardsState = provider2.services.vaultService.queryBy<RewardsState>(
-                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+            VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
         providerRewardOutputRetrievalFlow = ProviderRewardOutputRetrievalFlow(provider2RewardsState.flowTopic)
         val rewardOutputFuture2 = provider2.startFlow(providerRewardOutputRetrievalFlow)
         val provider2RewardOutput = rewardOutputFuture2.get()
@@ -311,13 +314,11 @@ class ConsumerAggregationFlowTest {
 
         //check new consumer added to coalition without updating coalition configuration
         var consumer2: StartedMockNode = prepareNodeForRole(RoleType.DATA_CONSUMER)
-        val flow2 = ConsumerAggregationFlow("testDataType1", "sample Data type description")
+        val flow2 = ConsumerAggregationFlow("testDataType2", "sample Data type description")
         val future2 = consumer2.startFlow(flow2)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future2.getOrThrow() }
     }
-
-
 
     private fun uploadAttachmentToNode(service: ServiceHub,
                                        dataType: String,

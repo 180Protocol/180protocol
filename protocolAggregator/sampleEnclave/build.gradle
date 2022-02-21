@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(':enclave')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "com.r3.conclave:conclave-enclave"
 
@@ -41,8 +42,4 @@ conclave {
         signingType = privateKey
         signingKey = file("sample_private_key.pem")
     }
-}
-
-test {
-    useJUnitPlatform()
 }

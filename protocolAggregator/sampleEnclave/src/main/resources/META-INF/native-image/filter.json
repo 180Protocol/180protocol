@@ -1,0 +1,10 @@
+{
+  "rules": [
+    {
+      "excludeClasses": "java.net.**"
+    },
+    {
+      "excludeClasses": "com.r3.conclave.host.**"
+    }
+  ]
+}
