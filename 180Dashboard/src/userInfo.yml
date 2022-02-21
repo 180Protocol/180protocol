@@ -23,9 +23,5 @@ rewards:
   uniqueness: 20
   updateFrequency: 30
 dataTypes:
-  - value: testSchema2
-    label: Automotive Data
   - value: testSchema1
-    label: Risk Metrics Data
-  - value: esgData
-    label: ESG Data
+    label: Automotive Data

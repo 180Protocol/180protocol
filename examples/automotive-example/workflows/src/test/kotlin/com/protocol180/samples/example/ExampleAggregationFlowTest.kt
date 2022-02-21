@@ -202,7 +202,7 @@ class ExampleAggregationFlowTest {
         val future = consumer1.startFlow(flow)
 
 
-        val flow1 = ConsumerAggregationFlow(dataType, "test schema for sencond aggregation cycle")
+        val flow1 = ConsumerAggregationFlow(dataType, "test schema for second aggregation cycle")
         val future1 = consumer2.startFlow(flow1)
 
         // launching receive call for consumer1 aggregation request

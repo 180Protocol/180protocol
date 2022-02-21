@@ -44,9 +44,9 @@ tasks.register("prepareForSigning") {
 }
 
 dependencies {
-    //internal
-    //compile project(":enclave")
-    testCompile project(path: ":sampleEnclave", configuration: mode)
+    //only for facilitating testing locally when using protocolAggregator directly using docker compose
+    //not included in maven artifact
+    compile project(path: ":sampleEnclave", configuration: mode)
 
     //external
     compile group: 'org.apache.avro', name: 'avro', version: '1.10.2'
