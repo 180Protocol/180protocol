@@ -1,0 +1,21 @@
+customerAge,customerAddress,partySize,bookingDate,roomPrice,hotelLocation,furnished,bookedOnline,cancellation
+34, "village", 5, "Mar", 42, "City", True, True, True
+44, "small city", 6, "Dec", 44, "small city", True, True, True
+28, "rural", 6, "Jan", 33, "London", True, True, True
+42, "small city", 1, "Jul", 54, "town", False, True, False
+26, "rural", 1, "Mar", 27, "London", False, True, False
+29, "London", 1, "Mar", 40, "village", True, True, False
+18, "small city", 4, "Jul", 23, "City", False, True, True
+48, "small city", 4, "Feb", 34, "City", True, True, True
+18, "rural", 4, "Mar", 27, "London", False, True, True
+28, "rural", 4, "Feb", 41, "London", True, True, True
+18, "rural", 1, "Feb", 30, "London", False, True, False
+55, "rural", 3, "Jul", 66, "London", False, True, False
+47, "small city", 1, "Jul", 61, "City", False, True, False
+66, "town", 6, "Dec", 66, "small city", False, True, True
+61, "London", 6, "Sep", 59, "village", True, True, True
+26, "rural", 6, "Mar", 37, "London", True, True, True
+18, "small city", 4, "Jun", 32, "village", True, True, False
+27, "village", 4, "Apr", 31, "City", True, True, True
+37, "City", 1, "Aug", 51, "village", False, True, True
+21, "rural", 1, "Feb", 24, "London", False, True, False
