@@ -57,10 +57,10 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         dataFileWriter.create(rewardsOutputSchema, outputFile);
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
-        float amountProvided = clientRecords.size() / allRecords.size();
-        float completeness = groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country");
-        float uniqueness = groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2));
-        float updateFrequency = groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date");
+        float amountProvided = (float) clientRecords.size() / allRecords.size();
+        float completeness = (float) groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country");
+        float uniqueness = (float) groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2));
+        float updateFrequency = (float) groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date");
         float qualityScore = (amountProvided + completeness + uniqueness + updateFrequency) / 4;
         float rewards = qualityScore * 100;
 
