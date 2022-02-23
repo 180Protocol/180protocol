@@ -24,8 +24,7 @@ import java.util.stream.Collectors;
 public class ExampleAggregationEnclave extends AggregationEnclave {
 
     enum SupportedDataTypes {
-        testSchema1,
-        testSchema2
+        testSchema1
     }
 
     Random random = new Random();
@@ -58,10 +57,10 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         dataFileWriter.create(rewardsOutputSchema, outputFile);
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
-        float amountProvided = clientRecords.size() / allRecords.size();
-        float completeness = groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country");
-        float uniqueness = groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2));
-        float updateFrequency = groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date");
+        float amountProvided = (float) clientRecords.size() / allRecords.size();
+        float completeness = (float) groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country");
+        float uniqueness = (float) groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2));
+        float updateFrequency = (float) groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date");
         float qualityScore = (amountProvided + completeness + uniqueness + updateFrequency) / 4;
         float rewards = qualityScore * 100;
 
@@ -71,15 +70,6 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                 rewardRecord.put("completeness", completeness);
                 rewardRecord.put("uniqueness", uniqueness);
                 rewardRecord.put("updateFrequency", updateFrequency);
-                rewardRecord.put("qualityScore", qualityScore);
-                rewardRecord.put("rewards", rewards);
-                rewardRecord.put("dataType", envelopeSchema.getName());
-                break;
-            case testSchema2:
-                rewardRecord.put("amountProvided", clientRecords.size() / allRecords.size());
-                rewardRecord.put("completeness", groupByModelCountryAndCalculateCount(clientRecords, "model", "country") / groupByModelCountryAndCalculateCount(allRecords, "model", "country"));
-                rewardRecord.put("uniqueness", groupByAndCalculateCount(clientRecords, pivot.get(2)) / groupByAndCalculateCount(allRecords, pivot.get(2)));
-                rewardRecord.put("updateFrequency", groupByDateAndCalculateCount(clientRecords, "date") / groupByDateAndCalculateCount(allRecords, "date"));
                 rewardRecord.put("qualityScore", qualityScore);
                 rewardRecord.put("rewards", rewards);
                 rewardRecord.put("dataType", envelopeSchema.getName());
@@ -137,26 +127,6 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                 demandRecord.put("evPremium", (evAveragePriceRecords.get("\"EV\"") / evAveragePriceRecords.get("\"\"")) - 1);
                 demandRecord.put("evMarketShare", evTotalSalesRecords.get("\"EV\"") / (evTotalSalesRecords.get("\"EV\"") + evTotalSalesRecords.get("\"\"")));
                 dataFileWriter.append(demandRecord);
-                break;
-            case testSchema2:
-                GenericRecord demandRecord2 = new GenericData.Record(aggregateOutputSchema);
-                GenericRecord averagePriceRecord2 = new GenericData.Record(aggregateOutputSchema.getField("averagePrice").schema());
-                GenericRecord unitsSoldRecord2 = new GenericData.Record(aggregateOutputSchema.getField("unitsSold").schema());
-                GenericRecord totalSalesRecord2 = new GenericData.Record(aggregateOutputSchema.getField("totalSales").schema());
-                averagePriceRecord2.put("pivotId", pivot.get(3));
-                averagePriceRecord2.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "average_price"));
-                unitsSoldRecord2.put("pivotId", pivot.get(3));
-                unitsSoldRecord2.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "units"));
-                totalSalesRecord2.put("pivotId", pivot.get(3));
-                totalSalesRecord2.put("data", groupByAndCalculateAverage(allRecords, pivot.get(3), "total_sales"));
-                demandRecord2.put("averagePrice", averagePriceRecord2);
-                demandRecord2.put("unitsSold", unitsSoldRecord2);
-                demandRecord2.put("totalSales", totalSalesRecord2);
-                HashMap<String, Double> evAveragePriceRecords2 = groupByAndCalculateAverage(allRecords, "ev", "average_price");
-                HashMap<String, Double> evTotalSalesRecords2 = groupByAndCalculateAverage(allRecords, "ev", "average_price");
-                demandRecord2.put("evPremium", (evAveragePriceRecords2.get("\"EV\"") / evAveragePriceRecords2.get("\"\"")) - 1);
-                demandRecord2.put("evMarketShare", evTotalSalesRecords2.get("\"EV\"") / (evTotalSalesRecords2.get("\"EV\"") + evTotalSalesRecords2.get("\"\"")));
-                dataFileWriter.append(demandRecord2);
                 break;
             default:
                 throw new IOException("Envelope Schema contains unsupported data type: " + envelopeSchema.getName());
