@@ -10,6 +10,8 @@ import org.apache.avro.io.DatumWriter;
 import java.io.File;
 import java.io.IOException;
 import java.security.PublicKey;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,8 +25,7 @@ import java.util.stream.Collectors;
 public class ExampleAggregationEnclave extends AggregationEnclave {
 
     enum SupportedDataTypes {
-        testSchema1,
-        testSchema2
+        testSchema1
     }
 
     Random random = new Random();
@@ -57,29 +58,21 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         dataFileWriter.create(rewardsOutputSchema, outputFile);
 
         GenericRecord rewardRecord = new GenericData.Record(rewardsOutputSchema);
-
-        int generalMinLimit = 1;
-        int generalMaxLimit = 10;
-        int finalRewardMinLimit = 1;
-        int finalRewardMaxLimit = 1000;
+        float amountProvided = (float) clientRecords.size() / (float) allRecords.size();
+        float completeness = groupByAgeAndAddressCombinationCount(clientRecords, "customerAge", "customerAddress") / groupByAgeAndAddressCombinationCount(allRecords, "customerAge", "customerAddress");
+        float uniqueness = groupByAgeAndAddressCount(clientRecords, "customerAge", "customerAddress") / groupByAgeAndAddressCount(allRecords, "customerAge", "customerAddress");
+        float updateFrequency = (float) groupByDateAndCalculateCount(clientRecords, "bookingDate") / (float) groupByDateAndCalculateCount(allRecords, "bookingDate");
+        float qualityScore = (amountProvided + completeness + uniqueness + updateFrequency) / 4;
+        float rewards = qualityScore * 100;
 
         switch (SupportedDataTypes.valueOf(envelopeSchema.getName())) {
             case testSchema1:
-                rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
-                rewardRecord.put("dataType", envelopeSchema.getName());
-                break;
-            case testSchema2:
-                rewardRecord.put("amountProvided", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("completeness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("uniqueness", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("updateFrequency", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("qualityScore", getRandomNumber(generalMinLimit, generalMaxLimit, 10));
-                rewardRecord.put("rewards", getRandomNumber(finalRewardMinLimit, finalRewardMaxLimit, 1));
+                rewardRecord.put("amountProvided", amountProvided);
+                rewardRecord.put("completeness", completeness);
+                rewardRecord.put("uniqueness", uniqueness);
+                rewardRecord.put("updateFrequency", updateFrequency);
+                rewardRecord.put("qualityScore", qualityScore);
+                rewardRecord.put("rewards", rewards);
                 rewardRecord.put("dataType", envelopeSchema.getName());
                 break;
             default:
@@ -157,48 +150,6 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                 demandRecord.put("avgPriceOfBookingsByMonth", avgPriceOfBookingsByMonth);
                 demandRecord.put("avgPartySizeByMonth", avgPartySizeByMonth);
                 dataFileWriter.append(demandRecord);
-                break;
-            case testSchema2:
-                GenericRecord demandRecord2 = new GenericData.Record(aggregateOutputSchema);
-                GenericRecord cancellationsByAgeRangeRecord2 = new GenericData.Record(aggregateOutputSchema.getField("cancellationsByAgeRange").schema());
-                GenericRecord cancellationsByPartySizeRange2 = new GenericData.Record(aggregateOutputSchema.getField("cancellationsByPartySizeRange").schema());
-                GenericRecord cancellationsByOnlineBookingRange2 = new GenericData.Record(aggregateOutputSchema.getField("cancellationsByOnlineBookingRange").schema());
-                GenericRecord furnishingByAgeRange2 = new GenericData.Record(aggregateOutputSchema.getField("furnishingByAgeRange").schema());
-                GenericRecord furnishingByPriceRange2 = new GenericData.Record(aggregateOutputSchema.getField("furnishingByPriceRange").schema());
-                GenericRecord furnishingByPartySizeRange2 = new GenericData.Record(aggregateOutputSchema.getField("furnishingByPartySizeRange").schema());
-                GenericRecord noOfBookingsByMonth2 = new GenericData.Record(aggregateOutputSchema.getField("noOfBookingsByMonth").schema());
-                GenericRecord avgPriceOfBookingsByMonth2 = new GenericData.Record(aggregateOutputSchema.getField("avgPriceOfBookingsByMonth").schema());
-                GenericRecord avgPartySizeByMonth2 = new GenericData.Record(aggregateOutputSchema.getField("avgPartySizeByMonth").schema());
-
-                cancellationsByAgeRangeRecord2.put("pivotId", pivot.get(0));
-                cancellationsByAgeRangeRecord2.put("data", groupByAgePercentage(allRecords, pivot.get(0), "cancellation"));
-                cancellationsByPartySizeRange2.put("pivotId", pivot.get(1));
-                cancellationsByPartySizeRange2.put("data", groupByPartySizePercentage(allRecords, pivot.get(1), "cancellation"));
-                cancellationsByOnlineBookingRange2.put("pivotId", pivot.get(2));
-                cancellationsByOnlineBookingRange2.put("data", groupByBookedOnlineCancellationPercentage(allRecords, pivot.get(2), "cancellation"));
-                furnishingByAgeRange2.put("pivotId", pivot.get(0));
-                furnishingByAgeRange2.put("data", groupByAgePercentage(allRecords, pivot.get(0), "furnished"));
-                furnishingByPriceRange2.put("pivotId", pivot.get(3));
-                furnishingByPriceRange2.put("data", groupByRoomPricePercentage(allRecords, pivot.get(3), "furnished"));
-                furnishingByPartySizeRange2.put("pivotId", pivot.get(1));
-                furnishingByPartySizeRange2.put("data", groupByPartySizePercentage(allRecords, pivot.get(1), "furnished"));
-                noOfBookingsByMonth2.put("pivotId", "month");
-                noOfBookingsByMonth2.put("data", groupByAndCalculateCount(allRecords, "bookingDate"));
-                avgPriceOfBookingsByMonth2.put("pivotId", "month");
-                avgPriceOfBookingsByMonth2.put("data", groupByAndCalculateAverage(allRecords, "bookingDate", "roomPrice"));
-                avgPartySizeByMonth2.put("pivotId", "month");
-                avgPartySizeByMonth2.put("data", groupByAndCalculateAverage(allRecords, "bookingDate", "partySize"));
-
-                demandRecord2.put("cancellationsByAgeRange", cancellationsByAgeRangeRecord2);
-                demandRecord2.put("cancellationsByPartySizeRange", cancellationsByPartySizeRange2);
-                demandRecord2.put("cancellationsByOnlineBookingRange", cancellationsByOnlineBookingRange2);
-                demandRecord2.put("furnishingByAgeRange", furnishingByAgeRange2);
-                demandRecord2.put("furnishingByPriceRange", furnishingByPriceRange2);
-                demandRecord2.put("furnishingByPartySizeRange", furnishingByPartySizeRange2);
-                demandRecord2.put("noOfBookingsByMonth", noOfBookingsByMonth2);
-                demandRecord2.put("avgPriceOfBookingsByMonth", avgPriceOfBookingsByMonth2);
-                demandRecord2.put("avgPartySizeByMonth", avgPartySizeByMonth2);
-                dataFileWriter.append(demandRecord2);
                 break;
             default:
                 throw new IOException("Envelope Schema contains unsupported data type: " + envelopeSchema.getName());
@@ -457,5 +408,98 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
         data.put("online", bookedOnline > 0 ? (double) ((cancellationTrueBookedOnlineTotal * 100) / bookedOnline) : 0);
         data.put("offline", bookedOffline > 0 ? (double) ((cancellationTrueBookedOfflineTotal * 100) / bookedOffline) : 0);
         return data;
+    }
+
+    public float groupByAgeAndAddressCombinationCount(ArrayList<GenericRecord> allRecords, String groupByField, String field) {
+        HashMap<String, Double> data = new HashMap<>();
+        Map<Object, Map<Object, Long>> groupedRecords = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(groupByField),
+                        Collectors.groupingBy(
+                                genericRecord -> genericRecord.get(field),
+                                Collectors.counting())
+                ));
+
+        ArrayList<String> list18to30 = new ArrayList<String>();
+        ArrayList<String> list31to45 = new ArrayList<String>();
+        ArrayList<String> list46to60 = new ArrayList<String>();
+        ArrayList<String> listAbove60 = new ArrayList<String>();
+
+        for (Map.Entry<Object, Map<Object, Long>> entry : groupedRecords.entrySet()) {
+            Object key = entry.getKey();
+            Map<Object, Long> value = entry.getValue();
+            int age = Integer.parseInt(key.toString());
+            if (age >= 18 && age <= 30) {
+                for (Map.Entry<Object, Long> valueRecord : value.entrySet()) {
+                    if (!list18to30.contains(valueRecord.getKey().toString())) {
+                        list18to30.add(valueRecord.getKey().toString());
+                    }
+                }
+            } else if (age >= 31 && age <= 45) {
+                for (Map.Entry<Object, Long> valueRecord : value.entrySet()) {
+                    if (!list31to45.contains(valueRecord.getKey().toString())) {
+                        list31to45.add(valueRecord.getKey().toString());
+                    }
+                }
+            } else if (age >= 46 && age <= 60) {
+                for (Map.Entry<Object, Long> valueRecord : value.entrySet()) {
+                    if (!list46to60.contains(valueRecord.getKey().toString())) {
+                        list46to60.add(valueRecord.getKey().toString());
+                    }
+                }
+            } else {
+                for (Map.Entry<Object, Long> valueRecord : value.entrySet()) {
+                    if (!listAbove60.contains(valueRecord.getKey().toString())) {
+                        listAbove60.add(valueRecord.getKey().toString());
+                    }
+                }
+            }
+        }
+
+        return list18to30.size() + list31to45.size() + list46to60.size() + listAbove60.size();
+    }
+
+    public float groupByAgeAndAddressCount(ArrayList<GenericRecord> allRecords, String groupByField, String field) {
+        HashMap<String, Double> data = new HashMap<>();
+        Map<Object, Map<Object, Long>> groupedRecords = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(groupByField),
+                        Collectors.groupingBy(
+                                genericRecord -> genericRecord.get(field),
+                                Collectors.counting())
+                ));
+
+        ArrayList<String> list = new ArrayList<String>();
+
+        for (Map.Entry<Object, Map<Object, Long>> entry : groupedRecords.entrySet()) {
+            Map<Object, Long> value = entry.getValue();
+            for (Map.Entry<Object, Long> valueRecord : value.entrySet()) {
+                if (!list.contains(valueRecord.getKey().toString())) {
+                    list.add(valueRecord.getKey().toString());
+                }
+            }
+        }
+
+        return list.size() * 4;
+    }
+
+    public int groupByDateAndCalculateCount(ArrayList<GenericRecord> allRecords, String date) {
+        Map<Object, Long> groupByDateRecords = allRecords.stream()
+                .collect(Collectors.groupingBy(
+                        genericRecord -> genericRecord.get(date),
+                        Collectors.counting()
+                ));
+
+        LocalDate currentDate = LocalDate.now().minusMonths(3);
+        long total = 0;
+        for (Map.Entry<Object, Long> entry : groupByDateRecords.entrySet()) {
+            Object k = entry.getKey();
+            Long v = entry.getValue();
+            if (LocalDate.parse(k.toString().replaceAll("^\"|\"$", "") + "-01").isAfter(currentDate)) {
+                total += v;
+            }
+        }
+
+        return (int) total;
     }
 }
