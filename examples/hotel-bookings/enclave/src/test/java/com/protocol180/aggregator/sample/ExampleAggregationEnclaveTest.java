@@ -1,4 +1,4 @@
-package com.protocol180.samples.example.aggregator.clientEnclave;
+package com.protocol180.aggregator.sample;
 
 import com.protocol180.aggregator.enclave.AggregationEnclave;
 import com.r3.conclave.common.EnclaveInstanceInfo;
@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class ExampleAggregationEnclaveTest {
     @Test
-    void aggregateDataOutputTest() throws IOException, EnclaveLoadException, AggregationEnclave.UnsupportedDataTypeException, MailDecryptionException {
-        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave");
+    void aggregateDataOutputTest() throws IOException, EnclaveLoadException, MailDecryptionException {
+        EnclaveHost mockHost = EnclaveHost.load("com.protocol180.aggregator.sample.ExampleAggregationEnclave");
         mockHost.start(null, null, null, (commands) -> {
         });
 

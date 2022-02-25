@@ -1,4 +1,4 @@
-package com.protocol180.samples.example.aggregator.clientEnclave;
+package com.protocol180.aggregator.sample;
 
 import com.protocol180.aggregator.enclave.AggregationEnclave;
 import org.apache.avro.file.DataFileWriter;
@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -1,4 +1,4 @@
-package com.protocol180.samples.example;
+package com.protocol180.aggregator.sample;
 
 import com.protocol180.aggregator.flow.*;
 import com.protocol180.aggregator.states.CoalitionConfigurationState
@@ -87,7 +87,7 @@ class ExampleAggregationFlowTest {
 
         val dataTypes = listOf(
             CoalitionDataType("testDataType1", "Test Data Type 1",
-                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave")
+                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.aggregator.sample.ExampleAggregationEnclave")
         )
 
         val flow1 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
