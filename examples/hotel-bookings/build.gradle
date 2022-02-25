@@ -105,8 +105,8 @@ dependencies {
     // CorDapp dependencies.
     cordapp project(":workflows")
 
-    cordapp 'com.protocol180:protocol-aggregator-contracts:0.1.4'
-    cordapp 'com.protocol180:protocol-aggregator-workflows:0.1.4'
+    cordapp 'com.protocol180:protocol-aggregator-contracts:0.1.5'
+    cordapp 'com.protocol180:protocol-aggregator-workflows:0.1.5'
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
     cordaCompile "org.apache.logging.log4j:log4j-web:${log4j_version}"
@@ -140,7 +140,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         projectCordapp {
             deploy = false
         }
-        cordapp 'com.protocol180:protocol-aggregator-contracts:0.1.4'
+        cordapp 'com.protocol180:protocol-aggregator-contracts:0.1.5'
     }
     node {
         name "O=Notary,L=London,C=GB"
@@ -160,7 +160,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             adminAddress("0.0.0.0:10045")
         }
         cordapp project(':workflows')
-        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.4') {
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.5') {
             config '''\
                 participantRole = COALITION_HOST
             '''.stripIndent()
@@ -176,7 +176,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             adminAddress("0.0.0.0:10047")
         }
         cordapp project(':workflows')
-        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.4') {
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.5') {
             config '''\
                 participantRole = DATA_PROVIDER
             '''.stripIndent()
@@ -192,7 +192,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             adminAddress("0.0.0.0:10049")
         }
         cordapp project(':workflows')
-        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.4') {
+        cordapp ('com.protocol180:protocol-aggregator-workflows:0.1.5') {
             config '''\
                 participantRole = DATA_CONSUMER
             '''.stripIndent()
