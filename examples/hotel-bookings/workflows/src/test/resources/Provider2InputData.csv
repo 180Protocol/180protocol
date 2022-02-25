@@ -1,0 +1,41 @@
+customerAge,customerAddress,partySize,bookingDate,roomPrice,hotelLocation,furnished,bookedOnline,cancellation
+30, "City", 2, "Mar", 42, "small city", False, True, True
+48, "London", 2, "Feb", 65, "rural", False, True, True
+37, "City", 5, "Dec", 28, "village", False, True, True
+20, "town", 8, "Jul", 37, "City", True, True, True
+40, "rural", 4, "Jul", 38, "London", True, True, True
+50, "London", 4, "Mar", 45, "rural", True, True, True
+18, "rural", 1, "Jun", 24, "London", False, True, False
+20, "town", 2, "Mar", 28, "small city", False, True, False
+55, "rural", 2, "Jun", 55, "London", False, True, False
+76, "small city", 1, "Mar", 79, "town", False, True, False
+18, "rural", 4, "Mar", 29, "London", False, True, True
+40, "small city", 3, "Aug", 39, "town", True, True, False
+22, "small city", 5, "Jul", 29, "small city", False, True, True
+61, "town", 6, "Feb", 62, "City", False, True, True
+55, "town", 3, "Dec", 60, "small city", False, True, False
+63, "town", 7, "Feb", 69, "small city", False, True, True
+45, "London", 2, "Mar", 47, "rural", True, True, False
+56, "City", 6, "Jul", 55, "town", False, True, True
+62, "village", 2, "Jul", 73, "City", False, True, False
+18, "town", 6, "Jul", 34, "London", True, True, True
+18, "rural", 6, "Jul", 16, "London", False, True, True
+18, "town", 5, "Jul", 24, "London", False, True, True
+18, "town", 8, "Jul", 34, "London", True, True, True
+70, "village", 7, "Apr", 58, "London", False, True, True
+40, "village", 2, "Aug", 61, "City", False, True, False
+40, "town", 1, "Apr", 49, "small city", True, True, False
+55, "rural", 3, "Sep", 50, "London", False, True, False
+43, "village", 1, "Jun", 53, "London", False, True, False
+80, "rural", 7, "Mar", 81, "London", False, True, True
+42, "London", 6, "Mar", 41, "village", True, True, True
+39, "London", 3, "Apr", 48, "village", True, True, True
+43, "town", 3, "Dec", 59, "small city", False, True, False
+27, "town", 3, "Jul", 40, "small city", True, True, True
+47, "town", 5, "Feb", 45, "City", True, True, True
+55, "rural", 4, "Jul", 60, "London", False, True, True
+44, "small city", 5, "Jun", 45, "small city", True, True, True
+36, "City", 1, "Mar", 50, "rural", False, True, False
+54, "small city", 5, "Oct", 57, "small city", False, True, True
+46, "town", 1, "Jul", 55, "small city", False, True, False
+61, "village", 7, "Dec", 59, "London", False, True, True
