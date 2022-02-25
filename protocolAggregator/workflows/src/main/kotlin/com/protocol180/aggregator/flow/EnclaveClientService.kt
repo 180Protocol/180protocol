@@ -16,6 +16,7 @@ import org.apache.avro.io.DatumReader
 import org.apache.avro.io.DatumWriter
 import org.apache.avro.io.EncoderFactory
 import java.io.*
+import java.lang.Boolean
 import java.util.*
 import java.util.function.Consumer
 import java.util.zip.ZipFile
@@ -56,15 +57,19 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             headers.forEachIndexed {
                 index, value ->
                 if (!dataValues[index].contains("\"")) {
-                    try {
-                        demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toInt())
-                    } catch (e: NumberFormatException) {
-                        //not int
-                    }
-                    try {
-                        demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toFloat())
-                    } catch (e: NumberFormatException) {
-                        //not float
+                    if (dataValues[index].contains("True") || dataValues[index].contains("False")) {
+                        demandRecord.put(value, Boolean.parseBoolean(dataValues[index].trim { it <= ' ' }))
+                    } else {
+                        try {
+                            demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toInt())
+                        } catch (e: NumberFormatException) {
+                            //not int
+                        }
+                        try {
+                            demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toFloat())
+                        } catch (e: NumberFormatException) {
+                            //not float
+                        }
                     }
                 } else {
                     demandRecord.put(value, dataValues[index].trim { it <= ' ' })
