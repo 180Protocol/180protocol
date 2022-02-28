@@ -56,28 +56,27 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
             val dataValues = it.split(",")
             headers.forEachIndexed {
                 index, value ->
-                if (!dataValues[index].contains("\"")) {
-                    if (dataValues[index].contains("True") || dataValues[index].contains("False")) {
-                        demandRecord.put(value, Boolean.parseBoolean(dataValues[index].trim { it <= ' ' }))
-                    } else {
-                        try {
-                            demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toInt())
-                        } catch (e: NumberFormatException) {
-                            //not int
-                        }
-                        try {
-                            demandRecord.put(value, dataValues[index].trim { it <= ' ' }.toFloat())
-                        } catch (e: NumberFormatException) {
-                            //not float
-                        }
-                    }
-                } else {
-                    demandRecord.put(value, dataValues[index].trim { it <= ' ' })
-                }
+                val schemaType = aggregationInputSchema!!.getField(value).schema().type;
+                val parsedValue = parseValuesToSchemaType(dataValues[index], schemaType);
+                demandRecord.put(value, parsedValue);
             }
             genericRecords.add(demandRecord)
         }
         return createAvroDataFileFromGenericRecords(genericRecords)
+    }
+
+    private fun parseValuesToSchemaType(dataValues: String, schemaType: Schema.Type): Any {
+        when (schemaType) {
+            Schema.Type.STRING -> return dataValues.trim { it <= ' ' }
+            Schema.Type.BYTES -> return dataValues.trim { it <= ' ' }.toByte()
+            Schema.Type.INT -> return dataValues.trim { it <= ' ' }.toInt()
+            Schema.Type.LONG -> return dataValues.trim { it <= ' ' }.toLong()
+            Schema.Type.FLOAT -> return dataValues.trim { it <= ' ' }.toFloat()
+            Schema.Type.DOUBLE -> return dataValues.trim { it <= ' ' }.toDouble()
+            Schema.Type.BOOLEAN -> return dataValues.trim { it <= ' ' }.toBoolean()
+        }
+
+        return dataValues;
     }
 
     private fun createAvroDataFileFromGenericRecords(genericRecords: ArrayList<GenericRecord>): ByteArray {
