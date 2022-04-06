@@ -1,49 +1,151 @@
 {
-  "namespace": "com.180protocol",
+  "namespace": "com.protocol180",
   "type": "record",
   "name": "testSchema2",
   "fields": [
     {
       "name": "aggregateInput",
       "type": {
-        "type" : "record",
-        "name" : "AggregateInput",
+        "type": "record",
+        "name": "AggregateInput",
         "fields": [
-          {"name": "creditRating", "type": "string"},
-          {"name": "sector", "type": "string"},
-          {"name": "assetType", "type": "string"},
-          {"name": "duration", "type": "string"},
-          {"name": "amount",  "type": ["null", "int"]}
+          {
+            "name": "manufacturer",
+            "type": "string"
+          },
+          {
+            "name": "brand",
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "type": "string"
+          },
+          {
+            "name": "ev",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "date",
+            "type": "string"
+          },
+          {
+            "name": "country",
+            "type": "string"
+          },
+          {
+            "name": "units",
+            "type": "int"
+          },
+          {
+            "name": "average_price",
+            "type": "float"
+          },
+          {
+            "name": "total_sales",
+            "type": "float"
+          }
         ]
       }
     },
     {
       "name": "aggregateOutput",
       "type": {
-        "type" : "record",
-        "name" : "AggregateOutput",
+        "type": "record",
+        "name": "AggregateOutput",
         "fields": [
-          {"name": "creditRating", "type": "string"},
-          {"name": "sector", "type": "string"},
-          {"name": "assetType", "type": "string"},
-          {"name": "duration", "type": "string"},
-          {"name": "amount",  "type": ["null", "int"]}
+          {
+            "name": "averagePrice",
+            "type": {
+              "type": "record",
+              "name": "pivotAnalytics",
+              "fields": [
+                {
+                  "name": "pivotId",
+                  "type": "string"
+                },
+                {
+                  "name": "data",
+                  "type": {
+                    "type": "map",
+                    "name": "data",
+                    "values": "float"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "unitsSold",
+            "type": "com.protocol180.pivotAnalytics"
+          },
+          {
+            "name": "totalSales",
+            "type": "com.protocol180.pivotAnalytics"
+          },
+          {
+            "name": "evPremium",
+            "type": "float"
+          },
+          {
+            "name": "evMarketShare",
+            "type": "float"
+          }
         ]
       }
     },
     {
       "name": "rewardsOutput",
       "type": {
-        "type" : "record",
-        "name" : "Rewards",
+        "type": "record",
+        "name": "Rewards",
         "fields": [
-          {"name": "amountProvided", "type": "float"},
-          {"name": "completeness", "type": "float"},
-          {"name": "uniqueness", "type": "float"},
-          {"name": "updateFrequency", "type": "float"},
-          {"name": "qualityScore", "type": "float"},
-          {"name": "rewards", "type": "float"},
-          {"name": "dataType", "type": "string"}
+          {
+            "name": "amountProvided",
+            "type": "float"
+          },
+          {
+            "name": "completeness",
+            "type": "float"
+          },
+          {
+            "name": "uniqueness",
+            "type": "float"
+          },
+          {
+            "name": "updateFrequency",
+            "type": "float"
+          },
+          {
+            "name": "qualityScore",
+            "type": "float"
+          },
+          {
+            "name": "rewards",
+            "type": "float"
+          },
+          {
+            "name": "dataType",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "identity",
+      "type": {
+        "type" : "record",
+        "name" : "Identity",
+        "fields": [
+          {"name": "publicKey", "type": "string"},
+          {"name": "clientType", "type": "string"}
         ]
       }
     }

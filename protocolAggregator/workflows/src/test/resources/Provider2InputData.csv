@@ -1,0 +1,9 @@
+manufacturer,brand,model,type,ev,date,country,units,average_price,total_sales
+"Tesla","Tesla","Model 3","Sedan","EV","2022-04-01","Argentina",7,63525.16894743328,444676.18263203296
+"Tesla","Tesla","Model 3","Sedan","EV","2022-04-01","Australia",60,63307.449682902035,3798446.980974122
+"Tesla","Tesla","Model 3","Sedan","EV","2022-04-01","Brazil",138,63115.02566106154,8709873.541226493
+"Tesla","Tesla","Model 3","Sedan","EV","2022-04-01","Canada",101,61418.442626873446,6203262.705314218
+"Honda","Honda","XR-V","SUV","","2022-02-24","Chile",4,19365.207946454368,77460.83178581747
+"Honda","Honda","XR-V","SUV","","2022-02-24","China",537,21523.902082053053,11558335.41806249
+"Honda","Honda","XR-V","SUV","","2022-02-24","France",153,20724.411656743563,3170834.9834817653
+"Honda","Honda","XR-V","SUV","","2022-02-24","Germany",35,21762.989212617933,761704.6224416277
