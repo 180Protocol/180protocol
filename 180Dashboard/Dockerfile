@@ -9,7 +9,7 @@ RUN chown -R node /app
 USER node
 WORKDIR /app
 COPY 180Dashboard/src /app/src
-COPY ["180Dashboard/package.json", "180Dashboard/package-lock.json*", "./"]
+COPY --chown=node:node ["180Dashboard/package.json", "180Dashboard/package-lock.json*", "./"]
 RUN CI=true
 RUN npm install --silent
 # Expose PORT 3000 on our virtual machine so we can run our server
