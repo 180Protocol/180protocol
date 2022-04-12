@@ -31,8 +31,8 @@ export default (props) => {
         }
     }, [props.columns, props.rows]);
 
-    const AmountFormatter = ({value}) => value ? Intl.NumberFormat().format(value.toFixed(1)) : '$0';
-    const DecimalsFormatter = ({value}) => value ? value.toFixed(1) : '';
+    const AmountFormatter = ({value}) => value ? Intl.NumberFormat().format(parseFloat(value).toFixed(1)) : '$0';
+    const DecimalsFormatter = ({value}) => value ? parseFloat(value).toFixed(1) : '';
     const DateFormatter = ({value}) => value ? moment.utc(value).format("YYYY-MM-DD HH:mm:ss") : '';
 
     const FlowIDCell = ({value, style, ...restProps}) => {

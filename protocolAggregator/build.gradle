@@ -284,6 +284,7 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         cordapp (project(':workflows')) {
             config '''\
                 participantRole = DATA_CONSUMER
+                estuaryToken = EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
             '''.stripIndent()
         }
         runSchemaMigration = true
