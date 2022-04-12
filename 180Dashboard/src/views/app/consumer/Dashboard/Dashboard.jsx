@@ -41,6 +41,7 @@ const Dashboard = (props) => {
     const alertRef = useRef();
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
+    const storageTypeOptions = localStorage.getItem('storageTypeOptions') ? JSON.parse(localStorage.getItem('storageTypeOptions')) : [];
 
     useEffect(() => {
         async function fetchData() {
@@ -60,7 +61,7 @@ const Dashboard = (props) => {
             })
             setLastRequestDate(moment.utc(sortedDataOutput[0].state.data.dateCreated).format("MMM DD, YYYY hh:mm:ss A"));
 
-            getDecryptedDataOutput(response.states[0].state.data.flowTopic)
+            getDecryptedDataOutput(response.states[0].state.data.flowTopic, response.states[0].state.data.encryptionKeyId, response.states[0].state.data.storageType, response.states[0].state.data.cid)
         }
     }
 
@@ -70,7 +71,8 @@ const Dashboard = (props) => {
                 "trackProgress": true
             },
             "dataType": values.dataType.value,
-            "description": values.description
+            "description": values.description,
+            "storageType": values.storageType.value
         };
 
         let response = await createAggregationRequest(dispatch, props.apiUrl, params);
@@ -98,15 +100,22 @@ const Dashboard = (props) => {
             errors.description = "Please enter description";
         }
 
+        if (!values.storageType) {
+            errors.storageType = "Please select one of storage type";
+        }
+
         return errors;
     }
 
-    const getDecryptedDataOutput = async (flowTopic) => {
+    const getDecryptedDataOutput = async (flowTopic, encryptionKeyId, storageType, cid) => {
         let params = {
             "options": {
                 "trackProgress": true
             },
-            "flowId": flowTopic
+            "flowId": flowTopic,
+            "storageType": storageType,
+            "cid": cid,
+            "encryptionKeyId": encryptionKeyId
         }
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
@@ -178,6 +187,7 @@ const Dashboard = (props) => {
                                             initialValues={{
                                                 dataType: "",
                                                 description: "",
+                                                storageType: ""
                                             }}
                                             onSubmit={save}
                                         >
@@ -214,6 +224,26 @@ const Dashboard = (props) => {
                                                                     <div
                                                                         className="invalid-feedback-msg">{errors.description}</div>}
                                                                 </div>
+                                                            </div>
+                                                            <div className={styles.selectCateBox}>
+                                                                <p>Storage Type</p>
+                                                                <FormikReactSelect
+                                                                    className={styles.customSelect}
+                                                                    name="storageType"
+                                                                    id="storageType"
+                                                                    value={values.storageType}
+                                                                    isMulti={false}
+                                                                    options={storageTypeOptions}
+                                                                    onChange={setFieldValue}
+                                                                    onBlur={setFieldTouched}
+                                                                    components={{
+                                                                        DropdownIndicator: RightArrowIcon,
+                                                                        IndicatorSeparator: () => null
+                                                                    }}
+                                                                />
+                                                                {errors.storageType && touched.storageType &&
+                                                                <div
+                                                                    className="invalid-feedback-msg">{errors.storageType}</div>}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -255,7 +285,7 @@ const Dashboard = (props) => {
                                                     encryptedDataOutput.states.map((output, index) => {
                                                         return (
                                                             <div key={index}
-                                                                 onClick={() => getDecryptedDataOutput(output.state.data.flowTopic)}
+                                                                 onClick={() => getDecryptedDataOutput(output.state.data.flowTopic, output.state.data.encryptionKeyId, output.state.data.storageType, output.state.data.cid)}
                                                                  className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
                                                                 <div className={styles.downloadRequestBox}>
                                                                     <img src={downloadIcon} alt="download"/>

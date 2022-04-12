@@ -14,13 +14,18 @@ class NetworkParticipantService(private val hub: AppServiceHub) : SingletonSeria
 
     companion object {
         const val PARTICIPANT_ROLE_CONFIG_KEY = "participantRole"
+        const val ESTUARY_STORAGE_TOKEN = "estuaryToken"
         private val log = loggerFor<NetworkParticipantService>()
     }
 
     private val _role: RoleType?
+    private val _token: String
 
     val role: RoleType
     get() = _role!!
+
+    val token: String
+    get() = _token
 
     init {
         val config = hub.getAppContext().config
@@ -30,6 +35,13 @@ class NetworkParticipantService(private val hub: AppServiceHub) : SingletonSeria
         } else {
             log.warn("Participant's role is not set, error will be raised if accessed in a flow")
             null
+        }
+
+        _token = if (config.exists(ESTUARY_STORAGE_TOKEN)) {
+            config.getString(ESTUARY_STORAGE_TOKEN)
+        } else {
+            log.warn("Storage token is not set, error will be raised if accessed in a flow")
+            null.toString()
         }
     }
 }

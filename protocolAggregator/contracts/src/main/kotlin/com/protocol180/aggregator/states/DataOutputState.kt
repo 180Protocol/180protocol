@@ -23,7 +23,10 @@ data class DataOutputState(val consumer: Party,
                            val description: String,
                            val dateCreated: Instant,
                            val enclaveAttestation: ByteArray,
-                           val flowTopic: String
+                           val flowTopic: String,
+                           val encryptionKeyId: String,
+                           val storageType: String,
+                           val cid: String
 ) : ContractState {
 
     /**

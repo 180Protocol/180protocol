@@ -6,7 +6,11 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
 
 public class EstuaryStorageService {
     public String uploadContent(File file, String token) throws UnirestException {
@@ -32,5 +36,18 @@ public class EstuaryStorageService {
                 .asJson();
 
         return jsonResponse.getBody().getArray();
+    }
+
+    public void DownloadFileFromEstuary(String cid) {
+        try (BufferedInputStream in = new BufferedInputStream(new URL("https://dweb.link/ipfs/" + cid).openStream());
+             FileOutputStream fileOutputStream = new FileOutputStream("downloaded.encrypted")) {
+            byte dataBuffer[] = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            // handle exception
+        }
     }
 }

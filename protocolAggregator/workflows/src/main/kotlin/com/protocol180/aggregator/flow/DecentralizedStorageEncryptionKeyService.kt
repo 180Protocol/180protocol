@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.flow
 
-import com.protocol180.aggregator.schema.DecentralizedStorageEncryptionKeySchemaV1
+import com.protocol180.aggregator.schema.DecentralizedStorageEncryptionKeySchemaV1;
+import com.protocol180.aggregator.utils.AESUtil
 import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
@@ -21,7 +22,7 @@ class DecentralizedStorageEncryptionKeyService(val services: AppServiceHub) : Si
         ivParameterSpec: ByteArray
     ) {
         val decentralizedStorageEncryptionKey =
-            DecentralizedStorageEncryptionKeySchemaV1.EncryptionKeyStorage(flowId, key, ivParameterSpec, Instant.now())
+            DecentralizedStorageEncryptionKeySchemaV1.EncryptionKeyStorage(flowId, AESUtil.convertSecretKeyToString(key), ivParameterSpec, Instant.now())
         services.withEntityManager {
             persist(decentralizedStorageEncryptionKey)
         }

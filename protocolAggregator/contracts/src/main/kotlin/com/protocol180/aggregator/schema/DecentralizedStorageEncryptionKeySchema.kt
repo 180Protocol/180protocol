@@ -3,8 +3,6 @@ package com.protocol180.aggregator.schema
 import net.corda.core.schemas.MappedSchema
 import java.io.Serializable
 import java.time.Instant
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 import javax.persistence.*
 
 object DecentralizedStorageEncryptionKeySchema
@@ -22,13 +20,13 @@ object DecentralizedStorageEncryptionKeySchemaV1 : MappedSchema(
         var flowId: String,
         @Lob
         @Column(name = "key", nullable = false)
-        val key: SecretKey?,
+        val key: String,
         @Column(name = "ivParameterSpec", nullable = false)
         val ivParameterSpec: ByteArray,
         @Column(name = "dateCreated", nullable = false)
         val dateCreated: Instant
     ) : Serializable {
-        constructor() : this("", KeyGenerator.getInstance("AES").generateKey(), ByteArray(0), Instant.now())
+        constructor() : this("", "", ByteArray(0), Instant.now())
     }
 
 }

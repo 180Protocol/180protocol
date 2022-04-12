@@ -25,3 +25,8 @@ rewards:
 dataTypes:
   - value: testSchema1
     label: Automotive Data
+storageTypes:
+  - value: local
+    label: Local
+  - value: filecoin
+    label: Filecoin
