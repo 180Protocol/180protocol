@@ -7,6 +7,7 @@ import net.corda.core.flows.StartableByRPC
 import net.corda.core.utilities.ProgressTracker
 import java.io.File
 import javax.crypto.spec.IvParameterSpec
+import com.protocol180.aggregator.storage.EstuaryStorageService;
 
 
 /**
@@ -28,7 +29,7 @@ class ConsumerDataOutputRetrievalFlow(private val flowId: String, private val st
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val estuaryStorageService = EstuaryStorageService();
+        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
         val consumer = ourIdentity
 
         if (storageType === "local") {
@@ -38,7 +39,7 @@ class ConsumerDataOutputRetrievalFlow(private val flowId: String, private val st
                 )!!, "aggregate"
             ).toString()
         } else {
-            estuaryStorageService.DownloadFileFromEstuary(cid);
+            estuaryStorageService.downloadFileFromEstuary(cid);
             val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(encryptionKeyId);
             val downloadedFile = File(File("downloaded.encrypted").path);
             return enclaveClientService.readJsonFromOutputBytesAndSchema(

@@ -1,9 +1,13 @@
-package com.protocol180.aggregator.flow;
+package com.protocol180.aggregator.storage;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import net.corda.core.node.AppServiceHub;
+import net.corda.core.node.services.CordaService;
+import net.corda.core.serialization.SingletonSerializeAsToken;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
 import java.io.BufferedInputStream;
@@ -12,7 +16,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
-public class EstuaryStorageService {
+@CordaService
+public class EstuaryStorageService extends SingletonSerializeAsToken {
+    public EstuaryStorageService(@NotNull AppServiceHub serviceHub) {}
+
     public String uploadContent(File file, String token) throws UnirestException {
         HttpResponse<JsonNode> jsonResponse = Unirest.post("https://shuttle-4.estuary.tech/content/add")
                 .header("authorization", "Bearer " + token)
@@ -38,7 +45,7 @@ public class EstuaryStorageService {
         return jsonResponse.getBody().getArray();
     }
 
-    public void DownloadFileFromEstuary(String cid) {
+    public void downloadFileFromEstuary(String cid) {
         try (BufferedInputStream in = new BufferedInputStream(new URL("https://dweb.link/ipfs/" + cid).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream("downloaded.encrypted")) {
             byte dataBuffer[] = new byte[1024];

@@ -19,6 +19,7 @@ import java.io.File
 import java.security.PublicKey
 import java.time.Instant
 import javax.crypto.spec.IvParameterSpec
+import com.protocol180.aggregator.storage.EstuaryStorageService;
 
 /**
  * One of 180Protocol's supported Broker Flows. There will be more flow types in the future which are provider initiated instead
@@ -47,7 +48,7 @@ class ConsumerAggregationFlow(private val dataType: String, private val descript
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
-        val estuaryStorageService = EstuaryStorageService();
+        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
         val token = serviceHub.cordaService(NetworkParticipantService::class.java).token;
 
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
