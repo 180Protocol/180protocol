@@ -1,0 +1,20 @@
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile group: "com.mashape.unirest", name: "unirest-java", version: "1.4.4"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
+
+    compile "$corda_core_release_group:corda-core:$corda_core_release_version"
+    testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
+}
+
+test {
+    useJUnit()
+}

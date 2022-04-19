@@ -55,7 +55,7 @@ const Dashboard = (props) => {
 
     const getDecryptedData = (response) => {
         setEncryptedDataOutput(response);
-        if (response.states && response.states.length > 0) {
+        if (response && response.states && response.states.length > 0) {
             let sortedDataOutput = response.states.sort(function (a, b) {
                 return new Date(b.state.data.dateCreated) - new Date(a.state.data.dateCreated)
             })
@@ -120,12 +120,14 @@ const Dashboard = (props) => {
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
         let columns = [];
-        for (let i = 0; i < decryptedDataOutput.length; i++) {
-            for (let property in decryptedDataOutput[i]) {
+        if (decryptedDataOutput) {
+          for (let i = 0; i < decryptedDataOutput.length; i++) {
+             for (let property in decryptedDataOutput[i]) {
                 if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
                     columns.push({name: property, title: ucWords(property)});
                 }
-            }
+              }
+           }
         }
 
         setColumns(columns);

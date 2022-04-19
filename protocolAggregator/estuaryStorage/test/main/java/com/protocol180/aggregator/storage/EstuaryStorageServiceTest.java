@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.flow;
+package com.protocol180.aggregator.storage;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.protocol180.aggregator.utils.AESUtil;
@@ -60,7 +60,7 @@ public class EstuaryStorageServiceTest {
         String cid = estuaryStorageService.uploadContent(uploadFile, token);
         JSONArray contents = estuaryStorageService.fetchContent(token);
         assertTrue(checkValueExistsInJsonArray(contents, "cid", cid));
-        estuaryStorageService.DownloadFileFromEstuary(cid);
+        estuaryStorageService.downloadFileFromEstuary(cid);
         File downloadedFile = new File("downloaded.encrypted");
         byte[] bytes = AESUtil.decryptFile(key, ivParameterSpec, downloadedFile);
         OutputStream outputStream = new FileOutputStream(decryptedFile);
