@@ -5,9 +5,10 @@ import {FormikReactSelect} from "../../../../containers/FormikFields";
 import {
     createAggregationRequest,
     fetchDecryptedDataOutput,
-    fetchEncryptedDataOutput
+    fetchEncryptedDataOutput,
+    updateDecentralizedStorageEncryptionKey
 } from "../../../../store/consumer/actions";
-import {useAuthDispatch} from "../../../../store/context";
+import {useAuthDispatch, useAuthState} from "../../../../store/context";
 import {ucWords} from "../../../../utils/helpers";
 import moment from "moment";
 import AlertBox from "../../../../components/AlertBox";
@@ -39,6 +40,7 @@ const Dashboard = (props) => {
     const [rows, setRows] = useState([]);
     const [lastRequestDate, setLastRequestDate] = useState(null);
     const alertRef = useRef();
+    const userDetails = useAuthState();
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
     const storageTypeOptions = localStorage.getItem('storageTypeOptions') ? JSON.parse(localStorage.getItem('storageTypeOptions')) : [];
@@ -70,6 +72,7 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
+            "key": userDetails.user.encryptionKey,
             "dataType": values.dataType.value,
             "description": values.description,
             "storageType": values.storageType.value
@@ -81,6 +84,20 @@ const Dashboard = (props) => {
             alertRef.current.showAlert('success', 'Request submitted successfully.')
             let res = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
             getDecryptedData(res);
+        }
+    }
+
+    const generateDecentralizedStorageEncryptionKey = async () => {
+        let params = {
+            "options": {
+                "trackProgress": true
+            },
+            "key": userDetails.user.encryptionKey
+        };
+
+        let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
+        if (response) {
+            alertRef.current.showAlert('success', 'Request submitted successfully.');
         }
     }
 
@@ -112,6 +129,7 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
+            "key": userDetails.user.encryptionKey,
             "flowId": flowTopic,
             "storageType": storageType,
             "cid": cid,
@@ -121,13 +139,13 @@ const Dashboard = (props) => {
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
         let columns = [];
         if (decryptedDataOutput) {
-          for (let i = 0; i < decryptedDataOutput.length; i++) {
-             for (let property in decryptedDataOutput[i]) {
-                if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
-                    columns.push({name: property, title: ucWords(property)});
+            for (let i = 0; i < decryptedDataOutput.length; i++) {
+                for (let property in decryptedDataOutput[i]) {
+                    if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
+                        columns.push({name: property, title: ucWords(property)});
+                    }
                 }
-              }
-           }
+            }
         }
 
         setColumns(columns);
@@ -183,6 +201,19 @@ const Dashboard = (props) => {
                             </div>
                             <div className={`card-body ${styles.accessDataCardBody}`}>
                                 <div className={styles.accessDataBodyInner}>
+                                    <div className="row">
+                                        <div className={`col-sm-12 col-md-12`}>
+                                            <div className={styles.submitBoxInner}>
+                                                <div className={styles.submitBtnBox}>
+                                                    <button type="button" name="Generate"
+                                                            onClick={generateDecentralizedStorageEncryptionKey}>Generate
+                                                        Key
+                                                    </button>
+                                                    <p>You have to generate encryption key for data encryption.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div className="row">
                                         <Formik
                                             validate={validate}

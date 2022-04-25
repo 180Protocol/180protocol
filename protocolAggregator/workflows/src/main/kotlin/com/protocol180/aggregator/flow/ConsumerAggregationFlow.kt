@@ -4,7 +4,6 @@ import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RoleType
-import com.protocol180.aggregator.utils.AESUtil
 import com.r3.conclave.common.EnclaveInstanceInfo
 import com.r3.conclave.mail.Curve25519PrivateKey
 import com.r3.conclave.mail.PostOffice
@@ -20,6 +19,7 @@ import java.security.PublicKey
 import java.time.Instant
 import javax.crypto.spec.IvParameterSpec
 import com.protocol180.aggregator.storage.EstuaryStorageService;
+import com.protocol180.aggregator.utils.AESUtil
 
 /**
  * One of 180Protocol's supported Broker Flows. There will be more flow types in the future which are provider initiated instead
@@ -33,7 +33,7 @@ import com.protocol180.aggregator.storage.EstuaryStorageService;
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationFlow(private val dataType: String, private val description: String, private val storageType: String) : FlowLogic<SignedTransaction>() {
+class ConsumerAggregationFlow(private val key: String?, private val dataType: String, private val description: String, private val storageType: String) : FlowLogic<SignedTransaction>() {
 
     companion object{
         private val log = loggerFor<ConsumerAggregationFlow>()
@@ -48,7 +48,7 @@ class ConsumerAggregationFlow(private val dataType: String, private val descript
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
-        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
+        val estuaryStorageService = EstuaryStorageService();
         val token = serviceHub.cordaService(NetworkParticipantService::class.java).token;
 
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
@@ -84,9 +84,11 @@ class ConsumerAggregationFlow(private val dataType: String, private val descript
         if (storageType === "local") {
             consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, dataType)
         } else {
+            val kek = AESUtil.convertStringToSecretKey(key);
             val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveLatestDecentralizedStorageEncryptionKey();
             val encryptedFile = File("document.encrypted")
-            AESUtil.encryptFile(AESUtil.convertStringToSecretKey(decentralizedStorageEncryptionKeyRecord!!.key), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), decryptedAggregationDataRecordBytes, encryptedFile)
+            val decryptedDek = AESUtil.decrypt(decentralizedStorageEncryptionKeyRecord!!.key, kek, IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec))
+            AESUtil.encryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), decryptedAggregationDataRecordBytes, encryptedFile)
             val uploadFile = File(File("document.encrypted").path)
             cid = estuaryStorageService.uploadContent(uploadFile, token)
             encryptionKeyId = decentralizedStorageEncryptionKeyRecord!!.flowId;
@@ -94,7 +96,7 @@ class ConsumerAggregationFlow(private val dataType: String, private val descript
 
         //optional reading of records - needed for the front end read flow
         val commandData: CommandData = DataOutputContract.Commands.Issue()
-        val dataOutputState = DataOutputState(consumer, host, dataType, description, Instant.now(), attestationBytes, flowTopic, encryptionKeyId ,  storageType, cid);
+        val dataOutputState = DataOutputState(consumer, host, dataType, description, Instant.now(), attestationBytes, flowTopic, encryptionKeyId, storageType, cid);
 
         val builder = TransactionBuilder(notary)
         builder.addOutputState(dataOutputState, DataOutputContract.ID)

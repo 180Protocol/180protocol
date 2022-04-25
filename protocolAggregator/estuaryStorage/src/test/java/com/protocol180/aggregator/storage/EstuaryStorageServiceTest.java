@@ -50,7 +50,7 @@ public class EstuaryStorageServiceTest {
 
     @Test
     public void uploadEncryptDecryptDataTest() throws UnirestException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException {
-        File inputFile = new File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv").getPath());
+        File inputFile = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv")).getPath());
         SecretKey key = AESUtil.generateKey(256);
         IvParameterSpec ivParameterSpec = AESUtil.generateIv();
         File encryptedFile = new File("document.encrypted");

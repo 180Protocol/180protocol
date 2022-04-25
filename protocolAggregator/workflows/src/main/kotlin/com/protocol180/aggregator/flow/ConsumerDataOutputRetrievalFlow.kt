@@ -1,13 +1,13 @@
 package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
+import com.protocol180.aggregator.storage.EstuaryStorageService
 import com.protocol180.aggregator.utils.AESUtil
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.utilities.ProgressTracker
 import java.io.File
 import javax.crypto.spec.IvParameterSpec
-import com.protocol180.aggregator.storage.EstuaryStorageService;
 
 
 /**
@@ -18,7 +18,7 @@ import com.protocol180.aggregator.storage.EstuaryStorageService;
  * The data is then encoded from Avro format into JSON using Avro's JsonEncoder.
  */
 @StartableByRPC
-class ConsumerDataOutputRetrievalFlow(private val flowId: String, private val storageType: String,  private val cid: String, private val encryptionKeyId: String) : FlowLogic<String>() {
+class ConsumerDataOutputRetrievalFlow(private val key: String?, private val flowId: String, private val storageType: String,  private val cid: String, private val encryptionKeyId: String) : FlowLogic<String>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -29,7 +29,7 @@ class ConsumerDataOutputRetrievalFlow(private val flowId: String, private val st
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
+        val estuaryStorageService = EstuaryStorageService();
         val consumer = ourIdentity
 
         if (storageType === "local") {
@@ -39,11 +39,13 @@ class ConsumerDataOutputRetrievalFlow(private val flowId: String, private val st
                 )!!, "aggregate"
             ).toString()
         } else {
+            val kek = AESUtil.convertStringToSecretKey(key);
             estuaryStorageService.downloadFileFromEstuary(cid);
             val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(encryptionKeyId);
             val downloadedFile = File(File("downloaded.encrypted").path);
+            val decryptedDek = AESUtil.decrypt(decentralizedStorageEncryptionKeyRecord!!.key, kek, IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec))
             return enclaveClientService.readJsonFromOutputBytesAndSchema(
-                AESUtil.decryptFile(AESUtil.convertStringToSecretKey(decentralizedStorageEncryptionKeyRecord!!.key), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), downloadedFile)!!,
+                AESUtil.decryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), downloadedFile)!!,
                 "aggregate"
             ).toString();
         }
