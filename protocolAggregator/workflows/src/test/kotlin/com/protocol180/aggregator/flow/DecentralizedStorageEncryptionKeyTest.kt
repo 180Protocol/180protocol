@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.flow
 
 import com.protocol180.aggregator.states.RoleType
+import com.protocol180.aggregator.utils.AESUtil
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
@@ -44,11 +45,8 @@ class DecentralizedStorageEncryptionKeyTest {
 
     @Test
     fun decentralizedStorageEncryptionKeyTest() {
-        val flow1 = DecentralizedStorageEncryptionKeyUpdateFlow()
-        consumer.startFlow(flow1)
-        network.runNetwork()
-
-        val flow = DecentralizedStorageEncryptionKeyUpdateFlow()
+        val kek = AESUtil.convertSecretKeyToString(AESUtil.generateKey(256));
+        val flow = DecentralizedStorageEncryptionKeyUpdateFlow(kek);
         consumer.startFlow(flow)
         network.runNetwork()
 

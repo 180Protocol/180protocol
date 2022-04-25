@@ -17,6 +17,7 @@ nodes:
     port: 6500
     role: consumer
     name: O=ConsumerC,L=Chicago,C=US
+    keyEncryptionKey: 8CzpNVo2uNRUF1o867sK7JWpUE4jcjAlGq3+AF0FgAc=
 rewards:
   amountProvided: 20
   completeness: 30
