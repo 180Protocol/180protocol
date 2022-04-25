@@ -72,7 +72,7 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "key": userDetails.user.encryptionKey,
+            "key": userDetails.user.keyEncryptionKey,
             "dataType": values.dataType.value,
             "description": values.description,
             "storageType": values.storageType.value
@@ -92,7 +92,7 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "key": userDetails.user.encryptionKey
+            "key": userDetails.user.keyEncryptionKey
         };
 
         let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
@@ -129,7 +129,7 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "key": userDetails.user.encryptionKey,
+            "key": userDetails.user.keyEncryptionKey,
             "flowId": flowTopic,
             "storageType": storageType,
             "cid": cid,
