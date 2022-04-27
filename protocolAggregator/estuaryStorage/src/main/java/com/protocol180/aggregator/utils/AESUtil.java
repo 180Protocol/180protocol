@@ -79,14 +79,16 @@ public class AESUtil {
         outputStream.close();
     }
 
-    public static byte[] decryptFile(SecretKey key, IvParameterSpec iv,
-                                     File encryptedFile) throws IOException, NoSuchPaddingException,
+
+
+    public static void decryptFile(SecretKey key, IvParameterSpec iv,
+                                   File encryptedFile, File decryptedFile) throws IOException, NoSuchPaddingException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
         FileInputStream inputStream = new FileInputStream(encryptedFile);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        FileOutputStream outputStream = new FileOutputStream(decryptedFile);
         byte[] buffer = new byte[64];
         int bytesRead;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -99,7 +101,8 @@ public class AESUtil {
         if (output != null) {
             outputStream.write(output);
         }
-        return outputStream.toByteArray();
+        inputStream.close();
+        outputStream.close();
     }
 }
 

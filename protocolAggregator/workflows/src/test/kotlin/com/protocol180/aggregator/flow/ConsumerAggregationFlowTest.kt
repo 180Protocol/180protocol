@@ -306,7 +306,6 @@ class ConsumerAggregationFlowTest {
         assertNotNull(provider2RewardOutput)
         println("Reward Output 2: $provider2RewardOutput")
         network.runNetwork()
-
     }
 
     @Test

@@ -6,7 +6,7 @@ import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class DecentralizedStorageEncryptionKeyTest {
     lateinit var network: MockNetwork
@@ -50,10 +50,11 @@ class DecentralizedStorageEncryptionKeyTest {
         consumer.startFlow(flow)
         network.runNetwork()
 
-        val decentralizedStorageEncryptionKeyService =
-            consumer.services.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val outputRecords = decentralizedStorageEncryptionKeyService.retrieveLatestDecentralizedStorageEncryptionKey();
-        assertEquals(flow.runId.uuid.toString(), outputRecords?.flowId)
+        val decentralizedStorageEncryptionKeyRetrievalFlow = DecentralizedStorageEncryptionKeyRetrievalFlow();
+        val decentralizedStorageEncryptionKeyFuture = consumer.startFlow(decentralizedStorageEncryptionKeyRetrievalFlow)
+        val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyFuture.get()
+        assertNotNull(decentralizedStorageEncryptionKeyRecord)
+        println("Record : $decentralizedStorageEncryptionKeyRecord")
         network.runNetwork()
     }
 }

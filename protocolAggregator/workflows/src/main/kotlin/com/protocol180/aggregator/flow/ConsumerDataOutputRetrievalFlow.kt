@@ -7,6 +7,8 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.utilities.ProgressTracker
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.crypto.spec.IvParameterSpec
 
 
@@ -43,9 +45,15 @@ class ConsumerDataOutputRetrievalFlow(private val key: String?, private val flow
             estuaryStorageService.downloadFileFromEstuary(cid);
             val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(encryptionKeyId);
             val downloadedFile = File(File("downloaded.encrypted").path);
+            val decryptedFile = File(File("document.decrypted").path);
             val decryptedDek = AESUtil.decrypt(decentralizedStorageEncryptionKeyRecord!!.key, kek, IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec))
+            AESUtil.decryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(
+                decentralizedStorageEncryptionKeyRecord.ivParameterSpec), downloadedFile, decryptedFile);
+            val encoded: ByteArray = Files.readAllBytes(Paths.get(File("document.decrypted").path))
+            downloadedFile.delete();
+            decryptedFile.delete();
             return enclaveClientService.readJsonFromOutputBytesAndSchema(
-                AESUtil.decryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), downloadedFile)!!,
+                encoded,
                 "aggregate"
             ).toString();
         }

@@ -50,7 +50,7 @@ public class EstuaryStorageServiceTest {
 
     @Test
     public void uploadEncryptDecryptDataTest() throws UnirestException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException {
-        File inputFile = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv")).getPath());
+        File inputFile = new File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv").getPath());
         SecretKey key = AESUtil.generateKey(256);
         IvParameterSpec ivParameterSpec = AESUtil.generateIv();
         File encryptedFile = new File("document.encrypted");
@@ -62,10 +62,10 @@ public class EstuaryStorageServiceTest {
         assertTrue(checkValueExistsInJsonArray(contents, "cid", cid));
         estuaryStorageService.downloadFileFromEstuary(cid);
         File downloadedFile = new File("downloaded.encrypted");
-        byte[] bytes = AESUtil.decryptFile(key, ivParameterSpec, downloadedFile);
-        OutputStream outputStream = new FileOutputStream(decryptedFile);
-        outputStream.write(bytes);
-        outputStream.close();
+        AESUtil.decryptFile(key, ivParameterSpec, downloadedFile, decryptedFile);
+        encryptedFile.delete();
+        downloadedFile.delete();
+        decryptedFile.delete();
     }
 
     public boolean checkValueExistsInJsonArray(JSONArray array, String key, String value) {
