@@ -1,15 +1,16 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Grid from "../../../../components/Grid";
-import {Field, Form, Formik} from "formik";
-import {FormikReactSelect} from "../../../../containers/FormikFields";
+import { Field, Form, Formik } from "formik";
+import { FormikReactSelect } from "../../../../containers/FormikFields";
 import {
     createAggregationRequest,
     fetchDecryptedDataOutput,
     fetchEncryptedDataOutput,
-    updateDecentralizedStorageEncryptionKey
+    updateDecentralizedStorageEncryptionKey,
+    retrievalDecentralizedStorageEncryptionKey
 } from "../../../../store/consumer/actions";
-import {useAuthDispatch, useAuthState} from "../../../../store/context";
-import {ucWords} from "../../../../utils/helpers";
+import { useAuthDispatch, useAuthState } from "../../../../store/context";
+import { ucWords } from "../../../../utils/helpers";
 import moment from "moment";
 import AlertBox from "../../../../components/AlertBox";
 
@@ -25,7 +26,7 @@ import refreshIcon from "../../../../assets/images/refresh.svg";
 const RightArrowIcon = () => {
     return (
         <div className={styles.IndicatorArrowDiv}>
-            <img src={selectDownArrow} className={styles.customSelectArrow} width={20}/>
+            <img src={selectDownArrow} className={styles.customSelectArrow} width={20} />
         </div>
     )
 }
@@ -34,11 +35,12 @@ const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
 
     const [columns, setColumns] = useState([]);
-
     const [encryptedDataOutput, setEncryptedDataOutput] = useState([]);
-
     const [rows, setRows] = useState([]);
+    const [encryptionKey, setEncryptionKey] = useState(null);
     const [lastRequestDate, setLastRequestDate] = useState(null);
+    const [step, setStep] = useState(1);
+    const [storageType, setStorageType] = useState(null);
     const alertRef = useRef();
     const userDetails = useAuthState();
 
@@ -50,9 +52,16 @@ const Dashboard = (props) => {
             return await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
         }
 
+        let storageKeyData = retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
+        if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
+            setEncryptionKey(storageKeyData.result.value);
+        }
+
         fetchData().then((response) => {
             getDecryptedData(response);
         });
+
+
     }, [dispatch]);
 
     const getDecryptedData = (response) => {
@@ -67,23 +76,31 @@ const Dashboard = (props) => {
         }
     }
 
-    const save = async (values, {resetForm}) => {
-        let params = {
-            "options": {
-                "trackProgress": true
-            },
-            "key": userDetails.user.keyEncryptionKey,
-            "dataType": values.dataType.value,
-            "description": values.description,
-            "storageType": values.storageType.value
-        };
+    const save = async (values, { resetForm }) => {
+        if (step > 3) {
+            let params = {
+                "options": {
+                    "trackProgress": true
+                },
+                "key": userDetails.user.keyEncryptionKey,
+                "dataType": values.dataType.value,
+                "description": values.description,
+                "storageType": values.storageType.value
+            };
 
-        let response = await createAggregationRequest(dispatch, props.apiUrl, params);
-        if (response) {
-            resetForm({values: ''})
-            alertRef.current.showAlert('success', 'Request submitted successfully.')
-            let res = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
-            getDecryptedData(res);
+            let response = await createAggregationRequest(dispatch, props.apiUrl, params);
+            if (response) {
+                resetForm({ values: '' })
+                alertRef.current.showAlert('success', 'Request submitted successfully.')
+                let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
+                if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
+                    setEncryptionKey(storageKeyData.result.value);
+                }
+                let res = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
+                getDecryptedData(res);
+            }
+        } else {
+            next(values.storageType && values.storageType.value === "filecoin" ? true : false);
         }
     }
 
@@ -106,18 +123,28 @@ const Dashboard = (props) => {
         getDecryptedData(response);
     }
 
+    const next = (isStorageTypeFilecoin) => {
+        let nextStep = !isStorageTypeFilecoin && step === 2 ? step + 2 : step + 1;
+        setStep(nextStep);
+    }
+
+    const previous = (isStorageTypeFilecoin) => {
+        let previousStep = !isStorageTypeFilecoin && step === 4 ? step - 2 : step - 1;
+        setStep(previousStep);
+    }
+
     const validate = (values) => {
         let errors = {};
 
-        if (!values.dataType) {
+        if (!values.dataType && step == 1) {
             errors.dataType = "Please select one of data category";
         }
 
-        if (!values.description) {
+        if (!values.description && step == 4) {
             errors.description = "Please enter description";
         }
 
-        if (!values.storageType) {
+        if (!values.storageType && step == 2) {
             errors.storageType = "Please select one of storage type";
         }
 
@@ -142,7 +169,7 @@ const Dashboard = (props) => {
             for (let i = 0; i < decryptedDataOutput.length; i++) {
                 for (let property in decryptedDataOutput[i]) {
                     if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
-                        columns.push({name: property, title: ucWords(property)});
+                        columns.push({ name: property, title: ucWords(property) });
                     }
                 }
             }
@@ -202,19 +229,6 @@ const Dashboard = (props) => {
                             <div className={`card-body ${styles.accessDataCardBody}`}>
                                 <div className={styles.accessDataBodyInner}>
                                     <div className="row">
-                                        <div className={`col-sm-12 col-md-12`}>
-                                            <div className={styles.submitBoxInner}>
-                                                <div className={styles.submitBtnBox}>
-                                                    <button type="button" name="Generate"
-                                                            onClick={generateDecentralizedStorageEncryptionKey}>Generate
-                                                        Key
-                                                    </button>
-                                                    <p>You have to generate encryption key for data encryption.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="row">
                                         <Formik
                                             validate={validate}
                                             initialValues={{
@@ -224,68 +238,93 @@ const Dashboard = (props) => {
                                             }}
                                             onSubmit={save}
                                         >
-                                            {({errors, touched, values, setFieldValue, setFieldTouched}) => (
+                                            {({ errors, touched, values, setFieldValue, setFieldTouched }) => (
                                                 <Form className='auth-form'>
                                                     <div className="col-sm-12 col-md-12">
                                                         <div className={styles.accessDataBoxInner}>
-                                                            <div className={styles.selectCateBox}>
-                                                                <p>Data Category</p>
-                                                                <FormikReactSelect
-                                                                    className={styles.customSelect}
-                                                                    name="dataType"
-                                                                    id="dataType"
-                                                                    value={values.dataType}
-                                                                    isMulti={false}
-                                                                    options={dataTypeOptions}
-                                                                    onChange={setFieldValue}
-                                                                    onBlur={setFieldTouched}
-                                                                    components={{
-                                                                        DropdownIndicator: RightArrowIcon,
-                                                                        IndicatorSeparator: () => null
-                                                                    }}
-                                                                />
-                                                                {errors.dataType && touched.dataType &&
-                                                                <div
-                                                                    className="invalid-feedback-msg">{errors.dataType}</div>}
-                                                            </div>
-                                                            <div className={styles.descriptionCateBox}>
-                                                                <p>Description</p>
-                                                                <div>
-                                                                    <Field name="description"
-                                                                           className={styles.inputFormControl}/>
-                                                                    {errors.description && touched.description &&
-                                                                    <div
-                                                                        className="invalid-feedback-msg">{errors.description}</div>}
-                                                                </div>
-                                                            </div>
-                                                            <div className={styles.selectCateBox}>
-                                                                <p>Storage Type</p>
-                                                                <FormikReactSelect
-                                                                    className={styles.customSelect}
-                                                                    name="storageType"
-                                                                    id="storageType"
-                                                                    value={values.storageType}
-                                                                    isMulti={false}
-                                                                    options={storageTypeOptions}
-                                                                    onChange={setFieldValue}
-                                                                    onBlur={setFieldTouched}
-                                                                    components={{
-                                                                        DropdownIndicator: RightArrowIcon,
-                                                                        IndicatorSeparator: () => null
-                                                                    }}
-                                                                />
-                                                                {errors.storageType && touched.storageType &&
-                                                                <div
-                                                                    className="invalid-feedback-msg">{errors.storageType}</div>}
-                                                            </div>
+                                                            {
+                                                                step === 1 ?
+                                                                    <div className={styles.selectCateBox}>
+                                                                        <p>Data Category</p>
+                                                                        <FormikReactSelect
+                                                                            className={styles.customSelect}
+                                                                            name="dataType"
+                                                                            id="dataType"
+                                                                            value={values.dataType}
+                                                                            isMulti={false}
+                                                                            options={dataTypeOptions}
+                                                                            onChange={setFieldValue}
+                                                                            onBlur={setFieldTouched}
+                                                                            components={{
+                                                                                DropdownIndicator: RightArrowIcon,
+                                                                                IndicatorSeparator: () => null
+                                                                            }}
+                                                                        />
+                                                                        {errors.dataType && touched.dataType &&
+                                                                            <div
+                                                                                className="invalid-feedback-msg">{errors.dataType}</div>}
+                                                                    </div> : null
+                                                            }
+                                                            {
+                                                                step === 2 ?
+                                                                    <div className={styles.selectCateBox}>
+                                                                        <p>Storage Type</p>
+                                                                        <FormikReactSelect
+                                                                            className={styles.customSelect}
+                                                                            name="storageType" id="storageType"
+                                                                            value={values.storageType}
+                                                                            isMulti={false}
+                                                                            options={storageTypeOptions}
+                                                                            onChange={setFieldValue}
+                                                                            onBlur={setFieldTouched}
+                                                                            components={{
+                                                                                DropdownIndicator: RightArrowIcon,
+                                                                                IndicatorSeparator: () => null
+                                                                            }}
+                                                                        />
+                                                                        {errors.storageType && touched.storageType &&
+                                                                            <div
+                                                                                className="invalid-feedback-msg">{errors.storageType}</div>}
+                                                                    </div> : null
+                                                            }
+                                                            {
+                                                                step === 3 ?
+                                                                    <div className={styles.submitBoxInner}>
+                                                                        <div className={styles.submitBtnBox}>
+                                                                            <button type="button" name="Generate"
+                                                                                onClick={generateDecentralizedStorageEncryptionKey}>{encryptionKey ? "Update " : "Generate "}
+                                                                                Key
+                                                                            </button>
+                                                                            <p>{encryptionKey ? "You have already generated a data encryption key (DEK). If you want to update the DEK then click on update key." : "You have to generate a data encryption key (DEK) to encrypt data for storage on Filecoin network."}</p>
+                                                                        </div>
+                                                                    </div> : null
+                                                            }
+                                                            {
+                                                                step === 4 ?
+                                                                    <div className={styles.descriptionCateBox}>
+                                                                        <p>Description</p>
+                                                                        <div>
+                                                                            <Field name="description"
+                                                                                className={styles.inputFormControl} />
+                                                                            {errors.description && touched.description &&
+                                                                                <div
+                                                                                    className="invalid-feedback-msg">{errors.description}</div>}
+                                                                        </div>
+                                                                    </div> : null
+                                                            }
+
                                                         </div>
                                                     </div>
-                                                    <div className={`col-sm-12 col-md-12`}>
+                                                    <div className={`col-sm-5 col-md-5`}>
                                                         <div className={styles.submitBoxInner}>
-                                                            <div className={styles.submitBtnBox}>
-                                                                <button type="submit" name="Submit">Submit</button>
-                                                                <p>Completed requests will be shown in the table
-                                                                    below</p>
+                                                            {
+                                                                step !== 1 ?
+                                                                    <div className={styles.submitBtnBox} style={{float:'left'}}>
+                                                                        <button type="button" name="Previous" onClick={() => previous(values.storageType.value === "filecoin" ? true : false)}>Previous</button>
+                                                                    </div> : null
+                                                            }
+                                                            <div className={styles.submitBtnBox} style={{float:'right'}}>
+                                                                <button type="submit" name="Next">{step === 4 ? 'Submit' : 'Next'}</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -304,8 +343,8 @@ const Dashboard = (props) => {
                                 <div className={styles.refreshContainer}>
                                     <p>Use refresh button to load latest results</p>
                                     <button type="button" name="Refresh"
-                                            onClick={refresh}>REFRESH <img
-                                        src={refreshIcon} alt="refresh"/>
+                                        onClick={refresh}>REFRESH <img
+                                            src={refreshIcon} alt="refresh" />
                                     </button>
                                 </div>
                             </div>
@@ -318,10 +357,10 @@ const Dashboard = (props) => {
                                                     encryptedDataOutput.states.map((output, index) => {
                                                         return (
                                                             <div key={index}
-                                                                 onClick={() => getDecryptedDataOutput(output.state.data.flowTopic, output.state.data.encryptionKeyId, output.state.data.storageType, output.state.data.cid)}
-                                                                 className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
+                                                                onClick={() => getDecryptedDataOutput(output.state.data.flowTopic, output.state.data.encryptionKeyId, output.state.data.storageType, output.state.data.cid)}
+                                                                className="col-sm-12 col-md-3 col-lg-4 col-xl-2">
                                                                 <div className={styles.downloadRequestBox}>
-                                                                    <img src={downloadIcon} alt="download"/>
+                                                                    <img src={downloadIcon} alt="download" />
                                                                     <div className={styles.requestInfoBox}>
                                                                         <p>{output.state.data.dataType}</p>
                                                                         <p>{output.state.data.description}</p>
@@ -344,13 +383,13 @@ const Dashboard = (props) => {
                                     <div className={`card-header ${styles.exportCardHeader}`}>
                                         <h3>Preview</h3>
                                         <button onClick={exportAsCSV}>EXPORT <img src={exportIcon}
-                                                                                  className={styles.exportbtnIcon}
-                                                                                  alt="export"/>
+                                            className={styles.exportbtnIcon}
+                                            alt="export" />
                                         </button>
                                     </div>
                                     <div className={`card-body ${styles.previewTableCardBody}`}>
                                         <div className={styles.previewTableBodyInner}>
-                                            <Grid className={styles.aggregationsTable} columns={columns} rows={rows}/>
+                                            <Grid className={styles.aggregationsTable} columns={columns} rows={rows} />
                                         </div>
                                     </div>
                                 </div>
@@ -358,7 +397,7 @@ const Dashboard = (props) => {
                     }
                 </div>
             </section>
-            <AlertBox ref={alertRef}/>
+            <AlertBox ref={alertRef} />
         </>
     )
 }

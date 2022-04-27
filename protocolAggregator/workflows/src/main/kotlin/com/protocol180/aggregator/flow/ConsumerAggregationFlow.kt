@@ -92,6 +92,7 @@ class ConsumerAggregationFlow(private val key: String?, private val dataType: St
             val uploadFile = File(File("document.encrypted").path)
             cid = estuaryStorageService.uploadContent(uploadFile, token)
             encryptionKeyId = decentralizedStorageEncryptionKeyRecord!!.flowId;
+            encryptedFile.delete();
         }
 
         //optional reading of records - needed for the front end read flow
