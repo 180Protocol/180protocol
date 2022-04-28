@@ -1,6 +1,5 @@
 package com.protocol180.aggregator.storage;
 
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.protocol180.aggregator.utils.AESUtil;
 import org.json.JSONArray;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public class EstuaryStorageServiceTest {
     String token = "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"; // Api key to authenticate estuary apis.
 
     @Test
-    public void uploadTest() throws UnirestException {
+    public void uploadTest() throws EstuaryAPICallException {
         File uploadFile = new File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv").getPath());
         String cid = estuaryStorageService.uploadContent(uploadFile, token);
         JSONArray contents = estuaryStorageService.fetchContent(token);
@@ -36,20 +35,20 @@ public class EstuaryStorageServiceTest {
     }
 
     @Test
-    public void fetchTest() throws UnirestException {
+    public void fetchTest() throws EstuaryAPICallException {
         JSONArray contents = estuaryStorageService.fetchContent(token);
         assertFalse(contents.getJSONObject(0).has("error"));
     }
 
     @Test
-    public void fetchByCidTest() throws UnirestException {
+    public void fetchByCidTest() throws EstuaryAPICallException {
         JSONArray contents = estuaryStorageService.fetchContent(token);
         JSONArray info = estuaryStorageService.fetchContentByCid(token, contents.getJSONObject(0).getString("cid"));
         assertEquals(contents.getJSONObject(0).getString("cid"), info.getJSONObject(0).getJSONObject("content").getString("cid"));
     }
 
     @Test
-    public void uploadEncryptDecryptDataTest() throws UnirestException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException {
+    public void uploadEncryptDecryptDataTest() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException, EstuaryAPICallException {
         File inputFile = new File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.csv").getPath());
         SecretKey key = AESUtil.generateKey(256);
         IvParameterSpec ivParameterSpec = AESUtil.generateIv();

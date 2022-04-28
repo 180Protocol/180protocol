@@ -13,9 +13,11 @@ import { useAuthDispatch, useAuthState } from "../../../../store/context";
 import { ucWords } from "../../../../utils/helpers";
 import moment from "moment";
 import AlertBox from "../../../../components/AlertBox";
+import { ProgressBar, Step } from "react-step-progress-bar";
 
 // Styles
 import styles from './Dashboard.module.scss';
+import "react-step-progress-bar/styles.css";
 
 // Images
 import downloadIcon from "../../../../assets/images/download.svg";
@@ -30,6 +32,8 @@ const RightArrowIcon = () => {
         </div>
     )
 }
+
+const steps = ["1", "2", "3", "4"];
 
 const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
@@ -90,6 +94,7 @@ const Dashboard = (props) => {
 
             let response = await createAggregationRequest(dispatch, props.apiUrl, params);
             if (response) {
+                setStep(1);
                 resetForm({ values: '' })
                 alertRef.current.showAlert('success', 'Request submitted successfully.')
                 let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
@@ -228,6 +233,40 @@ const Dashboard = (props) => {
                             </div>
                             <div className={`card-body ${styles.accessDataCardBody}`}>
                                 <div className={styles.accessDataBodyInner}>
+                                    <div className="row" style={{ margin: 5, marginBottom: 20 }}>
+                                        <ProgressBar
+                                            width={500}
+                                            percent={100 * ((step - 1) / (steps.length - 1)) - 1}
+                                            filledBackground="linear-gradient(to right, #35607e, #1e303e)"
+                                        >
+                                            {steps.map((step, index, arr) => {
+                                                return (
+                                                    <Step
+                                                        transition="scale"
+                                                        children={({ accomplished }) => (
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    justifyContent: "center",
+                                                                    borderRadius: "50%",
+                                                                    width: 20,
+                                                                    height: 20,
+                                                                    color: "black",
+                                                                    backgroundColor: accomplished ? "#35607e" : "gray"
+                                                                }}
+                                                            >
+                                                                <br />
+                                                                <br />
+                                                                <br />
+                                                                {step}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                );
+                                            })}
+                                        </ProgressBar>
+                                    </div>
                                     <div className="row">
                                         <Formik
                                             validate={validate}
@@ -319,11 +358,11 @@ const Dashboard = (props) => {
                                                         <div className={styles.submitBoxInner}>
                                                             {
                                                                 step !== 1 ?
-                                                                    <div className={styles.submitBtnBox} style={{float:'left'}}>
+                                                                    <div className={styles.submitBtnBox} style={{ float: 'left' }}>
                                                                         <button type="button" name="Previous" onClick={() => previous(values.storageType.value === "filecoin" ? true : false)}>Previous</button>
                                                                     </div> : null
                                                             }
-                                                            <div className={styles.submitBtnBox} style={{float:'right'}}>
+                                                            <div className={styles.submitBtnBox} style={{ float: 'right' }}>
                                                                 <button type="submit" name="Next">{step === 4 ? 'Submit' : 'Next'}</button>
                                                             </div>
                                                         </div>
