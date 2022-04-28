@@ -11,32 +11,44 @@ import java.net.URL;
 
 
 public class EstuaryStorageService {
-    public String uploadContent(File file, String token) throws UnirestException {
-        HttpResponse<JsonNode> jsonResponse = Unirest.post("https://shuttle-4.estuary.tech/content/add")
-                .header("authorization", "Bearer " + token)
-                .field("data", file)
-                .asJson();
+    public String uploadContent(File file, String token) throws EstuaryAPICallException {
+        try {
+            HttpResponse<JsonNode> jsonResponse = Unirest.post("https://shuttle-4.estuary.tech/content/add")
+                    .header("authorization", "Bearer " + token)
+                    .field("data", file)
+                    .asJson();
 
-        return jsonResponse.getBody().getObject().get("cid").toString();
+            return jsonResponse.getBody().getObject().get("cid").toString();
+        } catch (UnirestException e) {
+            throw new EstuaryAPICallException("Api call failed" + e.getMessage());
+        }
     }
 
-    public JSONArray fetchContent(String token) throws UnirestException {
-        HttpResponse<JsonNode> jsonResponse = Unirest.get("https://api.estuary.tech/content/list")
-                .header("authorization", "Bearer " + token)
-                .asJson();
+    public JSONArray fetchContent(String token) throws EstuaryAPICallException {
+        try {
+            HttpResponse<JsonNode> jsonResponse = Unirest.get("https://api.estuary.tech/content/list")
+                    .header("authorization", "Bearer " + token)
+                    .asJson();
 
-        return jsonResponse.getBody().getArray();
+            return jsonResponse.getBody().getArray();
+        } catch (UnirestException e) {
+            throw new EstuaryAPICallException("Api call failed" + e.getMessage());
+        }
     }
 
-    public JSONArray fetchContentByCid(String token, String cid) throws UnirestException {
-        HttpResponse<JsonNode> jsonResponse = Unirest.get("https://api.estuary.tech/content/by-cid/" + cid)
-                .header("authorization", "Bearer " + token)
-                .asJson();
+    public JSONArray fetchContentByCid(String token, String cid) throws EstuaryAPICallException {
+        try {
+            HttpResponse<JsonNode> jsonResponse = Unirest.get("https://api.estuary.tech/content/by-cid/" + cid)
+                    .header("authorization", "Bearer " + token)
+                    .asJson();
 
-        return jsonResponse.getBody().getArray();
+            return jsonResponse.getBody().getArray();
+        } catch (UnirestException e) {
+            throw new EstuaryAPICallException("Api call failed" + e.getMessage());
+        }
     }
 
-    public void downloadFileFromEstuary(String cid) throws IOException {
+    public void downloadFileFromEstuary(String cid) throws IOException, EstuaryAPICallException {
         File downloadedFile = new File("downloaded.encrypted");
         downloadedFile.createNewFile();
         try (BufferedInputStream in = new BufferedInputStream(new URL("https://dweb.link/ipfs/" + cid).openStream());
@@ -47,7 +59,13 @@ public class EstuaryStorageService {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
         } catch (IOException e) {
-            // handle exception
+            throw new EstuaryAPICallException("Download file from estuary storage failed" + e.getMessage());
         }
+    }
+}
+
+class EstuaryAPICallException extends Exception {
+    public EstuaryAPICallException(String errorMessage) {
+        super(errorMessage);
     }
 }
