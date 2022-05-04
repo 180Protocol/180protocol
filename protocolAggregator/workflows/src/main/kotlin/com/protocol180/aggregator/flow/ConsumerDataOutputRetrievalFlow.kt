@@ -20,8 +20,13 @@ import javax.crypto.spec.IvParameterSpec
  * The data is then encoded from Avro format into JSON using Avro's JsonEncoder.
  */
 @StartableByRPC
-class ConsumerDataOutputRetrievalFlow(private val key: String?, private val flowId: String, private val storageType: String,  private val cid: String, private val encryptionKeyId: String) : FlowLogic<String>() {
-
+class ConsumerDataOutputRetrievalFlow(
+    private val key: String? = null,
+    private val flowId: String,
+    private val storageType: String,
+    private val cid: String? = null,
+    private val encryptionKeyId: String? = null
+) : FlowLogic<String>() {
     override val progressTracker = ProgressTracker()
 
 
@@ -30,25 +35,37 @@ class ConsumerDataOutputRetrievalFlow(private val key: String?, private val flow
 
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
-        val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
+        val decentralizedStorageEncryptionKeyService =
+            serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val estuaryStorageService = EstuaryStorageService();
         val consumer = ourIdentity
-
-        if (storageType === "local") {
+        if (storageType == "local") {
             return enclaveClientService.readJsonFromOutputBytesAndSchema(
                 consumerDbStoreService.retrieveConsumerDataOutputWithFlowId(
                     flowId
                 )!!, "aggregate"
             ).toString()
-        } else {
+        } else if (storageType == "filecoin") {
             val kek = AESUtil.convertStringToSecretKey(key);
             estuaryStorageService.downloadFileFromEstuary(cid);
-            val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(encryptionKeyId);
+            val decentralizedStorageEncryptionKeyRecord =
+                encryptionKeyId?.let {
+                    decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(
+                        it
+                    )
+                };
             val downloadedFile = File(File("downloaded.encrypted").path);
             val decryptedFile = File(File("document.decrypted").path);
-            val decryptedDek = AESUtil.decrypt(decentralizedStorageEncryptionKeyRecord!!.key, kek, IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec))
-            AESUtil.decryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(
-                decentralizedStorageEncryptionKeyRecord.ivParameterSpec), downloadedFile, decryptedFile);
+            val decryptedDek = AESUtil.decrypt(
+                decentralizedStorageEncryptionKeyRecord!!.key,
+                kek,
+                IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec)
+            )
+            AESUtil.decryptFile(
+                AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(
+                    decentralizedStorageEncryptionKeyRecord.ivParameterSpec
+                ), downloadedFile, decryptedFile
+            );
             val encoded: ByteArray = Files.readAllBytes(Paths.get(File("document.decrypted").path))
             downloadedFile.delete();
             decryptedFile.delete();
@@ -56,6 +73,8 @@ class ConsumerDataOutputRetrievalFlow(private val key: String?, private val flow
                 encoded,
                 "aggregate"
             ).toString();
+        } else {
+            throw Error("Given storage type is not supported.");
         }
     }
 }
