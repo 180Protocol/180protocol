@@ -56,15 +56,19 @@ const Dashboard = (props) => {
             return await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
         }
 
-        let storageKeyData = retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
-        if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
-            setEncryptionKey(storageKeyData.result.value);
+        async function fetchDecentralizedStorageEncryptionKeyData() {
+            return retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
         }
+
+        fetchDecentralizedStorageEncryptionKeyData().then((response) => {
+            if (response && response.result && response.result.value) {
+                setEncryptionKey(response.result.value);
+            }
+        })
 
         fetchData().then((response) => {
             getDecryptedData(response);
         });
-
 
     }, [dispatch]);
 
@@ -161,11 +165,14 @@ const Dashboard = (props) => {
             "options": {
                 "trackProgress": true
             },
-            "key": userDetails.user.keyEncryptionKey,
             "flowId": flowTopic,
-            "storageType": storageType,
-            "cid": cid,
-            "encryptionKeyId": encryptionKeyId
+            "storageType": storageType
+        }
+
+        if (storageType === "filecoin") {
+            params.key = userDetails.user.keyEncryptionKey;
+            params.cid = cid;
+            params.encryptionKeyId = encryptionKeyId;
         }
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);

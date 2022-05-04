@@ -81,14 +81,28 @@ class ConsumerAggregationFlow(private val key: String?, private val dataType: St
         var cid: String = "";
         var encryptionKeyId: String = "";
         //Store aggregation output data received from enclave into consumer's local db
-        if (storageType === "local") {
-            consumerDbStoreService.addConsumerDataOutputWithFlowId(this.runId.uuid.toString(), decryptedAggregationDataRecordBytes, dataType)
-        } else {
+        if (storageType == "local") {
+            consumerDbStoreService.addConsumerDataOutputWithFlowId(
+                this.runId.uuid.toString(),
+                decryptedAggregationDataRecordBytes,
+                dataType
+            )
+        } else if (storageType == "filecoin") {
             val kek = AESUtil.convertStringToSecretKey(key);
-            val decentralizedStorageEncryptionKeyRecord = decentralizedStorageEncryptionKeyService.retrieveLatestDecentralizedStorageEncryptionKey();
+            val decentralizedStorageEncryptionKeyRecord =
+                decentralizedStorageEncryptionKeyService.retrieveLatestDecentralizedStorageEncryptionKey();
             val encryptedFile = File("document.encrypted")
-            val decryptedDek = AESUtil.decrypt(decentralizedStorageEncryptionKeyRecord!!.key, kek, IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec))
-            AESUtil.encryptFile(AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec), decryptedAggregationDataRecordBytes, encryptedFile)
+            val decryptedDek = AESUtil.decrypt(
+                decentralizedStorageEncryptionKeyRecord!!.key,
+                kek,
+                IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec)
+            )
+            AESUtil.encryptFile(
+                AESUtil.convertStringToSecretKey(decryptedDek),
+                IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec),
+                decryptedAggregationDataRecordBytes,
+                encryptedFile
+            )
             val uploadFile = File(File("document.encrypted").path)
             cid = estuaryStorageService.uploadContent(uploadFile, token)
             encryptionKeyId = decentralizedStorageEncryptionKeyRecord!!.flowId;
