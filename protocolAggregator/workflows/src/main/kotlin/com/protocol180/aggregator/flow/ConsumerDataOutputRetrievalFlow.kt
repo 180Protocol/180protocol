@@ -1,6 +1,7 @@
 package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
+import com.protocol180.aggregator.keyVault.AzureKeyVaultService
 import com.protocol180.aggregator.storage.EstuaryStorageService
 import com.protocol180.aggregator.utils.AESUtil
 import net.corda.core.flows.FlowLogic
@@ -21,7 +22,6 @@ import javax.crypto.spec.IvParameterSpec
  */
 @StartableByRPC
 class ConsumerDataOutputRetrievalFlow(
-    private val key: String? = null,
     private val flowId: String,
     private val storageType: String,
     private val cid: String? = null,
@@ -38,6 +38,7 @@ class ConsumerDataOutputRetrievalFlow(
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val estuaryStorageService = EstuaryStorageService();
+        val azureKeyVaultService = AzureKeyVaultService();
         val consumer = ourIdentity
         if (storageType == "local") {
             return enclaveClientService.readJsonFromOutputBytesAndSchema(
@@ -46,7 +47,10 @@ class ConsumerDataOutputRetrievalFlow(
                 )!!, "aggregate"
             ).toString()
         } else if (storageType == "filecoin") {
-            val kek = AESUtil.convertStringToSecretKey(key);
+            val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
+            val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;
+            val clientSecret = serviceHub.cordaService(NetworkParticipantService::class.java).clientSecret;
+            val keyIdentifier = serviceHub.cordaService(NetworkParticipantService::class.java).keyIdentifier;
             estuaryStorageService.downloadFileFromEstuary(cid);
             val decentralizedStorageEncryptionKeyRecord =
                 encryptionKeyId?.let {
@@ -56,13 +60,15 @@ class ConsumerDataOutputRetrievalFlow(
                 };
             val downloadedFile = File(File("downloaded.encrypted").path);
             val decryptedFile = File(File("document.decrypted").path);
-            val decryptedDek = AESUtil.decrypt(
-                decentralizedStorageEncryptionKeyRecord!!.key,
-                kek,
-                IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec)
-            )
+            val decryptedDek = azureKeyVaultService.unWrapKey(
+                tenantId,
+                clientId,
+                clientSecret,
+                keyIdentifier,
+                decentralizedStorageEncryptionKeyRecord!!.key
+            );
             AESUtil.decryptFile(
-                AESUtil.convertStringToSecretKey(decryptedDek), IvParameterSpec(
+                AESUtil.convertBytesToSecretKey(decryptedDek), IvParameterSpec(
                     decentralizedStorageEncryptionKeyRecord.ivParameterSpec
                 ), downloadedFile, decryptedFile
             );

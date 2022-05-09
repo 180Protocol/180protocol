@@ -44,9 +44,7 @@ const Dashboard = (props) => {
     const [encryptionKey, setEncryptionKey] = useState(null);
     const [lastRequestDate, setLastRequestDate] = useState(null);
     const [step, setStep] = useState(1);
-    const [storageType, setStorageType] = useState(null);
     const alertRef = useRef();
-    const userDetails = useAuthState();
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
     const storageTypeOptions = localStorage.getItem('storageTypeOptions') ? JSON.parse(localStorage.getItem('storageTypeOptions')) : [];
@@ -90,7 +88,6 @@ const Dashboard = (props) => {
                 "options": {
                     "trackProgress": true
                 },
-                "key": userDetails.user.keyEncryptionKey,
                 "dataType": values.dataType.value,
                 "description": values.description,
                 "storageType": values.storageType.value
@@ -117,8 +114,7 @@ const Dashboard = (props) => {
         let params = {
             "options": {
                 "trackProgress": true
-            },
-            "key": userDetails.user.keyEncryptionKey
+            }
         };
 
         let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
@@ -170,7 +166,6 @@ const Dashboard = (props) => {
         }
 
         if (storageType === "filecoin") {
-            params.key = userDetails.user.keyEncryptionKey;
             params.cid = cid;
             params.encryptionKeyId = encryptionKeyId;
         }

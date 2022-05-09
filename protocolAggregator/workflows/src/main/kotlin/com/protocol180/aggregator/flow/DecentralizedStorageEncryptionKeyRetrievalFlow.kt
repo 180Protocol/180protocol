@@ -13,11 +13,11 @@ import net.corda.core.utilities.ProgressTracker
 
 @InitiatingFlow
 @StartableByRPC
-class DecentralizedStorageEncryptionKeyRetrievalFlow : FlowLogic<String>() {
+class DecentralizedStorageEncryptionKeyRetrievalFlow : FlowLogic<ByteArray>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): String {
+    override fun call(): ByteArray {
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
 

@@ -72,8 +72,35 @@ class ConsumerAggregationFlowTest {
         return network.createNode(
                 parameters = MockNodeParameters(
                         additionalCordapps = listOf(
-                                TestCordapp.findCordapp("com.protocol180.aggregator.flow")
-                                        .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name), Pair(NetworkParticipantService.ESTUARY_STORAGE_TOKEN, "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX")))
+                            TestCordapp.findCordapp("com.protocol180.aggregator.flow")
+                                .withConfig(
+                                    mapOf(
+                                        Pair(
+                                            NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY,
+                                            role.name
+                                        ),
+                                        Pair(
+                                            NetworkParticipantService.ESTUARY_STORAGE_TOKEN,
+                                            "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                        ),
+                                        Pair(
+                                            NetworkParticipantService.AZURE_TENANT_ID,
+                                            "c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                        ),
+                                        Pair(
+                                            NetworkParticipantService.AZURE_CLIENT_ID,
+                                            "dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                        ),
+                                        Pair(
+                                            NetworkParticipantService.AZURE_CLIENT_SECRET,
+                                            "KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX"
+                                        ),
+                                        Pair(
+                                            NetworkParticipantService.AZURE_KEY_IDENTIFIER,
+                                            "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
+                                        )
+                                    )
+                                )
                         )
                 )
         )
@@ -105,11 +132,14 @@ class ConsumerAggregationFlowTest {
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
-        val key = AESUtil.generateKey(256);
-        val storageFlow = DecentralizedStorageEncryptionKeyUpdateFlow(AESUtil.convertSecretKeyToString(key));
+        val storageFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
         val storageFuture = consumer1.startFlow(storageFlow)
         network.runNetwork()
-        val flow = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(key),dataType, description, "filecoin")
+        val flow = ConsumerAggregationFlow(
+            dataType,
+            description,
+            "filecoin"
+        )
         val future = consumer1.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -200,10 +230,10 @@ class ConsumerAggregationFlowTest {
         uploadAttachmentToNode(provider1.services, dataType, "Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType, "Provider2InputData.zip")
 
-        val flow = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(AESUtil.generateKey(256)),dataType, description, "local")
+        val flow = ConsumerAggregationFlow(dataType = dataType, description = description, storageType = "local")
         val future = consumer1.startFlow(flow)
 
-        val flow1 = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(AESUtil.generateKey(256)), dataType, "test schema for second aggregation cycle", "local")
+        val flow1 = ConsumerAggregationFlow(dataType = dataType, description = "test schema for second aggregation cycle", storageType = "local");
         val future1 = consumer2.startFlow(flow1)
 
         // launching receive call for consumer1 aggregation request
@@ -265,11 +295,14 @@ class ConsumerAggregationFlowTest {
         uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
         uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
-        val key = AESUtil.generateKey(256);
-        val storageFlow = DecentralizedStorageEncryptionKeyUpdateFlow(AESUtil.convertSecretKeyToString(key));
+        val storageFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
         val storageFuture = consumer1.startFlow(storageFlow)
         network.runNetwork()
-        val flow = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(key), "testDataType1", description, "filecoin")
+        val flow = ConsumerAggregationFlow(
+            "testDataType1",
+            description,
+            "filecoin"
+        )
         val future = consumer1.startFlow(flow)
         network.runNetwork()
         val signedTransaction = future.get()
@@ -279,7 +312,12 @@ class ConsumerAggregationFlowTest {
         assertEquals(consumer1.info.legalIdentities.first(), output.consumer)
 
         //Check data output from consumer node
-        val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(AESUtil.convertSecretKeyToString(key), output.flowTopic, "filecoin", output.cid, output.encryptionKeyId);
+        val consumerDataOutputRetrievalFlow = ConsumerDataOutputRetrievalFlow(
+            output.flowTopic,
+            "filecoin",
+            output.cid,
+            output.encryptionKeyId
+        );
         val dataOutputFuture = consumer1.startFlow(consumerDataOutputRetrievalFlow)
         val dataOutputRecords = dataOutputFuture.get()
         assertNotNull(dataOutputRecords)
@@ -311,14 +349,14 @@ class ConsumerAggregationFlowTest {
     @Test
     fun consumerAggregationFlowFailTest() {
         //check unsupported data type
-        val flow = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(AESUtil.generateKey(256)),"testDataType3","sample Data type description", "local")
+        val flow = ConsumerAggregationFlow(dataType = "testDataType3",description = "sample Data type description", storageType = "local")
         val future = consumer1.startFlow(flow)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future.getOrThrow() }
 
         //check new consumer added to coalition without updating coalition configuration
         var consumer2: StartedMockNode = prepareNodeForRole(RoleType.DATA_CONSUMER)
-        val flow2 = ConsumerAggregationFlow(AESUtil.convertSecretKeyToString(AESUtil.generateKey(256)), "testDataType1", "sample Data type description", "local")
+        val flow2 = ConsumerAggregationFlow(dataType = "testDataType1", description = "sample Data type description", storageType = "local")
         val future2 = consumer2.startFlow(flow2)
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future2.getOrThrow() }

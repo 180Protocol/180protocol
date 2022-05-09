@@ -20,13 +20,13 @@ object DecentralizedStorageEncryptionKeySchemaV1 : MappedSchema(
         var flowId: String,
         @Lob
         @Column(name = "key", nullable = false)
-        val key: String,
+        val key: ByteArray,
         @Column(name = "ivParameterSpec", nullable = false)
         val ivParameterSpec: ByteArray,
         @Column(name = "dateCreated", nullable = false)
         val dateCreated: Instant
     ) : Serializable {
-        constructor() : this("", "", ByteArray(0), Instant.now())
+        constructor() : this("", ByteArray(0), ByteArray(0), Instant.now())
     }
 
 }

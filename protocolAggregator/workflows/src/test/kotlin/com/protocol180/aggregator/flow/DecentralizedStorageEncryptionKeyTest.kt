@@ -31,7 +31,31 @@ class DecentralizedStorageEncryptionKeyTest {
             parameters = MockNodeParameters(
                 additionalCordapps = listOf(
                     TestCordapp.findCordapp("com.protocol180.aggregator.flow")
-                        .withConfig(mapOf(Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name)))
+                        .withConfig(
+                            mapOf(
+                                Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name),
+                                Pair(
+                                    NetworkParticipantService.ESTUARY_STORAGE_TOKEN,
+                                    "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                ),
+                                Pair(
+                                    NetworkParticipantService.AZURE_TENANT_ID,
+                                    "c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                ),
+                                Pair(
+                                    NetworkParticipantService.AZURE_CLIENT_ID,
+                                    "dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                ),
+                                Pair(
+                                    NetworkParticipantService.AZURE_CLIENT_SECRET,
+                                    "KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX"
+                                ),
+                                Pair(
+                                    NetworkParticipantService.AZURE_KEY_IDENTIFIER,
+                                    "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
+                                )
+                            )
+                        )
                 )
             )
         )
@@ -45,8 +69,7 @@ class DecentralizedStorageEncryptionKeyTest {
 
     @Test
     fun decentralizedStorageEncryptionKeyTest() {
-        val kek = AESUtil.convertSecretKeyToString(AESUtil.generateKey(256));
-        val flow = DecentralizedStorageEncryptionKeyUpdateFlow(kek);
+        val flow = DecentralizedStorageEncryptionKeyUpdateFlow();
         consumer.startFlow(flow)
         network.runNetwork()
 

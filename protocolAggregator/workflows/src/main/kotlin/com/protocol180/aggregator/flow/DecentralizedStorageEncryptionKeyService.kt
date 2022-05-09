@@ -16,7 +16,7 @@ class DecentralizedStorageEncryptionKeyService(val services: AppServiceHub) : Si
      */
     fun addDecentralizedStorageEncryptionKeyWithFlowId(
         flowId: String,
-        key: String,
+        key: ByteArray,
         ivParameterSpec: ByteArray
     ) {
         val decentralizedStorageEncryptionKey =
