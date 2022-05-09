@@ -14,7 +14,6 @@ export async function login(dispatch, payload) {
             localStorage.setItem('user', JSON.stringify(nodeInfo));
             localStorage.setItem('rewards', JSON.stringify(info.rewards));
             localStorage.setItem('dataTypeOptions', JSON.stringify(info.dataTypes));
-            localStorage.setItem('storageTypeOptions', JSON.stringify(info.storageTypes));
             return nodeInfo;
         } else {
             dispatch({type: 'LOGIN_ERROR', error: 'Error'});

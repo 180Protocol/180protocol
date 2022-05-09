@@ -8,7 +8,10 @@ repositories {
 }
 
 dependencies {
+    compile group: 'org.opensaml', name: 'opensaml-core', version: '4.0.1'
     compile group: "com.mashape.unirest", name: "unirest-java", version: "1.4.4"
+    compile group: "com.azure", name: "azure-security-keyvault-keys", version: "4.1.4"
+    compile group: "com.azure", name: "azure-identity", version: "1.0.7"
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
 
     compile "$corda_core_release_group:corda-core:$corda_core_release_version"

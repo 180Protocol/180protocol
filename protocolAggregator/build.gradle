@@ -201,6 +201,10 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
             config '''\
                 participantRole = DATA_CONSUMER
                 estuaryToken = EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
+                azureTenantID = c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
+                azureClientID = dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
+                azureClientSecret = KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX
+                azureKeyIdentifier = "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
             '''.stripIndent()
         }
         runSchemaMigration = true

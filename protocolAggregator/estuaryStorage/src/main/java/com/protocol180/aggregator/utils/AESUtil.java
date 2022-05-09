@@ -25,11 +25,11 @@ public class AESUtil {
         return key;
     }
 
-    public static String convertSecretKeyToString(SecretKey secretKey) {
-        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    public static byte[] convertSecretKeyToBytes(SecretKey secretKey) {
+        return Base64.getEncoder().encode(secretKey.getEncoded());
     }
 
-    public static SecretKey convertStringToSecretKey(String encodedKey) {
+    public static SecretKey convertBytesToSecretKey(byte[] encodedKey) {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
         // rebuild key using SecretKeySpec
         return new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
