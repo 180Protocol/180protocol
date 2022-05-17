@@ -1,7 +1,14 @@
 package com.protocol180.aggregator.storage.estuary;
 
+import com.google.common.collect.ImmutableList;
 import com.protocol180.aggregator.storage.utils.AESUtil;
+import net.corda.core.identity.CordaX500Name;
+import net.corda.core.node.AppServiceHub;
+import net.corda.core.node.NetworkParameters;
+import net.corda.testing.node.*;
 import org.json.JSONArray;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.crypto.BadPaddingException;
@@ -15,6 +22,8 @@ import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,9 +31,28 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests the enclave fully in-memory in a mock environment.
  */
-public class EstuaryStorageServiceTest {/*
-    EstuaryStorageService estuaryStorageService = new EstuaryStorageService();
-    String token = "EST5b9e4a3a-4978-46a0-8ac7-703711dbee4fARY"; // Api key to authenticate estuary apis.
+public class EstuaryStorageServiceTest {
+    /*
+    private MockNetwork network;
+    private StartedMockNode consumer1;
+
+    EstuaryStorageService estuaryStorageService;
+    String token = "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"; // Api key to authenticate estuary apis.
+
+    @Before
+    public void setup() {
+        network = new MockNetwork(
+                new MockNetworkParameters(
+                        ImmutableList.of(TestCordapp.findCordapp("com.protocol180.aggregator.storage"))));
+        consumer1 = network.createPartyNode(null);
+        network.runNetwork();
+        estuaryStorageService = new EstuaryStorageService((AppServiceHub) consumer1.getServices());
+    }
+
+    @After
+    public void tearDown() {
+        network.stopNodes();
+    }
 
     @Test
     public void uploadTest() throws EstuaryAPICallException {
@@ -75,5 +103,7 @@ public class EstuaryStorageServiceTest {/*
             }
         }
         return check;
-    }*/
+    }
+
+     */
 }
