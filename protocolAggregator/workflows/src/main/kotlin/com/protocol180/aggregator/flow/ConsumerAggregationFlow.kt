@@ -2,7 +2,7 @@ package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
-import com.protocol180.aggregator.keyVault.AzureKeyVaultService
+import com.protocol180.aggregator.storage.keyVault.AzureKeyVaultService
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RoleType
 import com.r3.conclave.common.EnclaveInstanceInfo
@@ -19,8 +19,8 @@ import java.io.File
 import java.security.PublicKey
 import java.time.Instant
 import javax.crypto.spec.IvParameterSpec
-import com.protocol180.aggregator.storage.EstuaryStorageService;
-import com.protocol180.aggregator.utils.AESUtil
+import com.protocol180.aggregator.storage.estuary.EstuaryStorageService;
+import com.protocol180.aggregator.storage.utils.AESUtil
 
 /**
  * One of 180Protocol's supported Broker Flows. There will be more flow types in the future which are provider initiated instead
@@ -54,8 +54,9 @@ class ConsumerAggregationFlow(
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
-        val estuaryStorageService = EstuaryStorageService();
-        val azureKeyVaultService = AzureKeyVaultService();
+        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java)
+        val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java)
+
         val token = serviceHub.cordaService(NetworkParticipantService::class.java).token;
         val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
         val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;

@@ -1,7 +1,6 @@
 package com.protocol180.aggregator.flow
 
 import com.protocol180.aggregator.states.RoleType
-import com.protocol180.aggregator.utils.AESUtil
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
@@ -18,7 +17,8 @@ class DecentralizedStorageEncryptionKeyTest {
             MockNetworkParameters(
                 cordappsForAllNodes = listOf(
                     TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
-                    TestCordapp.findCordapp("com.protocol180.aggregator.flow")
+                    TestCordapp.findCordapp("com.protocol180.aggregator.flow"),
+                    TestCordapp.findCordapp("com.protocol180.aggregator.storage")
                 )
             )
         )
@@ -36,23 +36,23 @@ class DecentralizedStorageEncryptionKeyTest {
                                 Pair(NetworkParticipantService.PARTICIPANT_ROLE_CONFIG_KEY, role.name),
                                 Pair(
                                     NetworkParticipantService.ESTUARY_STORAGE_TOKEN,
-                                    "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                    "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                 ),
                                 Pair(
                                     NetworkParticipantService.AZURE_TENANT_ID,
-                                    "c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                    "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                 ),
                                 Pair(
                                     NetworkParticipantService.AZURE_CLIENT_ID,
-                                    "dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                    "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                 ),
                                 Pair(
                                     NetworkParticipantService.AZURE_CLIENT_SECRET,
-                                    "KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX"
+                                    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                 ),
                                 Pair(
                                     NetworkParticipantService.AZURE_KEY_IDENTIFIER,
-                                    "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
+                                    "keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                 )
                             )
                         )
@@ -69,8 +69,8 @@ class DecentralizedStorageEncryptionKeyTest {
 
     @Test
     fun decentralizedStorageEncryptionKeyTest() {
-        val flow = DecentralizedStorageEncryptionKeyUpdateFlow();
-        consumer.startFlow(flow)
+        val updateFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        consumer.startFlow(updateFlow)
         network.runNetwork()
 
         val decentralizedStorageEncryptionKeyRetrievalFlow = DecentralizedStorageEncryptionKeyRetrievalFlow();

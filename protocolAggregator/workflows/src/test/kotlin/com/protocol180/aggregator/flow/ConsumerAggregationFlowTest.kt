@@ -5,7 +5,6 @@ import com.protocol180.aggregator.states.CoalitionDataType
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RewardsState
 import com.protocol180.aggregator.states.RoleType
-import com.protocol180.aggregator.utils.AESUtil
 import net.corda.core.internal.readFully
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.Vault
@@ -49,7 +48,8 @@ class ConsumerAggregationFlowTest {
                 MockNetworkParameters(
                         cordappsForAllNodes = listOf(
                                 TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
-                                TestCordapp.findCordapp("com.protocol180.aggregator.flow")
+                                TestCordapp.findCordapp("com.protocol180.aggregator.flow"),
+                                TestCordapp.findCordapp("com.protocol180.aggregator.storage")
                         )
                 )
         )
@@ -81,23 +81,23 @@ class ConsumerAggregationFlowTest {
                                         ),
                                         Pair(
                                             NetworkParticipantService.ESTUARY_STORAGE_TOKEN,
-                                            "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                            "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_TENANT_ID,
-                                            "c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                            "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_CLIENT_ID,
-                                            "dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"
+                                            "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_CLIENT_SECRET,
-                                            "KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX"
+                                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_KEY_IDENTIFIER,
-                                            "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
+                                            "keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                         )
                                     )
                                 )

@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.utils;
+package com.protocol180.aggregator.storage.utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;

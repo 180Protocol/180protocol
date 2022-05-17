@@ -130,6 +130,7 @@ dependencies {
     // Depend on the main module.
     cordapp project(":workflows")
     cordapp project(':contracts')
+    cordapp project(':estuaryStorage')
 
     // Logging components built in to the node.
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
@@ -191,6 +192,21 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
+        name "O=ProviderD,L=New York,C=US"
+        p2pAddress "providerd-node:10011"
+        rpcSettings {
+            address("0.0.0.0:10012")
+            adminAddress("0.0.0.0:10042")
+        }
+        cordapp (project(':workflows')) {
+            config '''\
+                participantRole = DATA_PROVIDER
+            '''.stripIndent()
+        }
+        runSchemaMigration = true
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
         name "O=ConsumerC,L=Chicago,C=US"
         p2pAddress "consumerc-node:10008"
         rpcSettings {
@@ -200,13 +216,14 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         cordapp (project(':workflows')) {
             config '''\
                 participantRole = DATA_CONSUMER
-                estuaryToken = EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
-                azureTenantID = c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
-                azureClientID = dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX
-                azureClientSecret = KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX
-                azureKeyIdentifier = "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60"
+                estuaryToken = ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureTenantID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientSecret = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                azureKeyIdentifier = keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             '''.stripIndent()
         }
+        cordapp project(':estuaryStorage')
         runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }

@@ -46,7 +46,6 @@ tasks.register("prepareForSigning") {
 dependencies {
     //only for facilitating testing locally when using protocolAggregator directly using docker compose
     //not included in maven artifact
-    compile project(":estuaryStorage")
     compile project(path: ":sampleEnclave", configuration: mode)
 
     //external
@@ -64,6 +63,7 @@ dependencies {
 
     // Corda dependencies.
     cordapp project(":contracts")
+    cordapp project(":estuaryStorage")
     cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
     cordaRuntime "$corda_release_group:corda:$corda_release_version"
     testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
