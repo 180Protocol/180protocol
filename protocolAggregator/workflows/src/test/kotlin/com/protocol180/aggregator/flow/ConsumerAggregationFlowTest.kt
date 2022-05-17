@@ -81,23 +81,23 @@ class ConsumerAggregationFlowTest {
                                         ),
                                         Pair(
                                             NetworkParticipantService.ESTUARY_STORAGE_TOKEN,
-                                            "EST5b9e4a3a-4978-46a0-8ac7-703711dbee4fARY"
+                                            "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_TENANT_ID,
-                                            "c7e48871-70ff-48d5-8934-a8e594bc040b"
+                                            "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_CLIENT_ID,
-                                            "dd115d03-42ee-43db-98e1-8b6a475275f8"
+                                            "XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_CLIENT_SECRET,
-                                            "KEZmQT-~mvUlNS61E1ZBj75W~DrSTZtYKO"
+                                            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                         ),
                                         Pair(
                                             NetworkParticipantService.AZURE_KEY_IDENTIFIER,
-                                            "keyvaulttest180p.vault.azure.net/keys/180PTest/06ff554fc7af4be685eec9f841ce2e60"
+                                            "keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                         )
                                     )
                                 )
