@@ -83,7 +83,11 @@ class NetworkParticipantService(private val hub: AppServiceHub) : SingletonSeria
         }
 
         _keyIdentifier = if (config.exists(AZURE_KEY_IDENTIFIER)) {
-            config.getString(AZURE_KEY_IDENTIFIER)
+            if(config.getString(AZURE_KEY_IDENTIFIER).startsWith("https://")){
+                config.getString(AZURE_KEY_IDENTIFIER)
+            } else{
+                "https://" + config.getString(AZURE_KEY_IDENTIFIER)
+            }
         } else {
             log.warn("Key identifier is not set, error will be raised if accessed in a flow")
             null.toString()

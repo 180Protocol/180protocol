@@ -11,6 +11,12 @@ nodes:
     port: 7500
     role: provider
     name: O=ProviderB,L=New York,C=US
+  providerD:
+    username: providerD
+    password: test
+    port: 5500
+    role: provider
+    name: O=ProviderD,L=New York,C=US
   consumerC:
     username: consumerC
     password: test

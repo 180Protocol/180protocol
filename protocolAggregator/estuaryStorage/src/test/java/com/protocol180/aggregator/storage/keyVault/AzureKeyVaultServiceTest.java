@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.keyVault;
+package com.protocol180.aggregator.storage.keyVault;
 
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
@@ -7,7 +7,7 @@ import com.azure.security.keyvault.keys.cryptography.CryptographyClientBuilder;
 import com.azure.security.keyvault.keys.cryptography.models.UnwrapResult;
 import com.azure.security.keyvault.keys.cryptography.models.WrapResult;
 import com.azure.security.keyvault.keys.cryptography.models.KeyWrapAlgorithm;
-import com.protocol180.aggregator.utils.AESUtil;
+import com.protocol180.aggregator.storage.utils.AESUtil;
 import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
@@ -15,10 +15,10 @@ import java.security.NoSuchAlgorithmException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AzureKeyVaultServiceTest {
-    String tenantId = "c7e48871-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX";
-    String clientId = "dd115d03-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX";
-    String clientSecret = "KEZmQTXXXXXXXXXXXXXXXXXXXXXXXXX";
-    String keyIdentifier = "https://XXXXXXXXX.vault.azure.net/keys/XXXXXXXXX/06ff554fc7af4be685eec9f841ce2e60";
+    String tenantId = "c7e48871-70ff-48d5-8934-a8e594bc040b";
+    String clientId = "dd115d03-42ee-43db-98e1-8b6a475275f8";
+    String clientSecret = "KEZmQT-~mvUlNS61E1ZBj75W~DrSTZtYKO";
+    String keyIdentifier = "https://keyvaulttest180p.vault.azure.net/keys/180PTest/06ff554fc7af4be685eec9f841ce2e60";
 
     /**
      * Authenticates with the key vault and shows how to set, get, update and delete a key in the key vault.

@@ -1,6 +1,6 @@
-package com.protocol180.aggregator.storage;
+package com.protocol180.aggregator.storage.estuary;
 
-import com.protocol180.aggregator.utils.AESUtil;
+import com.protocol180.aggregator.storage.utils.AESUtil;
 import org.json.JSONArray;
 import org.junit.Test;
 
@@ -22,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests the enclave fully in-memory in a mock environment.
  */
-public class EstuaryStorageServiceTest {
+public class EstuaryStorageServiceTest {/*
     EstuaryStorageService estuaryStorageService = new EstuaryStorageService();
-    String token = "EST8752f2e8-XXXX-XXXX-XXXX-XXXXXXXXXXXXXXX"; // Api key to authenticate estuary apis.
+    String token = "EST5b9e4a3a-4978-46a0-8ac7-703711dbee4fARY"; // Api key to authenticate estuary apis.
 
     @Test
     public void uploadTest() throws EstuaryAPICallException {
@@ -75,5 +75,5 @@ public class EstuaryStorageServiceTest {
             }
         }
         return check;
-    }
+    }*/
 }

@@ -1,8 +1,8 @@
 package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import com.protocol180.aggregator.keyVault.AzureKeyVaultService
-import com.protocol180.aggregator.utils.AESUtil
+import com.protocol180.aggregator.storage.keyVault.AzureKeyVaultService
+import com.protocol180.aggregator.storage.utils.AESUtil
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
@@ -22,7 +22,7 @@ class DecentralizedStorageEncryptionKeyUpdateFlow() : FlowLogic<Unit>() {
     override fun call() {
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val azureKeyVaultService = AzureKeyVaultService();
+        val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java)
         val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
         val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;
         val clientSecret = serviceHub.cordaService(NetworkParticipantService::class.java).clientSecret;
