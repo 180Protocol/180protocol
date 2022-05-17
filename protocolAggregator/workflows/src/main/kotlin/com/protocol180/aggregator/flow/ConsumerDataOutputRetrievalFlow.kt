@@ -1,9 +1,9 @@
 package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import com.protocol180.aggregator.keyVault.AzureKeyVaultService
-import com.protocol180.aggregator.storage.EstuaryStorageService
-import com.protocol180.aggregator.utils.AESUtil
+import com.protocol180.aggregator.storage.keyVault.AzureKeyVaultService
+import com.protocol180.aggregator.storage.estuary.EstuaryStorageService
+import com.protocol180.aggregator.storage.utils.AESUtil
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.utilities.ProgressTracker
@@ -37,8 +37,8 @@ class ConsumerDataOutputRetrievalFlow(
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val estuaryStorageService = EstuaryStorageService();
-        val azureKeyVaultService = AzureKeyVaultService();
+        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java)
+        val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java)
         val consumer = ourIdentity
         if (storageType == "local") {
             return enclaveClientService.readJsonFromOutputBytesAndSchema(

@@ -1,16 +1,26 @@
-package com.protocol180.aggregator.storage;
+package com.protocol180.aggregator.storage.estuary;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import net.corda.core.node.AppServiceHub;
+import net.corda.core.node.services.CordaService;
+import net.corda.core.serialization.SingletonSerializeAsToken;
 import org.json.JSONArray;
 
 import java.io.*;
 import java.net.URL;
 
+@CordaService
+public class EstuaryStorageService extends SingletonSerializeAsToken {
 
-public class EstuaryStorageService {
+    private final AppServiceHub serviceHub;
+
+    public EstuaryStorageService(AppServiceHub serviceHub) {
+        this.serviceHub = serviceHub;
+    }
+
     public String uploadContent(File file, String token) throws EstuaryAPICallException {
         try {
             HttpResponse<JsonNode> jsonResponse = Unirest.post("https://shuttle-4.estuary.tech/content/add")
