@@ -17,10 +17,14 @@ repositories {
 }
 
 dependencies {
-    compile platform('com.azure:azure-sdk-bom:1.2.1')
     compile group: "com.mashape.unirest", name: "unirest-java", version: "1.4.4"
-    compile group: "com.azure", name: "azure-security-keyvault-keys"
-    compile group: "com.azure", name: "azure-identity"
+    compile group: "com.azure", name: "azure-security-keyvault-keys", version: "4.3.5"
+    compile group: "com.azure", name: "azure-identity", version: "1.4.1"
+    compile 'com.fasterxml.jackson.core:jackson-core:2.12.5'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.12.5'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.5'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
 
     //corda dependencies
