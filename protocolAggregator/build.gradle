@@ -131,6 +131,7 @@ dependencies {
     cordapp project(":workflows")
     cordapp project(':contracts')
     cordapp project(':estuaryStorage')
+    compile(project(":estuaryStorage:shadowJar"))
 
     // Logging components built in to the node.
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
