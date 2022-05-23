@@ -1,0 +1,25 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'java'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation 'com.azure:azure-security-keyvault-keys:4.2.3'
+    implementation 'com.azure:azure-identity:1.2.0'
+}
+
+shadowJar {
+    relocate 'io.netty', 'azure.shaded.io.netty'
+    relocate 'META-INF/native/libnetty', 'META-INF/native/libazure_shaded_netty'
+    relocate 'META-INF/native/netty', 'META-INF/native/azure_shaded_netty'
+    archiveName = 'azure-keyvault-with-deps.jar'
+}
