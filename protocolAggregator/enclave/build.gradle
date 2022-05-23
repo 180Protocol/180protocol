@@ -11,8 +11,6 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:5.6.0"
 
     compile group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.5'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
 }
 
 dokka {
