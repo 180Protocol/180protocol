@@ -16,7 +16,7 @@ import javax.crypto.SecretKey
 
 
 /**
- * DecentralizedStorageEncryptionKeyFlow allows storing secret key and ivParameterSpec into db.
+ * EstuaryStorageFlow utilized to test EstuaryStorageService
  */
 
 @InitiatingFlow
