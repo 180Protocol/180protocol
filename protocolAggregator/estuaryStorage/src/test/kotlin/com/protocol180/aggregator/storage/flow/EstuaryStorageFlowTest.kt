@@ -1,9 +1,15 @@
 package com.protocol180.aggregator.storage.flow
 
+import net.corda.core.utilities.getOrThrow
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class EstuaryStorageFlowTest {
     lateinit var network: MockNetwork
@@ -28,10 +34,22 @@ class EstuaryStorageFlowTest {
     }
 
     @Test
-    fun estuaryStorageEncryptionDecryptionFlowTest() {
-        val token = "EST4d1f0d52-6e39-4982-8f43-a5222af1ff86ARY"; // Api key to authenticate estuary apis.
+    fun estuaryStorageEncryptionDecryptionFlowFailTest() {
+        val token = "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"; // Api key to authenticate estuary apis.
         val updateFlow = EstuaryStorageFlow(token);
-        consumer.startFlow(updateFlow)
+        val future = consumer.startFlow(updateFlow);
+        assertFailsWith(EstuaryStorageFlowException::class) { future.getOrThrow() }
+        network.runNetwork()
+    }
+
+    @Test
+    fun estuaryStorageEncryptionDecryptionFlowTest() {
+        val token = "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"; // Api key to authenticate estuary apis.
+        val updateFlow = EstuaryStorageFlow(token);
+        val future = consumer.startFlow(updateFlow);
+        val encoded: ByteArray = Files.readAllBytes(Paths.get(File("document.decrypted").path));
+        assertTrue(encoded.isNotEmpty())
+        println("Download file byte array: $encoded")
         network.runNetwork()
     }
 }
