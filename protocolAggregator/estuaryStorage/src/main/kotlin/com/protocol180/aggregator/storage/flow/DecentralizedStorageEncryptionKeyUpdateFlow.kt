@@ -1,6 +1,7 @@
-package com.protocol180.aggregator.flow
+package com.protocol180.aggregator.storage.flow
 
 import co.paralleluniverse.fibers.Suspendable
+import com.protocol180.aggregator.flow.NetworkParticipantService
 import com.protocol180.aggregator.storage.keyVault.AzureKeyVaultService
 import com.protocol180.aggregator.storage.utils.AESUtil
 import net.corda.core.flows.FlowLogic

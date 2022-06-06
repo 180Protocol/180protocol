@@ -1,5 +1,6 @@
-package com.protocol180.aggregator.flow
+package com.protocol180.aggregator.storage.flow
 
+import com.protocol180.aggregator.flow.NetworkParticipantService
 import com.protocol180.aggregator.states.RoleType
 import net.corda.testing.node.*
 import org.junit.After
@@ -17,7 +18,6 @@ class DecentralizedStorageEncryptionKeyTest {
             MockNetworkParameters(
                 cordappsForAllNodes = listOf(
                     TestCordapp.findCordapp("com.protocol180.aggregator.contracts"),
-                    TestCordapp.findCordapp("com.protocol180.aggregator.flow"),
                     TestCordapp.findCordapp("com.protocol180.aggregator.storage")
                 )
             )

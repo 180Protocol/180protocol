@@ -2,7 +2,6 @@ package com.protocol180.aggregator.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import com.protocol180.aggregator.contracts.DataOutputContract
-import com.protocol180.aggregator.storage.keyVault.AzureKeyVaultService
 import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RoleType
 import com.r3.conclave.common.EnclaveInstanceInfo
@@ -15,12 +14,8 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.loggerFor
 import net.corda.core.utilities.unwrap
-import java.io.File
 import java.security.PublicKey
 import java.time.Instant
-import javax.crypto.spec.IvParameterSpec
-import com.protocol180.aggregator.storage.estuary.EstuaryStorageService;
-import com.protocol180.aggregator.storage.utils.AESUtil
 
 /**
  * One of 180Protocol's supported Broker Flows. There will be more flow types in the future which are provider initiated instead
@@ -34,7 +29,7 @@ import com.protocol180.aggregator.storage.utils.AESUtil
  */
 @InitiatingFlow
 @StartableByRPC
-class ConsumerAggregationFlow(
+open class ConsumerAggregationFlow(
     private val dataType: String,
     private val description: String,
     private val storageType: String
@@ -51,17 +46,7 @@ class ConsumerAggregationFlow(
     override fun call(): SignedTransaction {
         val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
-        val decentralizedStorageEncryptionKeyService =
-            serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
-        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java)
-        val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java)
-
-        val token = serviceHub.cordaService(NetworkParticipantService::class.java).token;
-        val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
-        val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;
-        val clientSecret = serviceHub.cordaService(NetworkParticipantService::class.java).clientSecret;
-        val keyIdentifier = serviceHub.cordaService(NetworkParticipantService::class.java).keyIdentifier;
 
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
         val consumer = ourIdentity
@@ -97,31 +82,11 @@ class ConsumerAggregationFlow(
         ).unwrap { it }
         val decryptedAggregationDataRecordBytes =
             postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
-        var cid: String = "";
-        var encryptionKeyId: String = "";
-        //Store aggregation output data received from enclave into consumer's local db
-        if (storageType == "local") {
-            consumerDbStoreService.addConsumerDataOutputWithFlowId(
-                this.runId.uuid.toString(),
-                decryptedAggregationDataRecordBytes,
-                dataType
-            )
-        } else if (storageType == "filecoin") {
-            val decentralizedStorageEncryptionKeyRecord =
-                decentralizedStorageEncryptionKeyService.retrieveLatestDecentralizedStorageEncryptionKey();
-            val encryptedFile = File("document.encrypted")
-            val decryptedDek = azureKeyVaultService.unWrapKey(tenantId, clientId, clientSecret, keyIdentifier, decentralizedStorageEncryptionKeyRecord!!.key);
-            AESUtil.encryptFile(
-                AESUtil.convertBytesToSecretKey(decryptedDek),
-                IvParameterSpec(decentralizedStorageEncryptionKeyRecord!!.ivParameterSpec),
-                decryptedAggregationDataRecordBytes,
-                encryptedFile
-            )
-            val uploadFile = File(File("document.encrypted").path)
-            cid = estuaryStorageService.uploadContent(uploadFile, token)
-            encryptionKeyId = decentralizedStorageEncryptionKeyRecord!!.flowId;
-            encryptedFile.delete();
-        }
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(
+            this.runId.uuid.toString(),
+            decryptedAggregationDataRecordBytes,
+            dataType
+        )
 
         //optional reading of records - needed for the front end read flow
         val commandData: CommandData = DataOutputContract.Commands.Issue()
@@ -133,9 +98,9 @@ class ConsumerAggregationFlow(
             Instant.now(),
             attestationBytes,
             flowTopic,
-            encryptionKeyId,
+            "",
             storageType,
-            cid
+            ""
         );
 
         val builder = TransactionBuilder(notary)
@@ -162,7 +127,7 @@ class ConsumerAggregationFlow(
  */
 @InitiatedBy(ConsumerAggregationFlow::class)
 @InitiatingFlow
-class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
+open class ConsumerAggregationFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
 
     companion object {
         private val log = loggerFor<ConsumerAggregationFlowResponder>()
