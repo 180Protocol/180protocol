@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.flow
+package com.protocol180.aggregator.storage.flow
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.flows.FlowLogic

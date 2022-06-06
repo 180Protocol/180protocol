@@ -1,4 +1,4 @@
-package com.protocol180.aggregator.flow
+package com.protocol180.aggregator.storage.flow
 
 import com.protocol180.aggregator.schema.DecentralizedStorageEncryptionKeySchemaV1;
 import net.corda.core.node.AppServiceHub
