@@ -41,11 +41,22 @@ open class ConsumerAggregationFlow(
 
     override val progressTracker = ProgressTracker()
 
+    open fun storeData(decryptedAggregationDataRecordBytes: ByteArray, flowId: String): Pair<String, String> {
+        val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
+
+        consumerDbStoreService.addConsumerDataOutputWithFlowId(
+            flowId,
+            decryptedAggregationDataRecordBytes,
+            dataType
+        )
+
+        return Pair("", "");
+    }
+
     @Suspendable
     @Throws(ConsumerAggregationFlowException::class)
     override fun call(): SignedTransaction {
         val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
-        val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
 
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
@@ -82,11 +93,7 @@ open class ConsumerAggregationFlow(
         ).unwrap { it }
         val decryptedAggregationDataRecordBytes =
             postOffice.decryptMail(encryptedAggregationDataRecordBytes).bodyAsBytes
-        consumerDbStoreService.addConsumerDataOutputWithFlowId(
-            this.runId.uuid.toString(),
-            decryptedAggregationDataRecordBytes,
-            dataType
-        )
+        val (encryptionKeyId, cid) = storeData(decryptedAggregationDataRecordBytes, this.runId.uuid.toString());
 
         //optional reading of records - needed for the front end read flow
         val commandData: CommandData = DataOutputContract.Commands.Issue()
@@ -98,9 +105,9 @@ open class ConsumerAggregationFlow(
             Instant.now(),
             attestationBytes,
             flowTopic,
-            "",
+            encryptionKeyId,
             storageType,
-            ""
+            cid
         );
 
         val builder = TransactionBuilder(notary)
