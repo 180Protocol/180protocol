@@ -4,7 +4,8 @@ export async function createAggregationRequest(dispatch, apiUrl, payload) {
         body: JSON.stringify(payload)
     };
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerAggregationFlow`, requestOptions);
+        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstuaryStorageConsumerAggregationFlow' : '180 Protocol Broker Flows/ConsumerAggregationFlow';
+        let response = await fetch(`${apiUrl}/node/${flow}`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -50,7 +51,8 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow?wait=1`, requestOptions);
+        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstuaryStorageConsumerDataOutputRetrievalFlow' : '180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow';
+        let response = await fetch(`${apiUrl}/node/${flow}?wait=1`, requestOptions);
         let data = await response.json();
         let value = data.result.value ? data.result.value.split("\n") : [];
         let result = [];
@@ -91,7 +93,7 @@ export async function updateDecentralizedStorageEncryptionKey(dispatch, apiUrl, 
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/DecentralizedStorageEncryptionKeyUpdateFlow`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyUpdateFlow`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -114,7 +116,7 @@ export async function retrievalDecentralizedStorageEncryptionKey(dispatch, apiUr
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/DecentralizedStorageEncryptionKeyRetrievalFlow?wait=1`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyRetrievalFlow?wait=1`, requestOptions);
         let data = await response.json();
 
         if (data) {
