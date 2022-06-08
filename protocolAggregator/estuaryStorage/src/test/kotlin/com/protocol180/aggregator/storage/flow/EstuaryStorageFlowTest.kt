@@ -6,8 +6,10 @@ import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.jupiter.api.AfterEach
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -30,17 +32,37 @@ class EstuaryStorageFlowTest {
 
     @After
     fun tearDown() {
+        deleteFiles();
         network.stopNodes()
     }
 
-    @AfterEach
-    fun deleteFiles() {
-        val encryptedFile = File("src/test/resources/document.encrypted");
-        val decryptedFile = File("src/test/resources/document.decrypted");
-        val downloadedFile = File("downloaded.encrypted");
-        encryptedFile.delete();
-        decryptedFile.delete();
-        downloadedFile.delete();
+    private fun deleteFiles() {
+        try {
+            val encryptedFile = Paths.get(File("src/test/resources/document.encrypted").path);
+            val decryptedFile = Paths.get(File("src/test/resources/document.decrypted").path);
+            val downloadedFile = Paths.get(File("downloaded.encrypted").path);
+            val encryptedFileDeleteResult = Files.deleteIfExists(encryptedFile);
+            if (encryptedFileDeleteResult) {
+                println("Encrypted file deleted successfully.")
+            } else {
+                println("Encrypted file deletion failed.")
+            }
+            val decryptedFileDeleteResult = Files.deleteIfExists(decryptedFile);
+            if (decryptedFileDeleteResult) {
+                println("Decrypted file deleted successfully.")
+            } else {
+                println("Decrypted file deletion failed.")
+            }
+            val downloadedFileDeleteResult = Files.deleteIfExists(downloadedFile);
+            if (downloadedFileDeleteResult) {
+                println("Download file deleted successfully.")
+            } else {
+                println("Download file deletion failed.")
+            }
+        }catch (e: IOException) {
+            println("Deletion failed.")
+            e.printStackTrace()
+        }
     }
 
     @Test
