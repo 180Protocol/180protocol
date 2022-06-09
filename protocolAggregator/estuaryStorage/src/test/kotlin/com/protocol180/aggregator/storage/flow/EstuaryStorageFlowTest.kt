@@ -32,28 +32,28 @@ class EstuaryStorageFlowTest {
 
     @After
     fun tearDown() {
-        deleteFiles();
+        deleteFiles()
         network.stopNodes()
     }
 
     private fun deleteFiles() {
         try {
-            val encryptedFile = Paths.get(File("src/test/resources/document.encrypted").path);
-            val decryptedFile = Paths.get(File("src/test/resources/document.decrypted").path);
-            val downloadedFile = Paths.get(File("downloaded.encrypted").path);
+            val encryptedFile = Paths.get(File("document.encrypted").path);
+            val downloadedDecryptedFile = Paths.get(File("downloaded.decrypted").path);
+            val downloadedEncryptedFile = Paths.get(File("downloaded.encrypted").path);
             val encryptedFileDeleteResult = Files.deleteIfExists(encryptedFile);
             if (encryptedFileDeleteResult) {
                 println("Encrypted file deleted successfully.")
             } else {
                 println("Encrypted file deletion failed.")
             }
-            val decryptedFileDeleteResult = Files.deleteIfExists(decryptedFile);
+            val decryptedFileDeleteResult = Files.deleteIfExists(downloadedDecryptedFile);
             if (decryptedFileDeleteResult) {
                 println("Decrypted file deleted successfully.")
             } else {
                 println("Decrypted file deletion failed.")
             }
-            val downloadedFileDeleteResult = Files.deleteIfExists(downloadedFile);
+            val downloadedFileDeleteResult = Files.deleteIfExists(downloadedEncryptedFile);
             if (downloadedFileDeleteResult) {
                 println("Download file deleted successfully.")
             } else {
@@ -68,20 +68,23 @@ class EstuaryStorageFlowTest {
     @Test
     fun estuaryStorageEncryptionDecryptionFlowFailTest() {
         val token = "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"; // Api key to authenticate estuary apis.
-        val failFlow = EstuaryStorageFlow(token);
-        val future = consumer.startFlow(failFlow);
-        assertFailsWith(EstuaryStorageFlowException::class) { future.getOrThrow() }
+        val failFlow = EstuaryStorageFlow(token)
+        val future = consumer.startFlow(failFlow)
         network.runNetwork()
+        assertFailsWith(EstuaryStorageFlowException::class) { future.getOrThrow() }
+        deleteFiles()
     }
 
     @Test
     fun estuaryStorageEncryptionDecryptionFlowTest() {
         val token = "ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"; // Api key to authenticate estuary apis.
-        val successFlow = EstuaryStorageFlow(token);
-        val future = consumer.startFlow(successFlow);
-        val encoded: ByteArray = ClassLoader.getSystemClassLoader().getResourceAsStream("document.decrypted").readFully();
+        val successFlow = EstuaryStorageFlow(token)
+        val future = consumer.startFlow(successFlow)
+        network.runNetwork()
+        //val encoded: ByteArray = ClassLoader.getSystemClassLoader().getResourceAsStream("downloaded.decrypted").readFully()
+        val encoded: ByteArray = Files.readAllBytes(Paths.get("downloaded.decrypted"))
         assertTrue(encoded.isNotEmpty())
         println("Download file byte array: $encoded")
-        network.runNetwork()
+        deleteFiles()
     }
 }
