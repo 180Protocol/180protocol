@@ -28,9 +28,7 @@ class EstuaryStorageFlow(private val token: String) : FlowLogic<Unit>() {
         val inputFile = ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.csv").readFully();
         val key = AESUtil.generateKey(256);
         val ivParameterSpec = AESUtil.generateIv();
-        val encryptedFile = File("src/test/resources/document.encrypted");
-        val decryptedFile = File("src/test/resources/document.decrypted");
-        decryptedFile.createNewFile();
+        val encryptedFile = File("document.encrypted");
         AESUtil.encryptFile(key, ivParameterSpec, inputFile, encryptedFile);
         var cid = "";
         try {
@@ -41,8 +39,9 @@ class EstuaryStorageFlow(private val token: String) : FlowLogic<Unit>() {
 
         try {
             estuaryStorageService.downloadFileFromEstuary(cid);
-            val downloadedFile = File("downloaded.encrypted");
-            AESUtil.decryptFile(key, ivParameterSpec, downloadedFile, decryptedFile);
+            val downloadedEncryptedFile = File("downloaded.encrypted");
+            val downloadedDecryptedFile = File("downloaded.decrypted");
+            AESUtil.decryptFile(key, ivParameterSpec, downloadedEncryptedFile, downloadedDecryptedFile);
         } catch (e: Exception) {
             throw e.message?.let { EstuaryStorageFlowException(it) }!!;
         }
