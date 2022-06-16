@@ -118,7 +118,7 @@ class ExampleEstuaryStorageAggregationFlowTest {
 
         val dataTypes = listOf(
             CoalitionDataType("testDataType1", "Test Data Type 1",
-                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.aggregator.sample.ExampleAggregationEnclave")
+                ClassLoader.getSystemClassLoader().getResourceAsStream("testSchema1.avsc").readFully(),"com.protocol180.samples.example.aggregator.clientEnclave.ExampleAggregationEnclave")
         )
 
         val flow1 = CoalitionConfigurationUpdateFlow(coalitionPartyToRole, dataTypes)
