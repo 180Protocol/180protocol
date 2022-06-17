@@ -58,7 +58,7 @@ Read about our features and design details -
 
 * [Features](https://docs.180protocol.com/learn/features)
 * [Network Architecture](https://docs.180protocol.com/learn/features/network-architecture)
-* [Enclave Workflows](https://docs.180protocol.com/learn/features/enclave-workflows)
+* [Data Flows](https://docs.180protocol.com/learn/features/data-flows)
 
 #### Storage
 

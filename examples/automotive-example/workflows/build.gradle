@@ -51,3 +51,12 @@ dependencies {
     cordapp 'com.protocol180:protocol-aggregator-workflows:0.1.8'
     cordapp 'com.protocol180:protocol-aggregator-estuaryStorage:0.1.8'
 }
+
+test {
+    maxHeapSize = "1024m"
+    useJUnitPlatform {
+        includeEngines = ['junit-jupiter', 'junit-vintage']
+        systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+        systemProperty 'enclaveMode', mode
+    }
+}
