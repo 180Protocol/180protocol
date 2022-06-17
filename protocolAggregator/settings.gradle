@@ -30,3 +30,5 @@ include 'enclave'
 include 'workflows'
 include 'contracts'
 include 'sampleEnclave'
+include 'estuaryStorage'
+include "estuaryStorage:shadowJar"

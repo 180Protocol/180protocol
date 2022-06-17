@@ -5,10 +5,10 @@ FROM node:16-alpine
 # Create a work directory and copy over our dependency manifest files.
 RUN mkdir /app
 # Giving access to 'node' user for work directory
-RUN chown -R node /app
+RUN chown node:node /app
 USER node
 WORKDIR /app
-COPY 180Dashboard/src /app/src
+COPY --chown=node:node 180Dashboard/src /app/src
 COPY --chown=node:node ["180Dashboard/package.json", "180Dashboard/package-lock.json*", "./"]
 RUN CI=true
 RUN npm install --silent

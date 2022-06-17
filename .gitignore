@@ -8,3 +8,12 @@
 **/logs
 180Dashboard/node_modules/**
 *.iml
+
+#Ignore docs
+protocolAggregator/github-docs/**
+
+etc
+
+#bin folders
+**/bin
+**/protocol180_0x1BDCF7ED_SECRET.pgp

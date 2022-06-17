@@ -14,18 +14,21 @@ import net.corda.core.utilities.ProgressTracker
  * The data is then encoded from Avro format into JSON using Avro's JsonEncoder.
  */
 @StartableByRPC
-class ConsumerDataOutputRetrievalFlow(private val flowId: String) : FlowLogic<String>() {
-
+class ConsumerDataOutputRetrievalFlow(
+    private val flowId: String
+) : FlowLogic<String>() {
     override val progressTracker = ProgressTracker()
 
 
     @Suspendable
     override fun call(): String {
-
         val consumerDbStoreService = serviceHub.cordaService(ConsumerDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val consumer = ourIdentity
-
-        return enclaveClientService.readJsonFromOutputBytesAndSchema(consumerDbStoreService.retrieveConsumerDataOutputWithFlowId(flowId)!!, "aggregate").toString()
+        return enclaveClientService.readJsonFromOutputBytesAndSchema(
+            consumerDbStoreService.retrieveConsumerDataOutputWithFlowId(
+                flowId
+            )!!, "aggregate"
+        ).toString()
     }
 }

@@ -4,7 +4,8 @@ export async function createAggregationRequest(dispatch, apiUrl, payload) {
         body: JSON.stringify(payload)
     };
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerAggregationFlow`, requestOptions);
+        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstuaryStorageConsumerAggregationFlow' : '180 Protocol Broker Flows/ConsumerAggregationFlow';
+        let response = await fetch(`${apiUrl}/node/${flow}`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -50,7 +51,8 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow?wait=1`, requestOptions);
+        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstuaryStorageConsumerDataOutputRetrievalFlow' : '180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow';
+        let response = await fetch(`${apiUrl}/node/${flow}?wait=1`, requestOptions);
         let data = await response.json();
         let value = data.result.value ? data.result.value.split("\n") : [];
         let result = [];
@@ -79,7 +81,53 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
         dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_ERROR', error: 'Error'});
         return;
     } catch (error) {
-        dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', error: error});
+        dispatch({type: 'FETCH_ENCRYPTED_DATA_OUTPUT_ERROR', error: error});
+        console.log(error);
+    }
+}
+
+export async function updateDecentralizedStorageEncryptionKey(dispatch, apiUrl, payload) {
+    const requestOptions = {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    };
+
+    try {
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyUpdateFlow`, requestOptions);
+        let data = await response.json();
+
+        if (data) {
+            dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS', payload: data});
+            return data;
+        }
+
+        dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: 'Error'});
+        return;
+    } catch (error) {
+        dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: error});
+        console.log(error);
+    }
+}
+
+export async function retrievalDecentralizedStorageEncryptionKey(dispatch, apiUrl, payload) {
+    const requestOptions = {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    };
+
+    try {
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyRetrievalFlow?wait=1`, requestOptions);
+        let data = await response.json();
+
+        if (data) {
+            dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS', payload: data});
+            return data;
+        }
+
+        dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: 'Error'});
+        return;
+    } catch (error) {
+        dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: error});
         console.log(error);
     }
 }

@@ -15,6 +15,9 @@ import java.time.Instant
  * @see dataType - dataType provided by consumer
  * @see description - description provided by consumer
  * @see flowTopic - Flow topic that resulted in creation of state
+ * @see encryptionKeyId - Data encryption key ID utilized for encrypting data
+ * @see storageType - Storage type for the data output state
+ * @see cid - Filecoin cid for the output in case of Filecoin storage type
  */
 @BelongsToContract(DataOutputContract::class)
 data class DataOutputState(val consumer: Party,
@@ -23,7 +26,10 @@ data class DataOutputState(val consumer: Party,
                            val description: String,
                            val dateCreated: Instant,
                            val enclaveAttestation: ByteArray,
-                           val flowTopic: String
+                           val flowTopic: String,
+                           val encryptionKeyId: String,
+                           val storageType: String,
+                           val cid: String
 ) : ContractState {
 
     /**

@@ -7,10 +7,18 @@ import {
     FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS,
     FETCH_ENCRYPTED_DATA_OUTPUT,
     FETCH_ENCRYPTED_DATA_OUTPUT_ERROR,
-    FETCH_ENCRYPTED_DATA_OUTPUT_SUCCESS
+    FETCH_ENCRYPTED_DATA_OUTPUT_SUCCESS,
+    UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY,
+    UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS,
+    UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR,
+    RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY,
+    RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS,
+    RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR
 } from "../actions";
 
 export const initialState = {
+    updateDecentralizedStorageEncryptionKey: {},
+    retrievalDecentralizedStorageEncryptionKey: {},
     aggregationRequest: {},
     encryptedDataOutput: [],
     decryptedDataOutput: [],
@@ -19,6 +27,18 @@ export const initialState = {
 
 export default (state = initialState, action) => {
     switch (action.type) {
+        case UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY:
+            return {...state, loading: true};
+        case UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS:
+            return {...state, loading: false, updateDecentralizedStorageEncryptionKey: action.payload};
+        case UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR:
+            return {...state, loading: false};
+        case RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY:
+            return {...state, loading: true};
+        case RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS:
+            return {...state, loading: false, retrievalDecentralizedStorageEncryptionKey: action.payload};
+        case RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR:
+            return {...state, loading: false};
         case AGGREGATION_REQUEST:
             return {...state, loading: true};
         case AGGREGATION_REQUEST_SUCCESS:
