@@ -1,0 +1,22 @@
+environment:
+- name: LD_LIBRARY_PATH
+  value: Runtime
+command: /home/azureuser/anjuna-poc-host/pocEnclave
+enclave_size: 2147483648
+num_threads: 64
+num_switchless_workers: 1
+isv_prod_id: 0
+isv_svn: 0
+trusted_hashes:
+- path: /home/azureuser/anjuna-poc-host/pocEnclave
+  hash: 66a88071b0e4cdb5af1b383663741011011f9a03f7fba8b5b8bfc871f25e67c8
+disable_switchless: false
+ignore_map_shared: false
+ignore_vfork: false
+is_production: false
+keys:
+- id: encryption
+  source: enclave_generated
+encrypted_files:
+- path: /home/azureuser/anjuna-poc-host/greetings.txt.sealed
+  key: encryption
