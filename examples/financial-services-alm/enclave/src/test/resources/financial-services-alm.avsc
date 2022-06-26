@@ -1,0 +1,101 @@
+{
+  "namespace": "com.protocol180",
+  "type": "record",
+  "name": "alm",
+  "fields": [
+    {
+      "name": "aggregateInput",
+      "type": {
+        "type": "record",
+        "name": "AggregateInput",
+        "fields": [
+          {
+            "name": "year",
+            "type": "int"
+          },
+          {
+            "name": "liabilities",
+            "type": "double"
+          },
+          {
+            "name": "assets",
+            "type": "double"
+          }
+        ]
+      }
+    },
+    {
+      "name": "aggregateOutput",
+      "type": {
+        "type": "record",
+        "name": "AggregateOutput",
+        "fields": [
+          {
+            "name": "year",
+            "type": "int"
+          },
+          {
+            "name": "netAlmCashBasis",
+            "type": "double"
+          },
+          {
+            "name": "netAlmDiscountedBasis",
+            "type": "double"
+          },
+          {
+            "name": "averageSurplusOrDeficitDiscounted",
+            "type": "double"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rewardsOutput",
+      "type": {
+        "type": "record",
+        "name": "Rewards",
+        "fields": [
+          {
+            "name": "amountProvided",
+            "type": "float"
+          },
+          {
+            "name": "completeness",
+            "type": "float"
+          },
+          {
+            "name": "uniqueness",
+            "type": "float"
+          },
+          {
+            "name": "updateFrequency",
+            "type": "float"
+          },
+          {
+            "name": "qualityScore",
+            "type": "float"
+          },
+          {
+            "name": "rewards",
+            "type": "float"
+          },
+          {
+            "name": "dataType",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "identity",
+      "type": {
+        "type" : "record",
+        "name" : "Identity",
+        "fields": [
+          {"name": "publicKey", "type": "string"},
+          {"name": "clientType", "type": "string"}
+        ]
+      }
+    }
+  ]
+}
