@@ -79,8 +79,6 @@ public class AESUtil {
         outputStream.close();
     }
 
-
-
     public static void decryptFile(SecretKey key, IvParameterSpec iv,
                                    File encryptedFile, File decryptedFile) throws IOException, NoSuchPaddingException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
