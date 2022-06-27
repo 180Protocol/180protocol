@@ -41,10 +41,17 @@ import java.time.Instant
  */
 @InitiatingFlow
 @InitiatedBy(ConsumerAggregationFlowResponder::class)
-class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<SignedTransaction>() {
+open class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : FlowLogic<SignedTransaction>() {
 
     companion object {
         private val log = loggerFor<ProviderAggregationResponseFlow>()
+    }
+
+    open fun fetchData(dataType: String): MutableList<String> {
+        val providerDbStoreService = serviceHub.cordaService(ProviderDBStoreService::class.java)
+        val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
+        val attachment = providerDbStoreService.retrieveProviderAggregationInputByDataType(dataType);
+        return enclaveClientService.readInputDataFromAttachment(attachment!!.input)
     }
 
     @Suspendable
@@ -79,11 +86,7 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
         //vault query to get attachment for data type - zip file
-        val listOfAttachmentHash: List<AttachmentId> = serviceHub.attachments.queryAttachments(
-            AttachmentQueryCriteria.AttachmentsQueryCriteria(uploaderCondition = Builder.equal(dataType)),
-            AttachmentSort(listOf(AttachmentSort.AttachmentSortColumn(AttachmentSort.AttachmentSortAttribute.INSERTION_DATE, Sort.Direction.DESC))))
-        val attachment = serviceHub.attachments.openAttachment(listOfAttachmentHash.first())
-        val recordList = enclaveClientService.readInputDataFromAttachment(attachment!!.open().readFully())
+        val recordList = fetchData(dataType);
 
         val headerLine = recordList.first()
         recordList.remove(headerLine)
@@ -122,7 +125,7 @@ class ProviderAggregationResponseFlow(private val hostSession: FlowSession) : Fl
  * **/
 @InitiatedBy(ProviderAggregationResponseFlow::class)
 @InitiatingFlow
-class ProviderAggregationResponseFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
+open class ProviderAggregationResponseFlowResponder(private val flowSession: FlowSession) : FlowLogic<Unit>() {
 
     companion object{
         private val log = loggerFor<ProviderAggregationResponseFlowResponder>()

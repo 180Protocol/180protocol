@@ -16,11 +16,11 @@ import net.corda.core.utilities.ProgressTracker
 
 @InitiatingFlow
 @StartableByRPC
-class DecentralizedStorageEncryptionKeyUpdateFlow() : FlowLogic<Unit>() {
+class DecentralizedStorageEncryptionKeyUpdateFlow() : FlowLogic<String>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call() {
+    override fun call(): String {
         val decentralizedStorageEncryptionKeyService =
             serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
         val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java)
@@ -33,10 +33,12 @@ class DecentralizedStorageEncryptionKeyUpdateFlow() : FlowLogic<Unit>() {
         val ivParameterSpec = AESUtil.generateIv()
         val encryptedDek = azureKeyVaultService.wrapKey(tenantId, clientId, clientSecret, keyIdentifier, dek);
 
-        return decentralizedStorageEncryptionKeyService.addDecentralizedStorageEncryptionKeyWithFlowId(
+        decentralizedStorageEncryptionKeyService.addDecentralizedStorageEncryptionKeyWithFlowId(
             this.runId.uuid.toString(),
             encryptedDek,
             ivParameterSpec.iv
         )
+
+        return this.runId.uuid.toString()
     }
 }
