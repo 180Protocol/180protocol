@@ -24,6 +24,8 @@ import downloadIcon from "../../../../assets/images/download.svg";
 import selectDownArrow from "../../../../assets/images/select-down-arrow.svg";
 import exportIcon from "../../../../assets/images/export.svg";
 import refreshIcon from "../../../../assets/images/refresh.svg";
+import MyResponsivePie from "../../../../components/Chart";
+import MyResponsiveLine from "../../../../components/LineChart";
 
 const RightArrowIcon = () => {
     return (
@@ -41,6 +43,7 @@ const Dashboard = (props) => {
     const [columns, setColumns] = useState([]);
     const [encryptedDataOutput, setEncryptedDataOutput] = useState([]);
     const [rows, setRows] = useState([]);
+    const [lineChartData, setLineChartData] = useState([]);
     const [encryptionKey, setEncryptionKey] = useState(null);
     const [lastRequestDate, setLastRequestDate] = useState(null);
     const [step, setStep] = useState(1);
@@ -172,18 +175,22 @@ const Dashboard = (props) => {
 
         let decryptedDataOutput = await fetchDecryptedDataOutput(dispatch, props.apiUrl, params);
         let columns = [];
-        if (decryptedDataOutput) {
-            for (let i = 0; i < decryptedDataOutput.length; i++) {
-                for (let property in decryptedDataOutput[i]) {
-                    if (columns.length < Object.keys(decryptedDataOutput[i]).length) {
+        if (decryptedDataOutput && decryptedDataOutput.list) {
+            for (let i = 0; i < decryptedDataOutput.list.length; i++) {
+                for (let property in decryptedDataOutput.list[i]) {
+                    if (columns.length < Object.keys(decryptedDataOutput.list[i]).length) {
                         columns.push({ name: property, title: ucWords(property) });
                     }
                 }
             }
         }
 
+        if (decryptedDataOutput && decryptedDataOutput.chart) {
+            setLineChartData(decryptedDataOutput.chart);
+        }
+
         setColumns(columns);
-        setRows(decryptedDataOutput);
+        setRows(decryptedDataOutput.list);
     }
 
     const exportAsCSV = () => {
@@ -431,6 +438,25 @@ const Dashboard = (props) => {
                                     <div className={`card-body ${styles.previewTableCardBody}`}>
                                         <div className={styles.previewTableBodyInner}>
                                             <Grid className={styles.aggregationsTable} columns={columns} rows={rows} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> : null
+                    }
+                    {
+                        rows && rows.length > 0 ?
+                            <div className={`container mb-5 ${styles.exportDataContainer}`}>
+                                <div className="card">
+                                    <div className={`card-header ${styles.exportCardHeader}`}>
+                                        <h3>Preview Chart Data</h3>
+                                        <button onClick={exportAsCSV}>EXPORT <img src={exportIcon}
+                                            className={styles.exportbtnIcon}
+                                            alt="export" />
+                                        </button>
+                                    </div>
+                                    <div className={`card-body ${styles.previewTableCardBody}`}>
+                                        <div style={{ height: 500, width: 1200 }}>
+                                            <MyResponsiveLine data={lineChartData} />
                                         </div>
                                     </div>
                                 </div>

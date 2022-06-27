@@ -55,9 +55,34 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
         let response = await fetch(`${apiUrl}/node/${flow}?wait=1`, requestOptions);
         let data = await response.json();
         let value = data.result.value ? data.result.value.split("\n") : [];
-        let result = [];
+        let result = {
+            list: [],
+            chart: []
+        };
+        let netAlmCashBasisData = [];
+        let netAlmDiscountedBasisData = [];
+        let averageSurplusOrDeficitDiscountedData = [];
         for (let i = 0; i < value.length; i++) {
             let parsedData = JSON.parse(value[i]);
+            let netAlmCashBasisChild = {
+                y: parsedData.netAlmCashBasis,
+                x: parsedData.year
+            }
+
+            let netAlmDiscountedBasisChild = {
+                y: parsedData.netAlmDiscountedBasis,
+                x: parsedData.year
+            }
+
+            let averageSurplusOrDeficitDiscountedChild = {
+                y: parsedData.averageSurplusOrDeficitDiscounted,
+                x: parsedData.year
+            }
+
+            netAlmCashBasisData.push(netAlmCashBasisChild);
+            netAlmDiscountedBasisData.push(netAlmDiscountedBasisChild);
+            averageSurplusOrDeficitDiscountedData.push(averageSurplusOrDeficitDiscountedChild);
+            
             for (const [key, value] of Object.entries(parsedData)) {
                 if (value instanceof Object) {
                     let data = [];
@@ -70,8 +95,26 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
                 }
             }
 
-            result.push(parsedData);
+            result.list.push(parsedData);
         }
+
+        result.chart = [
+            {
+                "id": "NetAlmCashBasisData",
+                "color": "hsl(20, 70%, 50%)",
+                "data": netAlmCashBasisData
+            },
+            {
+                "id": "NetAlmDiscountedBasis",
+                "color": "hsl(322, 70%, 50%)",
+                "data": netAlmDiscountedBasisData
+            },
+            {
+                "id": "AverageSurplusOrDeficitDiscounted",
+                "color": "hsl(230, 70%, 50%)",
+                "data": averageSurplusOrDeficitDiscountedData
+            }
+        ];
 
         if (result) {
             dispatch({type: 'FETCH_DECRYPTED_DATA_OUTPUT_SUCCESS', payload: result});
