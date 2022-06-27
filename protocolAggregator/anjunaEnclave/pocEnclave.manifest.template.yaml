@@ -174,10 +174,25 @@ num_threads: 64
 keys:
 - id: encryption
   source: enclave_generated
+- id: output_rsa_key
+  source: RSA
+  value: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp1R/KSjSGM0cYc0MG+Sd
+    NEsvgKkFJwVxT/ai8uAaXGZA6OSoGJSiYQd40k2HfrQlb+2QkZXVh5Mm6uyyWZuT
+    sbvHDWHS++Ele0VH/82/iHN8c8Nwdm4XmX8psFrsaXNySJ+G/W46b7cporxis9oH
+    bzxrSOxNYf4mzgcPTXwWORogFmGj+gXbvAR2n8iz7pTPsPO3B8qSvZThb6h7J+U2
+    xf5odRnrMTF2WZV2L04lOST2V5EDFFgRyEFxIqernJuDf6kIRdg7mOzeHC983KhS
+    P2BjBu2n6Rx2w5oiVn2+30pzqXH3T83uzAMPVg4ybhAjPEIVlDNEX4WM9eJ/i4oB
+    1wIDAQAB
+    -----END PUBLIC KEY-----
+
 
 encrypted_files:
 - path: /home/azureuser/anjuna-poc-host/greetings.txt.sealed
   key: encryption
+- path: /home/azureuser/anjuna-poc-host/greetings_reply.txt.sealed
+  key: output_rsa_key
 
 # "tls_certificates_from_apm" is a list of certificates to be retrieved from the policy manager
 # and stored only in the enclave as in-memory virtual files. The various atributes of the

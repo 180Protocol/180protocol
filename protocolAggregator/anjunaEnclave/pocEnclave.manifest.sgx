@@ -9,7 +9,7 @@ isv_prod_id: 0
 isv_svn: 0
 trusted_hashes:
 - path: /home/azureuser/anjuna-poc-host/pocEnclave
-  hash: 66a88071b0e4cdb5af1b383663741011011f9a03f7fba8b5b8bfc871f25e67c8
+  hash: dd5d8d4cb8eae425d71f1d7ed8495f018119871814e2622ea99f73a6b89a2a26
 disable_switchless: false
 ignore_map_shared: false
 ignore_vfork: false
@@ -17,6 +17,20 @@ is_production: false
 keys:
 - id: encryption
   source: enclave_generated
+- id: output_rsa_key
+  source: RSA
+  value: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp1R/KSjSGM0cYc0MG+Sd
+    NEsvgKkFJwVxT/ai8uAaXGZA6OSoGJSiYQd40k2HfrQlb+2QkZXVh5Mm6uyyWZuT
+    sbvHDWHS++Ele0VH/82/iHN8c8Nwdm4XmX8psFrsaXNySJ+G/W46b7cporxis9oH
+    bzxrSOxNYf4mzgcPTXwWORogFmGj+gXbvAR2n8iz7pTPsPO3B8qSvZThb6h7J+U2
+    xf5odRnrMTF2WZV2L04lOST2V5EDFFgRyEFxIqernJuDf6kIRdg7mOzeHC983KhS
+    P2BjBu2n6Rx2w5oiVn2+30pzqXH3T83uzAMPVg4ybhAjPEIVlDNEX4WM9eJ/i4oB
+    1wIDAQAB
+    -----END PUBLIC KEY-----
 encrypted_files:
 - path: /home/azureuser/anjuna-poc-host/greetings.txt.sealed
   key: encryption
+- path: /home/azureuser/anjuna-poc-host/greetings_reply.txt.sealed
+  key: output_rsa_key
