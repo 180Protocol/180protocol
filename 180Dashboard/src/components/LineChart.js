@@ -37,11 +37,11 @@ const MyResponsiveLine = ({data}) => (
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: 'count',
+            legend: 'Millions of GBP',
             legendOffset: -40,
             legendPosition: 'middle'
         }}
-        pointSize={10}
+        pointSize={0}
         pointColor={{ theme: 'background' }}
         pointBorderWidth={2}
         pointBorderColor={{ from: 'serieColor' }}

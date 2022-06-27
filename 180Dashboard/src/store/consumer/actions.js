@@ -64,6 +64,7 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
         let averageSurplusOrDeficitDiscountedData = [];
         for (let i = 0; i < value.length; i++) {
             let parsedData = JSON.parse(value[i]);
+            let lastValue = JSON.parse(value[value.length - 1])
             let netAlmCashBasisChild = {
                 y: parsedData.netAlmCashBasis,
                 x: parsedData.year
@@ -75,7 +76,7 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
             }
 
             let averageSurplusOrDeficitDiscountedChild = {
-                y: parsedData.averageSurplusOrDeficitDiscounted,
+                y: lastValue.averageSurplusOrDeficitDiscounted,
                 x: parsedData.year
             }
 
@@ -100,9 +101,9 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
 
         result.chart = [
             {
-                "id": "NetAlmCashBasisData",
-                "color": "hsl(20, 70%, 50%)",
-                "data": netAlmCashBasisData
+                "id": "AverageSurplusOrDeficitDiscounted",
+                "color": "hsl(230, 70%, 50%)",
+                "data": averageSurplusOrDeficitDiscountedData
             },
             {
                 "id": "NetAlmDiscountedBasis",
@@ -110,9 +111,9 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
                 "data": netAlmDiscountedBasisData
             },
             {
-                "id": "AverageSurplusOrDeficitDiscounted",
-                "color": "hsl(230, 70%, 50%)",
-                "data": averageSurplusOrDeficitDiscountedData
+                "id": "NetAlmCashBasisData",
+                "color": "hsl(20, 70%, 50%)",
+                "data": netAlmCashBasisData
             }
         ];
 
