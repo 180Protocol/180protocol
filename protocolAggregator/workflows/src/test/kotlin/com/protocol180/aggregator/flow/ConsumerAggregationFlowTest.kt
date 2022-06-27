@@ -6,7 +6,6 @@ import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RewardsState
 import com.protocol180.aggregator.states.RoleType
 import net.corda.core.internal.readFully
-import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
@@ -20,6 +19,7 @@ import net.corda.testing.node.TestCordapp
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -108,8 +108,13 @@ class ConsumerAggregationFlowTest {
     fun consumerAggregationFlowStateCreationTest() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
+        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1FlowFuture = provider1.startFlow(provider1Flow)
+        network.runNetwork()
+
+        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2FlowFuture = provider2.startFlow(provider2Flow)
+        network.runNetwork()
 
         val flow = ConsumerAggregationFlow(
             dataType,
@@ -202,8 +207,13 @@ class ConsumerAggregationFlowTest {
     fun multipleConcurrentConsumerAggregationFlowTest() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        uploadAttachmentToNode(provider1.services, dataType, "Provider1InputData.zip")
-        uploadAttachmentToNode(provider2.services, dataType, "Provider2InputData.zip")
+        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1FlowFuture = provider1.startFlow(provider1Flow)
+        network.runNetwork()
+
+        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2FlowFuture = provider2.startFlow(provider2Flow)
+        network.runNetwork()
 
         val flow = ConsumerAggregationFlow(dataType = dataType, description = description, storageType = "local")
         val future = consumer1.startFlow(flow)
@@ -267,8 +277,13 @@ class ConsumerAggregationFlowTest {
     fun consumerOutputQueryTestAfterAggregation() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
+        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1FlowFuture = provider1.startFlow(provider1Flow)
+        network.runNetwork()
+
+        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2FlowFuture = provider2.startFlow(provider2Flow)
+        network.runNetwork()
 
         val flow = ConsumerAggregationFlow(
             "testDataType1",
@@ -328,15 +343,4 @@ class ConsumerAggregationFlowTest {
         network.runNetwork()
         assertFailsWith(ConsumerAggregationFlowException::class) { future2.getOrThrow() }
     }
-
-
-
-    private fun uploadAttachmentToNode(service: ServiceHub,
-                                       dataType: String,
-                                       filename: String): String {
-        val attachmentHash = service.attachments.importAttachment(ClassLoader.getSystemClassLoader().getResourceAsStream(filename), dataType, filename)
-
-        return attachmentHash.toString();
-    }
-
 }

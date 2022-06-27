@@ -1,10 +1,13 @@
 package com.protocol180.aggregator.flow
 
+import com.protocol180.aggregator.schema.DecentralizedStorageEncryptionKeySchemaV1
+import com.protocol180.aggregator.schema.ProviderAggregationInputSchemaV1
 import com.protocol180.aggregator.schema.ProviderInputSchemaV1
 import com.protocol180.aggregator.schema.ProviderRewardSchemaV1
 import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.serialization.SingletonSerializeAsToken
+import java.security.PublicKey
 
 
 /**
@@ -79,4 +82,43 @@ class ProviderDBStoreService(val services: AppServiceHub) : SingletonSerializeAs
         return dataOutput?.providerInputs?.map { it.publicKey to it.input }?.toMap()
     }
 
+    /**
+     * Adds a Provider Input into database table for particular transaction.
+     */
+    fun addProviderAggregationInput(
+        dataType: String,
+        providerAggregationInputBytes: ByteArray,
+        storageType: String,
+        cid: String,
+        encryptionKeyId: String
+    ) {
+        val providerAggregationInput = ProviderAggregationInputSchemaV1.ProviderAggregationInput(
+            dataType,
+            providerAggregationInputBytes,
+            storageType,
+            cid,
+            encryptionKeyId
+        )
+        services.withEntityManager {
+            persist(providerAggregationInput)
+        }
+    }
+
+    /**
+     * Retrieve a Provider Inputs from database based on dataType.
+     */
+    fun retrieveProviderAggregationInputByDataType(dataType: String): ProviderAggregationInputSchemaV1.ProviderAggregationInput? {
+        var result: MutableList<ProviderAggregationInputSchemaV1.ProviderAggregationInput>? = null
+        services.withEntityManager {
+            val query =
+                criteriaBuilder.createQuery(ProviderAggregationInputSchemaV1.ProviderAggregationInput::class.java)
+            val type = query.from(ProviderAggregationInputSchemaV1.ProviderAggregationInput::class.java)
+            query.select(type).where(criteriaBuilder.equal(type.get<Set<String>>("dataType"), dataType))
+            result = createQuery(query).resultList
+        }
+        if (result?.size == 0)
+            return null
+
+        return result?.get(0)
+    }
 }
