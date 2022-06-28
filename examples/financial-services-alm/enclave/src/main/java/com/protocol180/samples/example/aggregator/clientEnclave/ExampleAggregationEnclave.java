@@ -179,7 +179,7 @@ public class ExampleAggregationEnclave extends AggregationEnclave {
                         it.hasField("liabilities") ? (Double)it.get("liabilities") : 0.0 ).sum();
         Double allAssetsForYear = allRecordsForYear.stream().mapToDouble(it ->
                 it.hasField("assets") ? (Double)it.get("assets") : 0.0 ).sum();
-        return allLiabilitiesForYear - allAssetsForYear;
+        return allAssetsForYear - allLiabilitiesForYear;
     }
 
     private double calculateNetAlmDiscountedBasisForYear(ArrayList<GenericRecord> allRecordsForYear, Integer year){

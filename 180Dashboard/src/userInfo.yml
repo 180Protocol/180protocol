@@ -30,7 +30,11 @@ rewards:
   updateFrequency: 30
 dataTypes:
   - value: testSchema1
+    label: Asset Liability Mismatch Data
+  - value: testSchema2
     label: Automotive Data
+  - value: testSchema2
+    label: Hotel Occupancy Data
 storageTypes:
   - value: local
     label: Local

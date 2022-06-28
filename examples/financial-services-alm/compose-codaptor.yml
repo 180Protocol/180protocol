@@ -42,6 +42,26 @@ services:
     volumes:
       # Corda RPC requires CorDapp JARs to be available in the classpath
       - ./build/nodes/ProviderB/cordapps:/cordaptor/cordapps
+  codaptord:
+    image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
+    hostname: codaptord
+    mem_limit: 512m
+    environment:
+      - CORDA_RPC_NODE_ADDRESS=providerd-node:10012 # using hostname known within the Docker network
+      - CORDA_RPC_USERNAME=user1 # this must match build.gradle
+      - CORDA_RPC_PASSWORD=test # this must match build.gradle
+      # we must override Cordaptor's default of binding to the loopback interface,
+      # because we want its port to be visible on the Docker network
+      - CORDAPTOR_API_LISTEN_ADDRESS=0.0.0.0:8500
+      # this is necessary to allow Cordaptor to generate URLs (e.g. for OpenAPI bindings or Location headers)
+      # using URL resolvable outside the Docker network
+      - CORDAPTOR_API_EXTERNAL_ADDRESS=localhost:7500 # this must be consistent with the ports directive below
+    ports:
+      - "5500:8500"
+      - "5008:8008"
+    volumes:
+      # Corda RPC requires CorDapp JARs to be available in the classpath
+      - ./build/nodes/ProviderD/cordapps:/cordaptor/cordapps
   codaptorc:
     image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
     hostname: codaptorc
