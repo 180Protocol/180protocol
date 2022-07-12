@@ -13,7 +13,7 @@ import java.nio.file.Paths
 @InitiatingFlow
 @StartableByRPC
 open class ProviderAggregationInputFlow(
-    private val file: File,
+    private val file: ByteArray,
     private val dataType: String,
     private val storageType: String,
     private val encryptionKeyId: String
@@ -38,7 +38,6 @@ open class ProviderAggregationInputFlow(
 
     @Suspendable
     override fun call() {
-        val aggregationInputBytes: ByteArray = file.readBytes();
-        return storeData(aggregationInputBytes, encryptionKeyId);
+        return storeData(file, encryptionKeyId);
     }
 }

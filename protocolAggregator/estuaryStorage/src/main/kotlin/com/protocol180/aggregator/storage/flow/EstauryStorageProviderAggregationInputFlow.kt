@@ -15,7 +15,7 @@ import javax.crypto.spec.IvParameterSpec
 
 @StartableByRPC
 class EstauryStorageProviderAggregationInputFlow(
-    private val file: File,
+    private val file: ByteArray,
     private val dataType: String,
     private val storageType: String,
     private val encryptionKeyId: String

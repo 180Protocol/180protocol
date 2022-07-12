@@ -77,7 +77,7 @@ open class ConsumerAggregationFlow(
         log.info("Found host in configuration state: $host")
         val hostSession = initiateFlow(host)
         //receive attestation from host
-        val attestationBytes = hostSession.sendAndReceive<ByteArray>(dataType).unwrap { it }
+        val attestationBytes = hostSession.sendAndReceive<ByteArray>(Pair(dataType, storageType)).unwrap { it }
         //key for this aggregation
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
@@ -146,7 +146,7 @@ open class ConsumerAggregationFlowResponder(private val flowSession: FlowSession
         log.info("Inside Responder flow available to host")
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
         //receive data type from consumer
-        val dataType = flowSession.receive<String>().unwrap { it }
+        val (dataType, storageType) = flowSession.receive<Pair<String, String>>().unwrap { it }
 
         //verify that host has agreed for aggregation of given data type
         val coalitionConfigurationStateService = serviceHub.cordaService(CoalitionConfigurationStateService::class.java)
@@ -180,7 +180,7 @@ open class ConsumerAggregationFlowResponder(private val flowSession: FlowSession
         providerSessions.forEach { providerSession ->
             //receive provider data pair - provider public key -> encrypted input data payload
             val providerDataPair =
-                providerSession.sendAndReceive<Pair<String, ByteArray>>(Pair(attestationBytes, dataType)).unwrap { it }
+                providerSession.sendAndReceive<Pair<String, ByteArray>>(Triple(attestationBytes, dataType, storageType)).unwrap { it }
             log.info("Provider Data Pair:$providerDataPair")
             clientKeyMapWithRandomKeyGenerated[providerSession.counterparty.owningKey] = providerDataPair
             val encryptedPayloadFromProvider = providerDataPair.second

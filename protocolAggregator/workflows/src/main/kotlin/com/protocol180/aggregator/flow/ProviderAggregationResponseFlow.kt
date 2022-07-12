@@ -47,7 +47,7 @@ open class ProviderAggregationResponseFlow(private val hostSession: FlowSession)
         private val log = loggerFor<ProviderAggregationResponseFlow>()
     }
 
-    open fun fetchData(dataType: String): MutableList<String> {
+    open fun fetchData(dataType: String, storageType: String): MutableList<String> {
         val providerDbStoreService = serviceHub.cordaService(ProviderDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val attachment = providerDbStoreService.retrieveProviderAggregationInputByDataType(dataType);
@@ -65,9 +65,10 @@ open class ProviderAggregationResponseFlow(private val hostSession: FlowSession)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
 
 
-        val attestationBytesAndDataType = hostSession.receive<Pair<ByteArray, String>>().unwrap { it }
+        val attestationBytesAndDataType = hostSession.receive<Triple<ByteArray, String, String>>().unwrap { it }
         val attestationBytes = attestationBytesAndDataType.first
         val dataType = attestationBytesAndDataType.second
+        val storageType = attestationBytesAndDataType.third
         val encryptionKey = Curve25519PrivateKey.random()
         val flowTopic: String = this.runId.uuid.toString()
 
@@ -86,7 +87,7 @@ open class ProviderAggregationResponseFlow(private val hostSession: FlowSession)
         val postOffice: PostOffice = EnclaveInstanceInfo.deserialize(attestationBytes).createPostOffice(encryptionKey, flowTopic)
 
         //vault query to get attachment for data type - zip file
-        val recordList = fetchData(dataType);
+        val recordList = fetchData(dataType, storageType);
 
         val headerLine = recordList.first()
         recordList.remove(headerLine)
