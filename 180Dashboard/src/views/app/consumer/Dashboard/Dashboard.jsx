@@ -98,9 +98,11 @@ const Dashboard = (props) => {
                 setStep(1);
                 resetForm({ values: '' })
                 alertRef.current.showAlert('success', 'Request submitted successfully.')
-                let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
-                if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
-                    setEncryptionKey(storageKeyData.result.value);
+                if (values.storageType.value === 'filecoin') {
+                    let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
+                    if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
+                        setEncryptionKey(storageKeyData.result.value);
+                    }
                 }
                 let res = await fetchEncryptedDataOutput(dispatch, props.apiUrl, {});
                 getDecryptedData(res);
@@ -353,7 +355,6 @@ const Dashboard = (props) => {
                                                                         </div>
                                                                     </div> : null
                                                             }
-
                                                         </div>
                                                     </div>
                                                     <div className={`col-sm-5 col-md-5`}>

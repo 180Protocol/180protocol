@@ -108,11 +108,11 @@ class ConsumerAggregationFlowTest {
     fun consumerAggregationFlowStateCreationTest() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.zip").readFully(), dataType, "local", "");
         val provider1FlowFuture = provider1.startFlow(provider1Flow)
         network.runNetwork()
 
-        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.zip").readFully(), dataType, "local", "");
         val provider2FlowFuture = provider2.startFlow(provider2Flow)
         network.runNetwork()
 
@@ -207,11 +207,11 @@ class ConsumerAggregationFlowTest {
     fun multipleConcurrentConsumerAggregationFlowTest() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.zip").readFully(), dataType, "local", "");
         val provider1FlowFuture = provider1.startFlow(provider1Flow)
         network.runNetwork()
 
-        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.zip").readFully(), dataType, "local", "");
         val provider2FlowFuture = provider2.startFlow(provider2Flow)
         network.runNetwork()
 
@@ -277,11 +277,11 @@ class ConsumerAggregationFlowTest {
     fun consumerOutputQueryTestAfterAggregation() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        val provider1Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider1InputData.zip").path), dataType, "local", "");
+        val provider1Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.zip").readFully(), dataType, "local", "");
         val provider1FlowFuture = provider1.startFlow(provider1Flow)
         network.runNetwork()
 
-        val provider2Flow = ProviderAggregationInputFlow(File(ClassLoader.getSystemClassLoader().getResource("Provider2InputData.zip").path), dataType, "local", "");
+        val provider2Flow = ProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.zip").readFully(), dataType, "local", "");
         val provider2FlowFuture = provider2.startFlow(provider2Flow)
         network.runNetwork()
 

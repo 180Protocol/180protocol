@@ -75,6 +75,7 @@
       .selectCateBox {
         width: 100%;
         max-width: 420px;
+        margin-bottom: 20px;
 
         .customSelect {
           color: #1E303E;
@@ -98,34 +99,6 @@
               height: auto;
             }
           }
-        }
-      }
-
-      .previewImgBox {
-
-        .uploadedfileName {
-          font-family: 'Muli Light' !important;
-        }
-
-      }
-
-      .submitBtnBox {
-        text-align: center;
-
-        button {
-          background-color: transparent !important;
-
-          padding: 6px 20px;
-          font-size: 18px;
-          text-transform: uppercase;
-          font-family: 'Muli Bold';
-          border: none;
-          outline: none;
-          background: transparent;
-          color: #1E303E;
-          border-radius: 15px;
-          cursor: pointer;
-          border: 3px solid #193E6430 !important;
         }
       }
     }
@@ -191,6 +164,40 @@
 
         &.active{
           border: 2px solid #707070;
+        }
+      }
+
+      .previewImgBox {
+        .uploadedfileName {
+          font-family: 'Muli Light' !important;
+        }
+
+      }
+    }
+
+    .submitBoxInner {
+      .submitBtnBox {
+        text-align: center;
+
+        button {
+          background-color: transparent !important;
+
+          padding: 6px 20px;
+          font-size: 18px;
+          text-transform: uppercase;
+          font-family: "Muli Bold";
+          border: none;
+          outline: none;
+          background: transparent;
+          color: #1e303e;
+          border-radius: 15px;
+          cursor: pointer;
+          border: 3px solid #193e6430 !important;
+        }
+
+        p {
+          font-family: "Muli SemiBold";
+          margin-top: 10px;
         }
       }
     }
