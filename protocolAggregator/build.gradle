@@ -271,8 +271,14 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         cordapp (project(':workflows')) {
             config '''\
                 participantRole = DATA_PROVIDER
+                estuaryToken = ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureTenantID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientSecret = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                azureKeyIdentifier = keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             '''.stripIndent()
         }
+        cordapp project(':estuaryStorage')
         runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
@@ -286,8 +292,14 @@ task deployNodes(type: Cordform, dependsOn: ['jar']) {
         cordapp (project(':workflows')) {
             config '''\
                 participantRole = DATA_PROVIDER
+                estuaryToken = ESTXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureTenantID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientID = XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                azureClientSecret = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                azureKeyIdentifier = keyvaulttestXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             '''.stripIndent()
         }
+        cordapp project(':estuaryStorage')
         runSchemaMigration = true
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }

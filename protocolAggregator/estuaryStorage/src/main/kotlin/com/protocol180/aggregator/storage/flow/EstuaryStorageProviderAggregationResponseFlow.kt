@@ -39,41 +39,46 @@ class EstuaryStorageProviderAggregationResponseFlow(
         private val log = loggerFor<ProviderAggregationResponseFlow>()
     }
 
-    override fun fetchData(dataType: String): MutableList<String> {
+    override fun fetchData(dataType: String, storageType: String): MutableList<String> {
         val providerDbStoreService = serviceHub.cordaService(ProviderDBStoreService::class.java)
         val enclaveClientService = serviceHub.cordaService(EnclaveClientService::class.java)
         val attachment = providerDbStoreService.retrieveProviderAggregationInputByDataType(dataType);
-        val decentralizedStorageEncryptionKeyService = serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
-        val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
-        val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java);
-        val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
-        val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;
-        val clientSecret = serviceHub.cordaService(NetworkParticipantService::class.java).clientSecret;
-        val keyIdentifier = serviceHub.cordaService(NetworkParticipantService::class.java).keyIdentifier;
-        estuaryStorageService.downloadFileFromEstuary(attachment!!.cid);
-        val decentralizedStorageEncryptionKeyRecord =
-            attachment!!.encryptionKeyId?.let {
-                decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(
-                    it
-                )
-            };
-        val downloadedFile = File(File("downloaded.encrypted").path);
-        val decryptedFile = File(File("document.decrypted").path);
-        val decryptedDek = azureKeyVaultService.unWrapKey(
-            tenantId,
-            clientId,
-            clientSecret,
-            keyIdentifier,
-            decentralizedStorageEncryptionKeyRecord!!.key
-        );
-        AESUtil.decryptFile(
-            AESUtil.convertBytesToSecretKey(decryptedDek), IvParameterSpec(
-                decentralizedStorageEncryptionKeyRecord.ivParameterSpec
-            ), downloadedFile, decryptedFile
-        );
-        val encoded: ByteArray = Files.readAllBytes(Paths.get(File("document.decrypted").path))
-        downloadedFile.delete();
-        decryptedFile.delete();
-        return enclaveClientService.readInputDataFromAttachment(encoded)
+        if (storageType == "local") {
+            return enclaveClientService.readInputDataFromAttachment(attachment!!.input)
+        } else {
+            val decentralizedStorageEncryptionKeyService =
+                serviceHub.cordaService(DecentralizedStorageEncryptionKeyService::class.java)
+            val estuaryStorageService = serviceHub.cordaService(EstuaryStorageService::class.java);
+            val azureKeyVaultService = serviceHub.cordaService(AzureKeyVaultService::class.java);
+            val tenantId = serviceHub.cordaService(NetworkParticipantService::class.java).tenantId;
+            val clientId = serviceHub.cordaService(NetworkParticipantService::class.java).clientId;
+            val clientSecret = serviceHub.cordaService(NetworkParticipantService::class.java).clientSecret;
+            val keyIdentifier = serviceHub.cordaService(NetworkParticipantService::class.java).keyIdentifier;
+            estuaryStorageService.downloadFileFromEstuary(attachment!!.cid);
+            val decentralizedStorageEncryptionKeyRecord =
+                attachment!!.encryptionKeyId?.let {
+                    decentralizedStorageEncryptionKeyService.retrieveDecentralizedStorageEncryptionKeyWithFlowId(
+                        it
+                    )
+                };
+            val downloadedFile = File(File("downloaded.encrypted").path);
+            val decryptedFile = File(File("document.decrypted").path);
+            val decryptedDek = azureKeyVaultService.unWrapKey(
+                tenantId,
+                clientId,
+                clientSecret,
+                keyIdentifier,
+                decentralizedStorageEncryptionKeyRecord!!.key
+            );
+            AESUtil.decryptFile(
+                AESUtil.convertBytesToSecretKey(decryptedDek), IvParameterSpec(
+                    decentralizedStorageEncryptionKeyRecord.ivParameterSpec
+                ), downloadedFile, decryptedFile
+            );
+            val encoded: ByteArray = Files.readAllBytes(Paths.get(File("document.decrypted").path))
+            downloadedFile.delete();
+            decryptedFile.delete();
+            return enclaveClientService.readInputDataFromAttachment(encoded)
+        }
     }
 }

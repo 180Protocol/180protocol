@@ -5,7 +5,8 @@ export async function upload(dispatch, apiUrl, payload) {
     };
 
     try {
-        let response = await fetch(`${apiUrl}/node/uploadNodeAttachment`, requestOptions);
+        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstauryStorageProviderAggregationInputFlow' : '180 Protocol Broker Flows/ProviderAggregationInputFlow';
+        let response = await fetch(`${apiUrl}/node/${flow}`, requestOptions);
         let data = await response.json();
 
         if (data) {
@@ -72,6 +73,52 @@ export async function fetchDecryptedRewardsData(dispatch, apiUrl, payload, dateC
         return;
     } catch (error) {
         dispatch({type: 'FETCH_DECRYPTED_REWARDS_DATA_ERROR', error: error});
+        console.log(error);
+    }
+}
+
+export async function updateDecentralizedStorageEncryptionKey(dispatch, apiUrl, payload) {
+    const requestOptions = {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    };
+
+    try {
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyUpdateFlow`, requestOptions);
+        let data = await response.json();
+
+        if (data) {
+            dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS', payload: data});
+            return data;
+        }
+
+        dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: 'Error'});
+        return;
+    } catch (error) {
+        dispatch({type: 'UPDATE_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: error});
+        console.log(error);
+    }
+}
+
+export async function retrievalDecentralizedStorageEncryptionKey(dispatch, apiUrl, payload) {
+    const requestOptions = {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    };
+
+    try {
+        let response = await fetch(`${apiUrl}/node/180 Protocol Estuary Storage/DecentralizedStorageEncryptionKeyRetrievalFlow?wait=1`, requestOptions);
+        let data = await response.json();
+
+        if (data) {
+            dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_SUCCESS', payload: data});
+            return data;
+        }
+
+        dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: 'Error'});
+        return;
+    } catch (error) {
+        dispatch({type: 'RETRIEVAL_DECENTRALIZED_STORAGE_ENCRYPTION_KEY_ERROR', error: error});
         console.log(error);
     }
 }
