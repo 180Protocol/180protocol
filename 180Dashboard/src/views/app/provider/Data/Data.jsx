@@ -158,7 +158,7 @@ const Dashboard = (props) => {
             formData.append("storageType", values.storageType.value);
             formData.append("encryptionKeyId", encryptionKey);
 
-            let response = await upload(dispatch, props.apiUrl, formData);
+            let response = await upload(dispatch, props.apiUrl, formData, values.storageType.value);
             if (response) {
                 setStep(1);
                 resetForm({ values: '' });
@@ -328,15 +328,16 @@ const Dashboard = (props) => {
                                                                 <div className="row">
                                                                     <div className={`col-sm-12 col-md-6`}>
                                                                         <div className={styles.rightBoxInner}>
-                                                                            <div className="ratio ratio-4x3">
+                                                                            <div>
                                                                                 <div className={styles.dragArea} {...getRootProps()}>
                                                                                     <div className={styles.dragAreaInner}>
                                                                                         <div className={styles.icon}>
                                                                                             <img src={uploadIcon} alt="upload file" />
                                                                                         </div>
-                                                                                        <header>Drag & Drop to Upload File</header>
-                                                                                        <span>OR</span>
+                                                                                        <header>Drag & Drop to Upload File
+                                                                                        <span> OR </span>
                                                                                         <button>Browse File</button>
+                                                                                        </header>
                                                                                         <input {...getInputProps()} />
                                                                                     </div>
                                                                                 </div>

@@ -1,11 +1,11 @@
-export async function upload(dispatch, apiUrl, payload) {
+export async function upload(dispatch, apiUrl, payload, storageType) {
     const requestOptions = {
         method: 'POST',
         body: payload,
     };
 
     try {
-        let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstauryStorageProviderAggregationInputFlow' : '180 Protocol Broker Flows/ProviderAggregationInputFlow';
+        let flow = storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstauryStorageProviderAggregationInputFlow' : '180 Protocol Broker Flows/ProviderAggregationInputFlow';
         let response = await fetch(`${apiUrl}/node/${flow}`, requestOptions);
         let data = await response.json();
 
