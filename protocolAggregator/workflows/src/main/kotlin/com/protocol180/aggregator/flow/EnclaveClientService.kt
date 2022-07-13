@@ -131,22 +131,12 @@ class EnclaveClientService(val services: AppServiceHub) : SingletonSerializeAsTo
     }
 
     fun readInputDataFromAttachment(zipData: ByteArray): MutableList<String> {
-        val attachmentFile = File("provider_data_file.zip")
-        attachmentFile.writeBytes(zipData)
-        val zipAttachmentFile = ZipFile(attachmentFile)
-        val zis = ZipInputStream(FileInputStream(attachmentFile))
-
-        val zipEntry = zis.nextEntry
-                ?: throw FileNotFoundException("Input Data CSV file is not available into attachment.")
-        val inputStream = zipAttachmentFile.getInputStream(zipEntry)
+        val targetStream = ByteArrayInputStream(zipData);
         val lineList = mutableListOf<String>()
 
-        inputStream.bufferedReader().forEachLine { if (it != "") lineList.add(it) }
-        inputStream.close()
-        zis.close()
+        targetStream.bufferedReader().forEachLine { if (it != "") lineList.add(it) }
+        targetStream.close()
 
-        zipAttachmentFile.close()
-        attachmentFile.delete()
         return lineList
     }
 }
