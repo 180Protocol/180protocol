@@ -214,7 +214,7 @@ const Dashboard = (props) => {
                 </div>
                 <div className="mainContentSection">
                     <div className="container mb-5">
-                        <div className="card">
+                        <div className="card align-items-center">
                             <div className="card-header">
                                 <h3>Upload Data</h3>
                             </div>
@@ -319,14 +319,25 @@ const Dashboard = (props) => {
                                                                             onClick={generateDecentralizedStorageEncryptionKey}>{encryptionKey ? "Update " : "Generate "}
                                                                             Key
                                                                         </button>
-                                                                        <p>{encryptionKey ? "You have already generated a data encryption key (DEK). If you want to update the DEK then click on update key." : "You have to generate a data encryption key (DEK) to encrypt data for storage on Filecoin network."}</p>
+                                                                        {
+                                                                            encryptionKey ?
+                                                                                <>
+                                                                                    <p>You have already generated a data encryption key (DEK).</p>
+                                                                                    <p>If you want to update the DEK then click on update key.</p>
+                                                                                </>
+                                                                                :
+                                                                                <>
+                                                                                    <p>You have to generate a data encryption key (DEK)</p>
+                                                                                    <p>to encrypt data for storage on Filecoin network.</p>
+                                                                                </>
+                                                                        }
                                                                     </div>
                                                                 </div> : null
                                                         }
                                                         {
                                                             step === 4 ?
                                                                 <div className="row">
-                                                                    <div className={`col-sm-12 col-md-6`}>
+                                                                    <div className={`col-sm-12 col-md-12`}>
                                                                         <div className={styles.rightBoxInner}>
                                                                             <div>
                                                                                 <div className={styles.dragArea} {...getRootProps()}>
@@ -335,31 +346,26 @@ const Dashboard = (props) => {
                                                                                             <img src={uploadIcon} alt="upload file" />
                                                                                         </div>
                                                                                         <header>Drag & Drop to Upload File
-                                                                                        <span> OR </span>
-                                                                                        <button>Browse File</button>
+                                                                                                OR &nbsp;&nbsp; 
+                                                                                            <button>Browse File</button>
                                                                                         </header>
+                                                                                        <p className={styles.uploadedfileName}>
+                                                                                {selectedFiles && selectedFiles.length > 0 ?
+                                                                                    selectedFiles.map((file, key) => {
+                                                                                        return file.name
+                                                                                    }) : ''}
+                                                                            </p>
                                                                                         <input {...getInputProps()} />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div className={`col-sm-12 col-md-6`}>
-                                                                        <div className={styles.previewImgBox}>
-                                                                            <p>Preview</p>
-                                                                            <p className={styles.uploadedfileName}>
-                                                                                {selectedFiles && selectedFiles.length > 0 ?
-                                                                                    selectedFiles.map((file, key) => {
-                                                                                        return file.name
-                                                                                    }) : 'Please select file to preview'}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
                                                                 </div> : null
                                                         }
                                                     </div>
                                                 </div>
-                                                <div className={`col-sm-5 col-md-5`}>
+                                                <div className={`col-sm-12 col-md-12`}>
                                                     <div className={styles.submitBoxInner}>
                                                         {
                                                             step !== 1 ?
