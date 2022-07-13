@@ -133,7 +133,7 @@ class EstuaryStorageConsumerAggregationFlowTest {
         val provider1Key = provider1KeyFlowFuture.get();
         network.runNetwork()
 
-        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.zip").readFully(), dataType, "filecoin", provider1Key);
+        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.csv").readFully(), dataType, "filecoin", provider1Key);
         val provider1FlowFuture = provider1.startFlow(provider1Flow)
         network.runNetwork()
 
@@ -142,7 +142,7 @@ class EstuaryStorageConsumerAggregationFlowTest {
         val provider2Key = provider2KeyFlowFuture.get();
         network.runNetwork()
 
-        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.zip").readFully(), dataType, "filecoin", provider2Key);
+        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.csv").readFully(), dataType, "filecoin", provider2Key);
         val provider2FlowFuture = provider2.startFlow(provider2Flow)
         network.runNetwork()
 
@@ -247,7 +247,7 @@ class EstuaryStorageConsumerAggregationFlowTest {
         val provider1Key = provider1KeyFlowFuture.get();
         network.runNetwork()
 
-        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.zip").readFully(), dataType, "filecoin", provider1Key);
+        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.csv").readFully(), dataType, "filecoin", provider1Key);
         val provider1FlowFuture = provider1.startFlow(provider1Flow)
         network.runNetwork()
 
@@ -256,7 +256,7 @@ class EstuaryStorageConsumerAggregationFlowTest {
         val provider2Key = provider2KeyFlowFuture.get();
         network.runNetwork()
 
-        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.zip").readFully(), dataType, "filecoin", provider2Key);
+        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.csv").readFully(), dataType, "filecoin", provider2Key);
         val provider2FlowFuture = provider2.startFlow(provider2Flow)
         network.runNetwork()
 
