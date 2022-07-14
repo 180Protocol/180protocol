@@ -185,7 +185,11 @@ const Dashboard = (props) => {
 
         let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
         if (response) {
-            alertRef.current.showAlert('success', 'Request submitted successfully.');
+            let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
+            if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
+                alertRef.current.showAlert('success', 'Request submitted successfully.');
+                setEncryptionKey(storageKeyData.result.value);
+            }
         }
     }
 
@@ -346,15 +350,15 @@ const Dashboard = (props) => {
                                                                                             <img src={uploadIcon} alt="upload file" />
                                                                                         </div>
                                                                                         <header>Drag & Drop to Upload File
-                                                                                                OR &nbsp;&nbsp; 
+                                                                                            OR &nbsp;&nbsp;
                                                                                             <button>Browse File</button>
                                                                                         </header>
                                                                                         <p className={styles.uploadedfileName}>
-                                                                                {selectedFiles && selectedFiles.length > 0 ?
-                                                                                    selectedFiles.map((file, key) => {
-                                                                                        return file.name
-                                                                                    }) : ''}
-                                                                            </p>
+                                                                                            {selectedFiles && selectedFiles.length > 0 ?
+                                                                                                selectedFiles.map((file, key) => {
+                                                                                                    return file.name
+                                                                                                }) : ''}
+                                                                                        </p>
                                                                                         <input {...getInputProps()} />
                                                                                     </div>
                                                                                 </div>
