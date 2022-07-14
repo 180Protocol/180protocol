@@ -52,7 +52,7 @@ export async function fetchDecryptedDataOutput(dispatch, apiUrl, payload) {
 
     try {
         let flow = payload.storageType === 'filecoin' ? '180 Protocol Estuary Storage/EstuaryStorageConsumerDataOutputRetrievalFlow' : '180 Protocol Broker Flows/ConsumerDataOutputRetrievalFlow';
-        let response = await fetch(`${apiUrl}/node/${flow}?wait=1`, requestOptions);
+        let response = await fetch(`${apiUrl}/node/${flow}?wait=3`, requestOptions);
         let data = await response.json();
         let value = data.result.value ? data.result.value.split("\n") : [];
         let result = [];
