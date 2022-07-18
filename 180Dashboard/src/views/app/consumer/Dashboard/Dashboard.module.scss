@@ -78,7 +78,8 @@
 
           .selectCateBox,
           .descriptionCateBox {
-            width: calc(47% - 60px);
+            width: 100%;
+            // width: calc(47% - 60px);
             // max-width: 250px;
           }
 
