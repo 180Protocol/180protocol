@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useReducer } from "react";
 import Grid from "../../../../components/Grid";
 import { Field, Form, Formik } from "formik";
 import { FormikReactSelect } from "../../../../containers/FormikFields";
@@ -14,6 +14,9 @@ import { ucWords } from "../../../../utils/helpers";
 import moment from "moment";
 import AlertBox from "../../../../components/AlertBox";
 import { ProgressBar, Step } from "react-step-progress-bar";
+import FadeLoader from "react-spinners/FadeLoader";
+import { css } from "@emotion/react";
+import ConsumerReducer, { initialState } from '../../../../store/consumer/reducer';
 
 // Styles
 import styles from './Dashboard.module.scss';
@@ -35,6 +38,13 @@ const RightArrowIcon = () => {
 
 const steps = ["1", "2", "3", "4"];
 
+const override = css`
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 48%;
+`;
+
 const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
 
@@ -44,10 +54,12 @@ const Dashboard = (props) => {
     const [encryptionKey, setEncryptionKey] = useState(null);
     const [lastRequestDate, setLastRequestDate] = useState(null);
     const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
     const alertRef = useRef();
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
     const storageTypeOptions = localStorage.getItem('storageTypeOptions') ? JSON.parse(localStorage.getItem('storageTypeOptions')) : [];
+    const [consumer] = useReducer(ConsumerReducer, initialState);
 
     useEffect(() => {
         async function fetchData() {
@@ -67,8 +79,7 @@ const Dashboard = (props) => {
         fetchData().then((response) => {
             getDecryptedData(response);
         });
-
-    }, [dispatch]);
+    }, [dispatch, consumer]);
 
     const getDecryptedData = (response) => {
         setEncryptedDataOutput(response);
@@ -119,8 +130,10 @@ const Dashboard = (props) => {
             }
         };
 
+        setLoading(true);
         let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
         if (response) {
+            setLoading(false);
             alertRef.current.showAlert('success', 'Request submitted successfully.');
         }
     }
@@ -231,7 +244,7 @@ const Dashboard = (props) => {
                 </div>
                 <div className="mainContentSection">
                     <div className={`container mb-5 ${styles.accessDataContainer}`}>
-                        <div className="card">
+                        <div className="card align-items-center">
                             <div className="card-header">
                                 <h3>Access Data</h3>
                             </div>
@@ -333,12 +346,37 @@ const Dashboard = (props) => {
                                                             {
                                                                 step === 3 ?
                                                                     <div className={styles.submitBoxInner}>
-                                                                        <div className={styles.submitBtnBox}>
+                                                                        {
+                                                                            loading ? <div className={styles.loaderOverlay} style={{ marginLeft: 240, zIndex: 99, position: 'absolute' }}>
+                                                                                <FadeLoader
+                                                                                    css={override}
+                                                                                    speedMultiplier={1}
+                                                                                    radius={2}
+                                                                                    margin={2}
+                                                                                    height={15}
+                                                                                    width={5}
+                                                                                    color={"#35607e"}
+                                                                                    loading={true}
+                                                                                />
+                                                                            </div> : null
+                                                                        }
+                                                                        <div className={styles.submitBtnBox} style={{ opacity: loading ? '0.4' : 1, marginLeft: 40 }}>
                                                                             <button type="button" name="Generate"
                                                                                 onClick={generateDecentralizedStorageEncryptionKey}>{encryptionKey ? "Update " : "Generate "}
                                                                                 Key
                                                                             </button>
-                                                                            <p>{encryptionKey ? "You have already generated a data encryption key (DEK). If you want to update the DEK then click on update key." : "You have to generate a data encryption key (DEK) to encrypt data for storage on Filecoin network."}</p>
+                                                                            {
+                                                                                encryptionKey ?
+                                                                                    <>
+                                                                                        <p>You have already generated a data encryption key (DEK).</p>
+                                                                                        <p>If you want to update the DEK then click on update key.</p>
+                                                                                    </>
+                                                                                    :
+                                                                                    <>
+                                                                                        <p>You have to generate a data encryption key (DEK)</p>
+                                                                                        <p>to encrypt data for storage on Filecoin network.</p>
+                                                                                    </>
+                                                                            }
                                                                         </div>
                                                                     </div> : null
                                                             }
@@ -357,7 +395,7 @@ const Dashboard = (props) => {
                                                             }
                                                         </div>
                                                     </div>
-                                                    <div className={`col-sm-5 col-md-5`}>
+                                                    <div className={`col-sm-12 col-md-12`}>
                                                         <div className={styles.submitBoxInner}>
                                                             {
                                                                 step !== 1 ?

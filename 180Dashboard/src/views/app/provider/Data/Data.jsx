@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useReducer } from "react";
 import Select from 'react-select';
 import Grid from "../../../../components/Grid";
 import { useDropzone } from "react-dropzone";
@@ -14,6 +14,9 @@ import { ProgressBar, Step } from "react-step-progress-bar";
 import { Field, Form, Formik } from "formik";
 import { FormikReactSelect } from "../../../../containers/FormikFields";
 import moment from "moment";
+import FadeLoader from "react-spinners/FadeLoader";
+import { css } from "@emotion/react";
+import ProviderReducer, { initialState } from '../../../../store/provider/reducer';
 
 // Styles
 import styles from './Data.module.scss';
@@ -31,6 +34,13 @@ const RightArrowIcon = () => {
 }
 
 const steps = ["1", "2", "3", "4"];
+
+const override = css`
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 48%;
+`;
 
 const Dashboard = (props) => {
     const dispatch = useAuthDispatch();
@@ -53,9 +63,11 @@ const Dashboard = (props) => {
     const [dataType, setDataType] = useState({});
     const [encryptionKey, setEncryptionKey] = useState(null);
     const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
 
     const dataTypeOptions = localStorage.getItem('dataTypeOptions') ? JSON.parse(localStorage.getItem('dataTypeOptions')) : [];
     const storageTypeOptions = localStorage.getItem('storageTypeOptions') ? JSON.parse(localStorage.getItem('storageTypeOptions')) : [];
+
 
     useEffect(() => {
         async function fetchData() {
@@ -183,10 +195,12 @@ const Dashboard = (props) => {
             }
         };
 
+        setLoading(true);
         let response = await updateDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, params);
         if (response) {
             let storageKeyData = await retrievalDecentralizedStorageEncryptionKey(dispatch, props.apiUrl, { "options": { "trackProgress": true } });
             if (storageKeyData && storageKeyData.result && storageKeyData.result.value) {
+                setLoading(false);
                 alertRef.current.showAlert('success', 'Request submitted successfully.');
                 setEncryptionKey(storageKeyData.result.value);
             }
@@ -318,7 +332,20 @@ const Dashboard = (props) => {
                                                         {
                                                             step === 3 ?
                                                                 <div className={styles.submitBoxInner}>
-                                                                    <div className={styles.submitBtnBox}>
+                                                                    {
+                                                                        loading ? <div className={styles.loaderOverlay} style={{ marginLeft: 240, zIndex: 99, position: 'absolute' }}>
+                                                                            <FadeLoader
+                                                                                css={override}
+                                                                                speedMultiplier={1}
+                                                                                radius={2}
+                                                                                margin={2}
+                                                                                height={15}
+                                                                                width={5}
+                                                                                color={"#35607e"}
+                                                                                loading={true}
+                                                                            /> </div> : null
+                                                                    }
+                                                                    <div className={styles.submitBtnBox} style={{ opacity: loading ? '0.4' : 1 }}>
                                                                         <button type="button" name="Generate"
                                                                             onClick={generateDecentralizedStorageEncryptionKey}>{encryptionKey ? "Update " : "Generate "}
                                                                             Key

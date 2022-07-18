@@ -6,6 +6,7 @@
     "@devexpress/dx-react-core": "^2.7.6",
     "@devexpress/dx-react-grid": "^2.7.6",
     "@devexpress/dx-react-grid-bootstrap4": "^2.7.6",
+    "@emotion/core": "^11.0.0",
     "@nivo/core": "^0.74.0",
     "@nivo/pie": "^0.74.0",
     "@testing-library/jest-dom": "^5.14.1",
@@ -22,6 +23,7 @@
     "react-router-dom": "^5.3.0",
     "react-scripts": "4.0.3",
     "react-select": "^5.1.0",
+    "react-spinners": "^0.13.3",
     "react-step-progress-bar": "^1.0.3",
     "web-vitals": "^1.1.2",
     "yamljs": "^0.3.0"
