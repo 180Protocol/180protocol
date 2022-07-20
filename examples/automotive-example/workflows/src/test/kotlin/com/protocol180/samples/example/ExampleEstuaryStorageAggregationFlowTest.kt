@@ -9,6 +9,7 @@ import com.protocol180.aggregator.states.DataOutputState
 import com.protocol180.aggregator.states.RewardsState
 import com.protocol180.aggregator.states.RoleType
 import com.protocol180.aggregator.storage.flow.DecentralizedStorageEncryptionKeyUpdateFlow
+import com.protocol180.aggregator.storage.flow.EstauryStorageProviderAggregationInputFlow
 import com.protocol180.aggregator.storage.flow.EstuaryStorageConsumerAggregationFlow
 import com.protocol180.aggregator.storage.flow.EstuaryStorageConsumerDataOutputRetrievalFlow
 import net.corda.core.internal.readFully
@@ -133,12 +134,29 @@ class ExampleEstuaryStorageAggregationFlowTest {
     fun estauryStorageConsumerAggregationFlowStateCreationTest() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
-        val updateFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
-        consumer1.startFlow(updateFlow)
+        val provider1KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val provider1KeyFlowFuture = provider1.startFlow(provider1KeyFlow);
+        val provider1Key = provider1KeyFlowFuture.get();
         network.runNetwork()
+
+        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.csv").readFully(), dataType, "filecoin", provider1Key);
+        val provider1FlowFuture = provider1.startFlow(provider1Flow)
+        network.runNetwork()
+
+        val provider2KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val provider2KeyFlowFuture = provider2.startFlow(provider2KeyFlow);
+        val provider2Key = provider2KeyFlowFuture.get();
+        network.runNetwork()
+
+        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.csv").readFully(), dataType, "filecoin", provider2Key);
+        val provider2FlowFuture = provider2.startFlow(provider2Flow)
+        network.runNetwork()
+
+        val consumer1KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val consumer1KeyFlowFuture = consumer1.startFlow(consumer1KeyFlow)
+        network.runNetwork()
+
         val flow = EstuaryStorageConsumerAggregationFlow(
             dataType,
             description,
@@ -198,18 +216,61 @@ class ExampleEstuaryStorageAggregationFlowTest {
                     listOf(host.info.legalIdentities[0], consumer1.info.legalIdentities.first()))
             }
         }
+
+        //check rewards transaction for provider
+        provider1.transaction {
+            val rewardsState: RewardsState = provider1.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+
+            assertEquals(host.info.legalIdentities[0], rewardsState.host)
+            assertEquals(provider1.info.legalIdentities.first(), rewardsState.provider)
+            assertTrue {
+                rewardsState.participants.containsAll(
+                    listOf(host.info.legalIdentities[0], provider1.info.legalIdentities.first()))
+            }
+        }
+
+        //check rewards transaction for provider
+        provider2.transaction {
+            val rewardsState: RewardsState = provider2.services.vaultService.queryBy<RewardsState>(
+                VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)).states.single().state.data
+
+            assertEquals(host.info.legalIdentities[0], rewardsState.host)
+            assertEquals(provider2.info.legalIdentities.first(), rewardsState.provider)
+            assertTrue {
+                rewardsState.participants.containsAll(
+                    listOf(host.info.legalIdentities[0], provider2.info.legalIdentities.first()))
+            }
+        }
     }
 
     @Test
     fun estauryStorageConsumerOutputQueryTestAfterAggregation() {
         val dataType = "testDataType1"
         val description = "test schema for DataType1 code"
-        uploadAttachmentToNode(provider1.services, dataType,"Provider1InputData.zip")
-        uploadAttachmentToNode(provider2.services, dataType,"Provider2InputData.zip")
 
-        val storageFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
-        val storageFuture = consumer1.startFlow(storageFlow)
+        val provider1KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val provider1KeyFlowFuture = provider1.startFlow(provider1KeyFlow);
+        val provider1Key = provider1KeyFlowFuture.get();
         network.runNetwork()
+
+        val provider1Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider1InputData.csv").readFully(), dataType, "filecoin", provider1Key);
+        val provider1FlowFuture = provider1.startFlow(provider1Flow)
+        network.runNetwork()
+
+        val provider2KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val provider2KeyFlowFuture = provider2.startFlow(provider2KeyFlow);
+        val provider2Key = provider2KeyFlowFuture.get();
+        network.runNetwork()
+
+        val provider2Flow = EstauryStorageProviderAggregationInputFlow(ClassLoader.getSystemClassLoader().getResourceAsStream("Provider2InputData.csv").readFully(), dataType, "filecoin", provider2Key);
+        val provider2FlowFuture = provider2.startFlow(provider2Flow)
+        network.runNetwork()
+
+        val consumer1KeyFlow = DecentralizedStorageEncryptionKeyUpdateFlow();
+        val consumer1KeyFlowFuture = consumer1.startFlow(consumer1KeyFlow)
+        network.runNetwork()
+
         val flow = EstuaryStorageConsumerAggregationFlow(
             "testDataType1",
             description,
@@ -255,13 +316,4 @@ class ExampleEstuaryStorageAggregationFlowTest {
         println("Reward Output 2: $provider2RewardOutput")
         network.runNetwork()
     }
-
-    private fun uploadAttachmentToNode(service: ServiceHub,
-                                       dataType: String,
-                                       filename: String): String {
-        val attachmentHash = service.attachments.importAttachment(ClassLoader.getSystemClassLoader().getResourceAsStream(filename), dataType, filename)
-
-        return attachmentHash.toString();
-    }
-
 }
