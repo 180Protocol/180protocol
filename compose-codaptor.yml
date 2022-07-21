@@ -3,7 +3,7 @@
 version: '2'
 services:
   codaptora:
-    image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
+    image: b180tech/cordaptor:0.4.1-corda4.7
     hostname: codaptora
     mem_limit: 512m
     environment:
@@ -23,7 +23,7 @@ services:
       # Corda RPC requires CorDapp JARs to be available in the classpath
       - ./protocolAggregator/build/nodes/Host/cordapps:/cordaptor/cordapps
   codaptorb:
-    image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
+    image: b180tech/cordaptor:0.4.1-corda4.7
     hostname: codaptorb
     mem_limit: 512m
     environment:
@@ -43,7 +43,7 @@ services:
       # Corda RPC requires CorDapp JARs to be available in the classpath
       - ./protocolAggregator/build/nodes/ProviderB/cordapps:/cordaptor/cordapps
   codaptord:
-    image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
+    image: b180tech/cordaptor:0.4.1-corda4.7
     hostname: codaptord
     mem_limit: 512m
     environment:
@@ -63,7 +63,7 @@ services:
       # Corda RPC requires CorDapp JARs to be available in the classpath
       - ./protocolAggregator/build/nodes/ProviderD/cordapps:/cordaptor/cordapps
   codaptorc:
-    image: b180tech/cordaptor:0.3.0-corda4.7-SNAPSHOT
+    image: b180tech/cordaptor:0.4.1-corda4.7
     hostname: codaptorc
     mem_limit: 512m
     environment:
