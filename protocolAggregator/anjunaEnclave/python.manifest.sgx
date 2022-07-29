@@ -1,0 +1,38 @@
+environment:
+- name: LD_LIBRARY_PATH
+  value: Runtime:/lib/x86_64-linux-gnu
+command: /home/azureuser/180protocol/protocolAggregator/anjunaEnclave/venv/bin/python
+enclave_size: 2147483648
+num_threads: 64
+num_switchless_workers: 1
+isv_prod_id: 0
+isv_svn: 0
+trusted_hashes:
+- path: /lib/x86_64-linux-gnu/libz.so.1
+  hash: a2a9fe2449100e9f0fee051929ecf979a84f1e10801ebf1ac92cea1598691129
+- path: /home/azureuser/180protocol/protocolAggregator/anjunaEnclave/venv/bin/python
+  hash: b9d6afd6104319204b4a2caf9ea9d457a99d14c65c8875cf29f894414375a168
+- path: Runtime/libutil.so.1
+  hash: 40a27b64a46cbe80cf2ccc5a64870233a8c7ac903713402505deb768f9c7a1d2
+- path: Runtime/libpthread.so.0
+  hash: 54fd8e6077598168372bc203a2699fe50baf1fa5a4cd8028a9f56a4b7db4de6f
+- path: Runtime/libdl.so.2
+  hash: fa96fce0f5abfe3b132470990a99d05de27185b8a347261e7ab6c7508484379e
+- path: /lib/x86_64-linux-gnu/libexpat.so.1
+  hash: 814511d21382822ab40b3bfc1b1eff649ea2332594ae65b93852277cf4c04b1b
+- path: Runtime/libm.so.6
+  hash: 9ee4c2cb354570f2a95072ddb5e8eb870da6d7f63e1464c2817fba1c91f59fb8
+- path: Runtime/ld-linux-x86-64.so.2
+  hash: 0017b6f95ee84fa0940c553cabb5f4ab5d0244e4903f9114e4170158b7a63e9b
+- path: Runtime/libc.so.6
+  hash: abdc9bdf8a682265a9038765c615715e807e64eae3da6ac6eb38946e27199ced
+disable_switchless: false
+ignore_map_shared: false
+ignore_vfork: false
+is_production: false
+keys:
+- id: secret_key
+  source: enclave_generated
+encrypted_files:
+- path: aggregateOutput.avro.encrypted
+  key: secret_key

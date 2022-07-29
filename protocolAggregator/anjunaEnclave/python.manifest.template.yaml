@@ -1,0 +1,346 @@
+#
+# "enclave_size" is the size of the virtual address space of secure enclave memory
+# that your program can use.  Picking smaller values leads to quicker startup times.
+# The enclave size must be a power of 2.  To make this easier, you can use the suffixes
+# M and G in manifest template files. 512M, for example, will be converted to 2^29
+# (536870912). The minimum size is 128M and the maximum size is the largest power
+# of 2 that is strictly less than the size of physical memory.  As an example, if the
+# host has 6G of memory, the maximum "enclave_size" is 4G. "enclave_size" affects the
+# enclave signature and will always be in the compiled manifest. If left unspecified in
+# the manifest template, it's value is defaulted to 256M.
+#
+enclave_size: 2G
+
+#
+# "num_threads" is the maximum number of simultaneous threads that the enclave will
+# require. It affects the enclave signature and will always be in the compiled manifest.
+# It's range is from 1 to 254.  If not specified in the template, it's value is defaulted
+# to 16.
+#
+num_threads: 64
+
+#
+# "environment" is a list of name/value pairs that you want our runtime to add or overwrite
+# before launching the application in the encalve.  Many programs require variables
+# to be locked down to enforce a secure coniguration.  Put such variables in this section.
+#
+#environment:
+#- name: DISPLAY
+#  value: 127.0.0.1:0.0
+
+#
+# "command_arguments" allows you to lock down the exact arguments passed to the
+# executable when run in the enclave.  This can prevent an attacker from using
+# invocation scenarios that might violate the security of the data in your secure
+# encalve.
+#
+# When specified, no values should be passed to your program when invoking
+# anjuna-runtime or an error will be produced.  Instead, your program will
+# be started with the parameters specified below.
+#
+#command_arguments:
+#- program_name
+#- first_parameter
+#- second_parameter
+
+#
+# "isv_prod_id" and "isv_svn" affect the enclave signature and will always be in the
+# compiled manifest. If not specified in the manifest template, their values are
+# defaulted to zero.  If you are interested in the finer details of how these variables
+# work, Intel SGX Explained is an excellent resource.
+#
+#isv_prod_id: 0
+#isv_svn: 0
+
+#
+# "trusted_files" is a list of paths that will be locked to specific SHA256 hash
+# values in the manifest compilation process.  Any non-sealed configuration files
+# that need to be fixed for the security of your program should be listed in
+# "trusted_files".  Shared libraries that are displayed when running "ldd" on
+# your executable will automatically get added, but other shared libraries loaded
+# late at runtime and all interpreted code (python modules, for example) need to be
+# in this list or an attacker can inject code into your enclave and, for example,
+# extract the data from your otherwise secure memory.
+#
+#trusted_files:
+#- path1
+#- path2
+
+#
+# "trusted_libs" is the same as "trusted_files", but every entry must be a shared
+# library (or other ELF file). When an entry is added to "trusted_libs",
+# both the entry and all shared library dependencies of that entry will be locked
+# to a specific SHA256 hash.  This is useful for shared libraries that are not
+# compiled in to an executable.  For example, a configurable shared library needed
+# to interact with an HSM via a PKCS#11 API.
+#
+#trusted_libs:
+#- path1
+#- path2
+
+#
+# "trusted_hashes" is not intended for manifest templates, but it can be in the
+# template if the file is not available locally to calculate the hash on.  The
+# manifest compiler will just append entries to it.  You'll see that your
+# "trutsed_files" entries are converted to these "trusted_hashes" entries in the
+# compiled manifest.
+#
+#trusted_hashes:
+#- path: path1
+#  hash: sha256sum-in-lowercase-hex-for-path1
+
+#
+# "trusted_children" are the signature files for other executables that, when
+# invoked by this executable, will also be run in a secure enclave. During template
+# compilation these entries are transformed into "trusted_child_enclave" entries.
+#
+#trusted_children:
+#- exec_victim.sig
+#- uname.sig
+
+# "encrypted_files" is a list of file paths that should be automatically
+# encrypted by Anjuna Runtime, and identifiers of the keys used to encrypt and decrypt them.
+# File paths may contain "?" and "*" wildcards.
+#
+encrypted_files:
+ - path: aggregateOutput.avro.encrypted
+   key: secret_key
+
+# "keys" is a list of key identifiers with information used to retrieve them.
+# The different attributes for key are -
+#  - id - unique ID for the key. Keys may be referenced by their identifiers
+#         in the "encrypted_files" entry.
+#
+#  - source - describes how the key is retrieved inside the enclave.
+#             The different sources include -
+#       key_server        - the key is fetched from a remote policy manager.
+#                           Currently, the runtime only supports remote keys
+#                           with URIs starting with "anjuna://". The runtime
+#                           will attempt to fetch these keys upon startup.
+#                           The key uri must be specified using the "uri"
+#                           field below. The engine path must be specified,
+#                           using the "engine" field below. This is the path
+#                           the secret engine is loaded in the policy manager.
+#                           Finally, for versioned keys, you can also provide
+#                           the specific version of the key.
+#       hardware          - key is generated using the special hardware on
+#                           the system, e.g. SGX. When hardware keys are used
+#                           we must specify the attributes of the system that
+#                           the key must be bound to using the "bindings" field.
+#       RSA               - the RSA public key will be directly provided in this
+#                           configuration. The files encrypted using "RSA" are 
+#                           write-only. The runtime does not know the RSA private
+#                           key and therefore can never read them back. There is
+#                           an anjuna-decrypt utility that can be used to decrypt
+#                           the files on a fully trusted host with the RSA private
+#                           key for such files.
+#       enclave_generated - the key will be retrieved from an enclave-sealed file.
+#                           This can be done by running the enclave once in advance
+#                           and asking it to generate a "provisioning" public/private
+#                           keypair. An input file can be encrypted by the user by
+#                           using the "anjuna-encrypt" tool, providing the provisioning
+#                           public key. Only the enclave can unseal the private key
+#                           and decrypt the file.
+#
+#  - uri - the uri used to retrieve the key from the policy manager server.
+#
+#  - bindings - list of attributes of the system the encryption key must be bound
+#               to if the key source is "hardware". Possible values include
+#               VENDOR_IDENTITY and ENCLAVE_IDENTITY.
+#
+#  - value - The PEM encoded public key that will be used when the key source
+#            is "RSA".
+#
+keys:
+ - id: secret_key
+   source: enclave_generated
+#  - id:       sgx_key1
+#    source:   hardware
+#    bindings:
+#      - VENDOR_IDENTITY
+#      - ENCLAVE_IDENTITY
+#  - id:       user_rsa_key_1
+#    source:   RSA
+#    value: |
+#      -----BEGIN PUBLIC KEY-----
+#      [... use the same number of indent spaces on every line of the PEM key ...]
+#      -----END PUBLIC KEY-----
+#  - id:       enclave_rsa_key_1
+#    source:   enclave_generated
+
+# "tls_certificates_from_apm" is a list of certificates to be retrieved from the policy manager
+# and stored only in the enclave as in-memory virtual files. The various atributes of the
+# certificate are:
+#  - issuer_path - the path of the certificate issuer in the policy manager. This is the
+#                  path configured using the anjuna-policy-manager cli tool.
+#  - common_name - the common name to use for the certificate.
+#  - key_path_in_enclave - the file path required for the certificate's private key. This is where
+#                          the application will find the private key. This path is only accessible
+#                          inside of the enclave. No file is created on disk.
+#  - cert_path_in_enclave - the file path required for the certificate. This is where the 
+#                           application will find the certificate. This path is only accessible
+#                           inside of the enclave.  No file is created on disk.
+#  - cacert_path_in_enclave - the file path required for the certificate signing chain. The signing
+#                             chain is a chain of certificates each signed by the next, going from
+#                             the retrieved certificate to the root CA. This path is only
+#                             accessible inside of the enclave. No file is created on disk.
+#  - alt_names - a list of FQDN SANs to use for the certificate (optional).
+#  - ip_sans - a list of IP SANs for the certificate (optional).
+#  - uri_sans - a list of URI SANs for the certificate (optional).
+#  - other_sans - a list of other SANs in a format like openssl's (<oid>;UTF8:<value>). (optional).
+#  - ttl - the TTL required for the certificate. Note: this value is capped by what was configured
+#          in the policy manager. Trying to set it to anything beyond will result in a failiure to
+#          retrieve the certificate. If no TTL is given the default TTL configured in the policy
+#          manager will be used (optional).
+#
+# tls_certificates_from_apm:
+# - issuer_path: pki/issue/test_certificate
+#   common_name: test.com
+#   alt_names:
+#   - also.a-test.com
+#   - some.othertest.com
+#   ip_sans:
+#   - 127.0.0.1
+#   - 1.2.3.4
+#   uri_sans:
+#   - ftp://test.com
+#   - ldap://DC=test
+#   other_sans:
+#   - 2.5.4.97;UTF8:myOIDsans
+#   ttl: 84000
+#   key_path_in_enclave: /var/etc/enclave.key
+#   cert_path_in_enclave: /var/etc/enclave.cert
+#   cacert_path_in_enclave: /var/etc/enclave.chain.cert
+
+# "policy_manager" configures the connection to the Policy Manager;
+# requires "socket", "url" and "ca_cert" attributes.
+#   "socket" is the name of the abstract domain socket on which the broker listens for connections.
+#   "url" is the URL of the Policy Manager instance. This must start with "https://".
+#   "ca_cert" is the pinned PEM-encoded CA certificate attesting the Policy Manager instance.
+#
+# policy_manager:
+#   socket: apm-broker
+#   url: https://127.0.0.1:8200
+#   ca_cert: |
+#     -----BEGIN CERTIFICATE-----
+#     MIIEczCCA1ugAwIBAgIBADANBgkqhkiG9w0BAQQFAD..AkGA1U
+
+#
+# "log_level" allows you to set the amount of logging. Valid values are:
+#  trace, debug, info, warn, error or fatal.  Default if unspecified is info.
+#
+#log_level: info
+
+#
+# "is_production" allows you to configure a release anjuna-runtime that can not
+# be debugged. The default is false. This value affects the enclave signature
+# and will always be in the compiled manifest file.
+#
+#is_production: false
+
+#
+# "disable_switchless" disables the switchless ocall feature.  The default value for all
+# our boolean configuration flags is false. Switchless feature leads to faster execution
+# in our runtime. Sometimes it might be disabled to improve stability.
+#
+#disable_switchless: false
+
+#
+# "enable_api_endpoint" initializes a web-service that exposes the runtime API via
+# HTTP REST. Currently, two API endpoints are supported, including /version and /manifest.
+#
+#enable_api_endpoint: false
+
+#
+# "api_endpoint_port" specifies the port on which the API endpoint accepts connections.
+# The default value if not specified would be 8088.
+#
+#api_endpoint_port: 8088
+
+#
+# "logger_type" enables specifying where log messages are directed to. The user
+# is able to choose between "stream" (regular printing to standard output),
+# "stderr" (printing to standard error), "syslog" (emitting syslog messages)
+# and "remote_syslog" (which currently submits logs to Papertrail).
+# When unspecified, the default is the "stream" logger.
+#
+#logger_type: stream
+
+#
+# "syslog_server_ip" configures the IP address of a remote syslog server, and should
+# be specified when the logger_type is remote_syslog.
+#
+#syslog_server_ip: 169.46.82.168
+
+#
+# "syslog_server_port" configures the port of a remote syslog server, and should 
+# be specified when logger_type is remote_syslog.
+#
+#syslog_server_port: 22415
+
+# "ignore_map_shared" ignores the MAP_SHARED flag, when passed to mmap, treating it as MAP_PRIVATE
+# instead.  This can be useful for programs like the Java runtime which use the MAP_SHARED flag
+# when it really isn't needed.
+#
+#ignore_map_shared: false
+
+# "wait_for_child_process" stops the execution of parent process until child process is fully created.
+# Affecting behaviour of clone and fork syscalls only. Defaults to "false". Set this to "true" when
+# the parent process is setting a short timeout for the child to complete some task.
+#
+#wait_for_child_process: false
+
+# "enable_fork_full_state_copy" on fork or clone syscall makes an exact copy of parent process
+# instead of copying the used memory only. Defaults to "false". Setting this to "true" will only 
+# be faster if most of the enclave memory is used by the running application.
+#
+#enable_fork_full_state_copy: false
+
+#
+# "log_file" allows you to open a log file for the Anjuna Runtime's output. When the
+# flag is not set, the output will be redirected to file descriptor #1023.
+#
+#log_file: ./anjuna.log
+
+# "tls_encrypted_ports" allows wrapping TCP socket connections with transparent TLS encryption.
+# Currently, this is only supported for server connections where the application listens for
+# incoming connections on a predetermined port number.
+# The different attributes are -
+#  - server_ports - this is a list of ports that need to be wrapped with TLS.
+#                   If the application listens on this port number, the Runtime will automatically
+#                   try to initiate a TLS handshake when any client tries to connect to it.
+#                   We can specify individual ports or a port range with the format
+#                   start:end
+#  - source       - this specifies where the TLS credentials (certificate and private key)
+#                   come from. Currently, only a single value is supported - "inline",
+#                   which indicates that the certificate(s) and private key are specified in
+#                   this manifest file itself.
+#  - certificate  - the certificate that will be advertised to the connecting clients in PEM
+#                   format.
+#  - ca_certificate - (Optional)
+#                   the Certificate Authority (CA) certificate chain that the clients can use
+#                   to verify the server certificate mentioned above.
+#  - private_key_file_path -
+#                   the path containing the private key corresponding to the public key contained
+#                   in the server certificate above.
+#
+#tls_encrypted_ports:
+#  - server_ports:
+#      - 8080           # single port
+#      - 9000:9100      # port range
+#    source: inline
+#    certificate: |
+#      -----BEGIN CERTIFICATE-----
+#      [... use the same number of indent spaces on every line of the PEM certificate ...]
+#      -----END CERTIFICATE-----
+#    ca_certificate: |
+#      -----BEGIN CERTIFICATE-----
+#      intermediate CA certificate(s)
+#      -----END CERTIFICATE-----
+#
+#      -----BEGIN CERTIFICATE-----
+#      root certificate
+#      -----END CERTIFICATE-----
+#    private_key_file_path: /path/to/private/key/file
+#
+
