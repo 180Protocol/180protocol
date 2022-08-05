@@ -43,6 +43,10 @@ num_threads: 64
 #- first_parameter
 #- second_parameter
 
+command_arguments:
+- python
+- avroSerialization.py
+
 #
 # "isv_prod_id" and "isv_svn" affect the enclave signature and will always be in the
 # compiled manifest. If not specified in the manifest template, their values are
@@ -105,6 +109,10 @@ num_threads: 64
 encrypted_files:
  - path: aggregateOutput.avro.encrypted
    key: secret_key
+
+trusted_files:
+- /home/azureuser/180protocol/protocolAggregator/anjunaEnclave/avroSerialization.py
+
 
 # "keys" is a list of key identifiers with information used to retrieve them.
 # The different attributes for key are -
