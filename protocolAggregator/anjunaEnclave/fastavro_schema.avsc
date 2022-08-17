@@ -1,0 +1,27 @@
+{
+        "type": "record",
+        "name": "AggregateInput",
+        "fields": [
+          {
+            "name": "anzsic06",
+            "type": "string"
+          },
+          {
+            "name": "Area",
+            "type": "string"
+          },
+          {
+            "name": "year",
+            "type": "string"
+          },
+          {
+            "name": "geo_count",
+            "type": "string"
+          },
+          {
+            "name": "ec_count",
+            "type": "string"
+          }
+        ]
+    
+}
