@@ -15,8 +15,16 @@ After serialization approximated size of avro file is 123 MB
     Number of serialised avro records in file: 5704247 or ~ 5.5 Mn  
     
 
-* Azure SGx VM with specs: With SGx chip, 16G RAM, Standard DC4s v2, Quod core   
+* Azure SGx VM with specs: With SGx chip, with Anjuna Runtime , 16G RAM, Standard DC4s v2, Quod core   
  Performance:  
     Approx time to deserialize recrods: ~ 25 Min  
     Number of serialised avro records in file: 5704247 or ~ 5.5 Mn  
-    Note: With SGx Anjuna decryption also included in process.  
+    Note: With SGx Anjuna decryption also included in process.
+    
+  
+  
+* Azure SGx VM with specs: With SGx chip, without Anjuna Runtime , 16G RAM, Standard DC4s v2, Quod core   
+ Performance:  
+    Approx time to deserialize recrods: ~ 24 Min  
+    Number of serialised avro records in file: 5704247 or ~ 5.5 Mn  
+    Note: With SGx Anjuna decryption also included in process.
