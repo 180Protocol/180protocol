@@ -6,8 +6,8 @@ sharing infrastructure, an infrastructure that ensures a secure, rewarding, and 
 
 180Protocol targets enterprise use cases and is uniquely positioned to improve the value and mobility of sensitive business data. 
 The software introduces a distributed network design to the problem of enterprise data sharing,
-solving for the legacy barriers that have limited data mobility and value. 180Protocol makes data available where it needs to be,
-moving it and transforming it along they way, all the while preserving privacy.
+solving the legacy barriers that have limited data mobility and value. 180Protocol makes data available where it needs to be,
+moving it and transforming it along the way, all the while preserving privacy.
 
 ### Design and Components
 
